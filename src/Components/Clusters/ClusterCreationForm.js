@@ -5,7 +5,6 @@ import "./css/ClusterCreationForm.css";
 import { Slide, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
-import { getEnv } from "utils/getEnv";
 import {
   createCluster,
   fetchInfluxdbDetails,

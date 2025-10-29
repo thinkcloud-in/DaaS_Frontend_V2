@@ -12,7 +12,7 @@ import {
   addInfluxdb,
   deleteInfluxdb,
 } from "Services/ClusterService";
-
+import "./css/ClusterCreationForm.css";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -281,7 +281,7 @@ const EditCluster = () => {
                       name="clusterType"
                       className="block cursor-pointer rounded-md py-1.5 text-gray-900  shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 border-2"
                     >
-                      <option value="" disabled>
+                      <option value={cluster.type} disabled>
                         {cluster.type}
                       </option>
                     </select>

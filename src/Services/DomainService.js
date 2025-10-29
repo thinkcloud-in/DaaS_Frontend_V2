@@ -2,6 +2,37 @@ import axiosInstance from './AxiosInstane';
 import { getEnv } from 'utils/getEnv';
 const backendUrl = getEnv('BACKEND_URL');
 
+
+export const testLdapConnectionService = async (backendUrl, token, editAD) => {
+	return axiosInstance.post(
+		`${backendUrl}/v1/test_ldap_connection`,
+		{
+			authType: editAD.authType,
+			bindCredential: editAD.bindCredential,
+			bindDn: editAD.bindDn,
+			connectionTimeout: editAD.connectionTimeout,
+			connectionUrl: editAD.connectionUrl,
+			startTls: editAD.startTls,
+			useTruststoreSpi: editAD.useTruststoreSpi,
+		},
+		{
+			headers: { Authorization: `Bearer ${token}` },
+		}
+	);
+};
+
+// Test LDAP authentication
+export const testLdapAuthenticationService = async (backendUrl, token, editAD) => {
+	return axiosInstance.post(
+		`${backendUrl}/v1/test_ldap_authentication`,
+		{ ...editAD },
+		{
+			headers: { Authorization: `Bearer ${token}` },
+		}
+	);
+};
+
+
 export const syncChangedUsers = async (token, domain_id) => {
 	const response = await axiosInstance.get(
 		`${backendUrl}/v1/sync_changed_users/${domain_id}`,
