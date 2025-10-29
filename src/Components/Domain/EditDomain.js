@@ -3,16 +3,17 @@ import React, { useState, useContext, useEffect } from "react";
 import { PoolContext } from "../../Context/PoolContext";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import axiosInstance from "Services/AxiosInstane";
 import {
   getDomainDetails,
   deleteDomain as deleteDomainService,
   syncUsers,
   syncChangedUsers,
   unlinkUsers,
-  removeImportedUsers
+  removeImportedUsers,
+  updateDomain,
+  testLdapConnectionService,
+  testLdapAuthenticationService
 } from "../../Services/DomainService";
-import { updateDomain } from "../../Services/DomainService";
 import { Slide, toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { Fragment } from "react";
@@ -65,13 +66,12 @@ const EditDomain = () => {
     submit: false,
   });
 
-  const backendUrl = getEnv('BACKEND_URL');
 
   useEffect(() => {
     setIsLoading(true);
     (async () => {
       try {
-        const data = await getDomainDetails(backendUrl, token, domainID);
+        const data = await getDomainDetails(token, domainID);
         setEditAD({
           name: data?.name,
           vendor: data?.vendor,
@@ -149,7 +149,7 @@ const EditDomain = () => {
   });
   let deleteDomain = async (domain_id) => {
     try {
-      const res = await deleteDomainService(backendUrl, token, domain_id);
+      const res = await deleteDomainService(token, domain_id);
       let status_code = res.data.code;
       let ldaps = res.data?.data;
       if (status_code == 200) {
@@ -198,7 +198,7 @@ const EditDomain = () => {
     try {
       switch (exp) {
         case "sync": {
-          const res = await syncUsers(backendUrl, token, id);
+          const res = await syncUsers(token, id);
           if (res.data.code == 200) {
             toast.info(res.data.msg, {
               position: "top-right",
@@ -215,7 +215,7 @@ const EditDomain = () => {
           break;
         }
         case "syncChanged": {
-          const res = await syncChangedUsers(backendUrl, token, id);
+          const res = await syncChangedUsers(token, id);
           if (res.data.code == 200) {
             toast.info(res.data.msg, {
               position: "top-right",
@@ -232,7 +232,7 @@ const EditDomain = () => {
           break;
         }
         case "unlink": {
-          const res = await unlinkUsers(backendUrl, token, id);
+          const res = await unlinkUsers(token, id);
           let msg = res.data.msg;
           toast.info(msg, {
             position: "top-right",
@@ -248,7 +248,7 @@ const EditDomain = () => {
           break;
         }
         case "remove": {
-          const res = await removeImportedUsers(backendUrl, token, id);
+          const res = await removeImportedUsers(token, id);
           let msg = res.data.msg;
           toast.info(msg, {
             position: "top-right",
@@ -285,7 +285,7 @@ const EditDomain = () => {
   let sendData = async () => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
-      const res = await updateDomain(backendUrl, token, domainID, editAD);
+      const res = await updateDomain(token, domainID, editAD);
       if (res.data.code == 200) {
         toast.success(res.data.msg, {
           position: "top-right",
@@ -423,117 +423,60 @@ const EditDomain = () => {
     });
   };
 
-  let handleTestConnection = () => {
+  let handleTestConnection = async () => {
     setLoading((prev) => ({ ...prev, testConnection: true }));
-    axiosInstance
-      .post(`${backendUrl}/v1/test_ldap_connection`, {
-        authType: editAD.authType,
-        bindCredential: editAD.bindCredential,
-        bindDn: editAD.bindDn,
-        connectionTimeout: editAD.connectionTimeout,
-        connectionUrl: editAD.connectionUrl,
-        startTls: editAD.startTls,
-        useTruststoreSpi: editAD.useTruststoreSpi,
-      },{
-        headers: {Authorization: `Bearer ${token}`, 
+    try {
+      const res = await testLdapConnectionService(token, editAD);
+      if (res.data.msg) {
+        toast.success(res.data.msg, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Slide,
+        });
+      } else {
+        toast.error(
+          `Error when trying to connect to LDAP:'${res.data.errorMessage}'`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Slide,
+          }
+        );
       }
-      })
-      .then((res) => {
-        if (res.data.msg) {
-          toast.success(res.data.msg, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Slide,
-          });
-        } else {
-          toast.error(
-            `Error when trying to connect to LDAP:'${res.data.errorMessage}'`,
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            }
-          );
-        }
-      })
-      .catch((err) => {
-        toast.error(err.data.msg || "Test ldap connection error occurred", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-      })
-      .finally(() => {
-        setLoading((prev) => ({ ...prev, testConnection: false }));
+    } catch (err) {
+      toast.error((err?.data?.msg) || "Test ldap connection error occurred", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Slide,
       });
+    } finally {
+      setLoading((prev) => ({ ...prev, testConnection: false }));
+    }
   };
-  let handleTestAuthentication = () => {
-    setLoading((prev) => ({ ...prev, testAuthentication: true }));
-    axiosInstance
-      .post(`${backendUrl}/v1/test_ldap_authenticaion`, {
-        authType: editAD.authType,
-        bindCredential: editAD.bindCredential,
-        bindDn: editAD.bindDn,
-        connectionTimeout: editAD.connectionTimeout,
-        connectionUrl: editAD.connectionUrl,
-        startTls: editAD.startTls,
-        useTruststoreSpi: editAD.useTruststoreSpi,
-        
-      },{
-        headers: {
-          Authorization: `Bearer ${token}`, 
-        }
-      })
-      .then((res) => {
-        if (res.data.msg) {
-          toast.success(res.data.msg, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Slide,
-          });
-        } else {
-          toast.error(
-            res.data.msg,
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            }
-          );
-        }
-      })
-      .catch((err) => {
-        toast.error(err.data.msg || "Test ldap connection error occurred", {
+  let handleTestAuthentication = async () => {
+    setLoading((prev) => ({ ...prev, testAuth: true }));
+    try {
+      const res = await testLdapAuthenticationService(token, editAD);
+      if (res.data.msg) {
+        toast.success(res.data.msg, {
           position: "top-right",
           autoClose: 5000,
           hideProgressBar: false,
@@ -544,10 +487,34 @@ const EditDomain = () => {
           theme: "light",
           transition: Slide,
         });
-      })
-      .finally(() => {
-        setLoading((prev) => ({ ...prev, testAuthentication: false }));
+      } else {
+        toast.error(res.data.msg, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Slide,
+        });
+      }
+    } catch (err) {
+      toast.error((err?.data?.msg) || "Test ldap authentication error occurred", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Slide,
       });
+    } finally {
+      setLoading((prev) => ({ ...prev, testAuth: false }));
+    }
   };
   const Goback = () => {
     navigate("/domain");
