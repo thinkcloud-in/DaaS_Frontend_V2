@@ -1,6 +1,6 @@
 
 import { useState, useRef } from "react";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { FaTasks, FaRedo, FaMinus, FaExpand, FaCheckCircle } from "react-icons/fa";
 import { AiOutlineLoading3Quarters, AiOutlineCloseCircle } from "react-icons/ai";
 import {fetchFooterTasks} from "Services/FooterService";

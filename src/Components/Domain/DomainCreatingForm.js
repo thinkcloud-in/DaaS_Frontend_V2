@@ -4,7 +4,7 @@ import "./Domain.css";
 import "./DomainCreatingForm.css";
 import Popup from "../Popup/Popup";
 import { Slide, toast } from "react-toastify";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { createDomain } from "../../Services/DomainService";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";

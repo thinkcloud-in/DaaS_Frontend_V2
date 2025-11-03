@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 
 import { Slide, toast } from "react-toastify";
 

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { PoolContext } from "../../Context/PoolContext";
 import ShowRetentionDetails from "./ShowRetentionDetails";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { getEnv } from "utils/getEnv";
 import { useNavigate } from "react-router-dom";
 

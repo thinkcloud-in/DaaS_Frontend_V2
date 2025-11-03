@@ -4,7 +4,7 @@ import TextField from "@mui/material/TextField";
 import { Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
 import { PoolContext } from "../../Context/PoolContext";
 import { toast } from "react-toastify";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import CircularProgress from "@mui/material/CircularProgress";
 import { getEnv } from "utils/getEnv";
 import { addOrUpdateSchedule } from "Services/ReportsService";

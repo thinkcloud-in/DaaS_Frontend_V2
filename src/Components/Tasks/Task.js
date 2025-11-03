@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { PoolContext } from "../../Context/PoolContext";
 import { FaCheckCircle } from "react-icons/fa";
 import {
