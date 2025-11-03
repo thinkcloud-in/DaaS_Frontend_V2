@@ -1,11 +1,11 @@
-import axiosInstance from "./AxiosInstane";
+
+import axiosInstance from "./AxiosInstance";
 import { getEnv } from "utils/getEnv";
 import { toast } from "react-toastify";
 import { Slide } from "react-toastify";
 
 const backendUrl = getEnv("BACKEND_URL");
 
-// Get TOTP status for browser/admin
 export const getTotpBrowserStatus = async (token) => {
   try {
     const response = await axiosInstance.get(
@@ -21,7 +21,6 @@ export const getTotpBrowserStatus = async (token) => {
   }
 };
 
-// Get TOTP status for Guacamole/client
 export const getTotpGuacStatus = async (token) => {
   try {
     const response = await axiosInstance.get(
@@ -37,7 +36,6 @@ export const getTotpGuacStatus = async (token) => {
   }
 };
 
-// Enable/Disable TOTP for browser/admin
 export const updateTotpBrowserStatus = async (token, enabled) => {
   try {
     const response = await axiosInstance.put(
@@ -81,7 +79,6 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
   }
 };
 
-// Enable/Disable TOTP for Guacamole/client
 export const updateTotpGuacStatus = async (token, enabled) => {
   try {
     const response = await axiosInstance.put(
