@@ -1,4 +1,4 @@
-import axiosInstance from "./AxiosInstane";
+import axiosInstance from "./AxiosInstance";
 import { getEnv } from "utils/getEnv";
 import dayjs from "dayjs";
 

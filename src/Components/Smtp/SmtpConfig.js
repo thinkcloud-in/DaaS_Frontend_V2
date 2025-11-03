@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 
 import { toast } from "react-toastify";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { PoolContext } from "../../Context/PoolContext";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useNavigate } from "react-router-dom";

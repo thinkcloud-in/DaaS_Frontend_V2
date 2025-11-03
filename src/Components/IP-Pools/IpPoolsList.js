@@ -1,6 +1,6 @@
 import React, { useEffect, useState,useContext } from 'react';
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { getEnv } from "utils/getEnv";
 import { toast } from "react-toastify";
 import { PoolContext } from "../../Context/PoolContext";

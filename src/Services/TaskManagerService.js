@@ -1,4 +1,4 @@
-import axiosInstance from "Services/AxiosInstane";
+import axiosInstance from "Services/AxiosInstance";
 import { getEnv } from "utils/getEnv";
 
 const backendUrl = getEnv("BACKEND_URL");
