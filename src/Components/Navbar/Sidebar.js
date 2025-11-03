@@ -31,7 +31,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Beta from "../Beta/Beta";
 import Thinkcloud from "../../images/t3.jpg";
-import { useRbac } from "../../Context/RBAC Context";
+// import { useRbac } from "../../Context/RBAC Context";
+import { useRbac } from "../../redux/features/Rbac/useRbac";
 import "./Sidebar.css";
 
 function classNames(...classes) {
@@ -110,6 +111,7 @@ const Sidebar = ({ tokenParsed }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { navigation, loading } = useRbac();
+  console.log("RBAC loading:", loading, "navigation:", navigation);
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -158,7 +160,7 @@ const Sidebar = ({ tokenParsed }) => {
         }
         return newOpen;
       });
-    } else {
+    } else if (item.href && item.href!=="/") {
       navigate(item.href);
       if (isMobile) setMobileOpen(false); 
     }
