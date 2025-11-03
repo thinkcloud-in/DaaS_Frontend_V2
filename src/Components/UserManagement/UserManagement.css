@@ -1,0 +1,22 @@
+.custom-scrollbar {
+  overflow-x: hidden !important;
+  /* if you want to keep vertical scrolling, do not set overflow-y: hidden */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px; /* add this for horizontal bar size */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar:horizontal {
+  display: none;
+}

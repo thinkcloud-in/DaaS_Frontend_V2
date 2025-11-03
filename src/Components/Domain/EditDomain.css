@@ -1,0 +1,51 @@
+/* Styles for EditDomain component */
+.edit_domain select{
+    width: 60rem;
+   
+  }
+.edit_domain input[type="text"]{
+    width: 60rem;
+
+  }
+  .edit_domain input[type="password"]{
+    width: 60rem;
+  }
+  .edit_domain input[type="number"]{
+    width: 60rem;
+  }
+  /* Responsive styles for EditDomain */
+  @media screen and (min-width: 1536px) {
+    .edit_domain select,
+    .edit_domain input[type="text"],
+    .edit_domain input[type="password"],
+    .edit_domain input[type="number"] {
+      width: 60rem;
+    }
+  }
+  @media screen and (min-width: 1200px) and (max-width: 1535px) {
+    .edit_domain select,
+    .edit_domain input[type="text"],
+    .edit_domain input[type="password"],
+    .edit_domain input[type="number"] {
+      width: 50rem;
+    }
+  }
+  @media (min-width: 768px) and (max-width: 1200px) {
+    .edit_domain select,
+    .edit_domain input[type="text"],
+    .edit_domain input[type="password"],
+    .edit_domain input[type="number"] {
+      width: 40rem;
+    }
+  }
+  @media (max-width: 768px) {
+    .edit_domain select,
+    .edit_domain input[type="text"],
+    .edit_domain input[type="password"],
+    .edit_domain input[type="number"] {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+  }

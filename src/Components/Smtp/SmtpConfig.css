@@ -1,0 +1,249 @@
+/* Custom styles for MUI Switch toggle in SMTP config */
+.toggle .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+    background-color: #1a365dcc !important;
+}
+.toggle .MuiSwitch-switchBase.Mui-checked {
+    color: #1a365dcc !important;
+}
+.form-body-smtp {
+    height: calc(100vh - 60px); /* subtract navbar/footer height if fixed */
+    width: 98%;
+    border-radius: 15px;
+    margin: 0 auto;
+    background-color: white;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1.125rem;
+    overflow: hidden;
+  }
+  
+  .smtp-body {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 1rem;
+ 
+  }
+  
+.smtp-body form {
+    width: 36%;
+    max-height: 95%;
+    padding: 20px;
+    box-shadow: 0px 0px 5px 1px rgba(55, 37, 221, 0.16);
+    border-radius: 15px;
+    overflow-y: auto; /* scrolls internally if content overflows */
+   
+  }
+  
+.navbar{
+    position: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    width: 95%;
+    border-radius: 5px;
+    background-color: white;
+    height: 60px;
+    color: #1a365d;
+    position: relative;
+    border-bottom: 1px solid #1a365d21;
+}
+.navbar .back-button {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+.navbar h3 {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: max-content;
+}
+.navbar h3{
+    font-size: 20px;
+    font-weight: bold;
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif ;
+}
+.smtp-body form button{
+    width: 100%;
+    margin-top: 20px;
+    background-color: #1a365dcc;
+    text-transform: capitalize;
+    color: #f5f5f5;
+}
+.smtp-body form button:hover {
+    background-color: #1a365d;
+    color: #f5f5f5;
+    cursor: pointer;
+    font-size: 20px;
+}
+.navbar{
+    width: 100%;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-start;
+    
+
+}
+.back-button{
+   
+    margin-right: 40%;
+    margin-left: 20px;
+
+}
+.back-button:hover{
+    text-decoration: none;
+    color:white;
+
+}
+
+.toggle{
+    
+    margin-right: 50%;
+    margin-left: 20px;
+    padding: 10px 5px;
+    font-size: 25px;
+}
+.footer {
+    display: flex;
+    justify-content:space-between; 
+    align-items: center;
+    gap: 250px;
+    margin-top: 20px;
+
+}
+/* 
+.submit_btn, .test-email-btn {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+    width: 100px;
+
+} */
+
+.submit_btn {
+    background-color: #1a365dcc;
+    color: #f5f5f5;
+}
+
+.submit_btn:disabled {
+    background-color: #b0b0b0;
+    color: #f5f5f5;
+}
+
+
+.test-email-btn {
+    background-color: #1a365dcc;
+    color: #f5f5f5;
+    
+}
+.test-email-btn:hover {
+    background-color: #1a365dcc !important;
+    color: #f5f5f5 !important;
+    cursor: pointer;
+    transform: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+
+}
+
+.test-email-btn:disabled {
+    background-color: #b0b0b0;
+    color: #f5f5f5;
+}
+
+
+line{
+    width: 100%;
+    height: 1px;
+    background-color: gray;
+    
+  }
+  /* Custom Scrollbar Styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;  /* width of the scrollbar */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;  /* background color of the track */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e0e0e0;  /* color of the scrollbar thumb */
+    border-radius: 5px;
+  }
+  
+  
+
+@media screen  and (min-width: 768px) and (max-width:1787px){
+    .form-body-smtp{
+        width: 80%;
+       min-height: 100vh;
+
+    }
+    .smtp-body form{
+        width: 50%;
+        height: 100vh;
+        margin: auto;
+        margin-top: 15%;
+        padding: 20px;
+       
+     
+    }
+    .navbar h3{
+        font-size: 15px;
+    }
+    .back-button{
+        font-size: 20px;
+        margin-right: 30%;
+    }
+    .toggle{
+        margin-right: 40%;
+        font-size: 15px;
+        
+    }
+    .toggle .FormControlLabel{
+        font-size: 15px;
+        border: 2px solid red;
+    }
+    .footer {
+        gap: 100px;
+    }
+    .footer.test-email-btn:hover{
+        font-size: 15px;
+    }
+    .footer.test-email-btn{
+        font-size: 15px;
+    }
+    .submit_btn, .test-email-btn {
+        font-size: 12px;
+        
+        width: auto;
+    }
+    .footer.test-email-btn:hover{
+        font-size: 15px;
+    }
+    .test-email-btn:disabled {
+        font-size: small;
+        background-color: #b0b0b0;
+    }
+    .submit_btn:disabled {
+        font-size: small;
+        background-color: #b0b0b0;
+    }
+    
+}
