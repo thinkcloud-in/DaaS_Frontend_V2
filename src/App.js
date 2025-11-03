@@ -1,12 +1,13 @@
 import { BrowserRouter, Route, Routes,useLocation } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import React, { Suspense, useState, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { setAuth, clearAuth } from './redux/features/Auth/AuthSlice';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from "./images/loading.png";
 import GrafanaToolbarContextProvider from "./Context/GrafanaToolbarContext";
 import PoolContextProvider from "./Context/PoolContext";
-import RBACProvider from "./Context/RBAC Context";
 import Sidebar from "./Components/Navbar/Sidebar";
 import "./App.css";
 import keycloakConfig from "./Components/Login/keycloak/keycloak";
@@ -35,6 +36,7 @@ import IPMIDashboard from "Components/Dashboard/IPMIDashboard/Ipmi-Dashboard";
 import Recordings from "Components/Recordings/Recordings";
 import ActiveSessions from "Components/ActiveSessions/ActiveSessions";
 import TaskManagerPage from "Components/AgentTaskManager/Task_manager";
+import { fetchRbac } from './redux/features/Rbac/RbacThunks';
 //lazy imports
 const Domain = React.lazy(() => import("./Components/Domain/Domain"));
 const VCenter = React.lazy(() => import("./Components/VCenter/VCenter"));
@@ -75,15 +77,13 @@ const ChangePassword = React.lazy(() =>
 );
 
 function App() {
-  const [token, setToken] = useState("");
-  const [tokenParsed, setTokenParsed] = useState("");
-  // const [username, setUsername] = useState("");
-  const [refreshToken, setRefreshToken] = useState("");
-  const [loggedIn, setLoggedIn] = useState(false);
-  const localStorageToken = JSON.parse(localStorage.getItem("token"));
   const [workflowId, setWorkflowId] = useState("");
+  const dispatch = useDispatch();
+   const token = useSelector(state => state.auth.token);
+   const tokenParsed = useSelector(state => state.auth.tokenParsed);
+   const { refreshToken, loggedIn } = useSelector(state => state.auth);
+
   useEffect(() => {
-    // Initialize Keycloak when app loads
     keycloakConfig
       .init({
         onLoad: "login-required",
@@ -92,27 +92,39 @@ function App() {
       })
       .then((authenticated) => {
         if (authenticated) {
-          // Store authentication state and tokens
-          setLoggedIn(authenticated);
-          setToken(keycloakConfig.token);
-          setTokenParsed(keycloakConfig.tokenParsed);
-          setRefreshToken(keycloakConfig.refreshToken);
+          dispatch(setAuth({
+            token: keycloakConfig.token,
+            tokenParsed: keycloakConfig.tokenParsed,
+            refreshToken: keycloakConfig.refreshToken,
+            loggedIn: authenticated,
+          }));
           localStorage.setItem("token", JSON.stringify(keycloakConfig.token));
-
-          // Set up automatic token refresh
+          // Fetch RBAC data after successful authentication
+            dispatch(fetchRbac({
+    token: keycloakConfig.token,
+    username: keycloakConfig.tokenParsed?.preferred_username
+  }));
           keycloakConfig.onTokenExpired = () => {
             keycloakConfig
               .updateToken(30)
               .then((refreshed) => {
                 if (refreshed) {
-                  setToken(keycloakConfig.token);
-                  localStorage.setItem(
-                    "token",
-                    JSON.stringify(keycloakConfig.token)
-                  );
+                  dispatch(setAuth({
+                    token: keycloakConfig.token,
+                    tokenParsed: keycloakConfig.tokenParsed,
+                    refreshToken: keycloakConfig.refreshToken,
+                    loggedIn: true,
+                  }));
+                  localStorage.setItem("token", JSON.stringify(keycloakConfig.token));
+                  dispatch(fetchRbac({
+            token: keycloakConfig.token,
+            username: keycloakConfig.tokenParsed?.preferred_username
+          }));
+                  
                 }
               })
               .catch(() => {
+                dispatch(clearAuth());
                 keycloakConfig.logout();
               });
           };
@@ -120,13 +132,60 @@ function App() {
       })
       .catch(() => {
         localStorage.removeItem("token");
+        dispatch(clearAuth());
         keycloakConfig.logout();
       });
 
     return () => {
       keycloakConfig.onTokenExpired = undefined;
     };
-  }, []);
+  }, [dispatch]);
+
+  // useEffect(() => {
+  //   // Initialize Keycloak when app loads
+  //   keycloakConfig
+  //     .init({
+  //       onLoad: "login-required",
+  //       checkLoginIframe: false,
+  //       pkceMethod: "S256",
+  //     })
+  //     .then((authenticated) => {
+  //       if (authenticated) {
+  //         // Store authentication state and tokens
+  //         setLoggedIn(authenticated);
+  //         setToken(keycloakConfig.token);
+  //         setTokenParsed(keycloakConfig.tokenParsed);
+  //         setRefreshToken(keycloakConfig.refreshToken);
+  //         localStorage.setItem("token", JSON.stringify(keycloakConfig.token));
+
+  //         // Set up automatic token refresh
+  //         keycloakConfig.onTokenExpired = () => {
+  //           keycloakConfig
+  //             .updateToken(30)
+  //             .then((refreshed) => {
+  //               if (refreshed) {
+  //                 setToken(keycloakConfig.token);
+  //                 localStorage.setItem(
+  //                   "token",
+  //                   JSON.stringify(keycloakConfig.token)
+  //                 );
+  //               }
+  //             })
+  //             .catch(() => {
+  //               keycloakConfig.logout();
+  //             });
+  //         };
+  //       }
+  //     })
+  //     .catch(() => {
+  //       localStorage.removeItem("token");
+  //       keycloakConfig.logout();
+  //     });
+
+  //   return () => {
+  //     keycloakConfig.onTokenExpired = undefined;
+  //   };
+  // }, []);
 
   // Define the loading spinner function
   const LoadingSpinner = () => (
@@ -140,7 +199,7 @@ function App() {
       {token ? (
         <GrafanaToolbarContextProvider>
           <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}>
-            <RBACProvider tokenParsed={tokenParsed} token={refreshToken}>
+            {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
               <BrowserRouter>
                 <ToastContainer />
                 <Sidebar tokenParsed={tokenParsed} />
@@ -152,7 +211,7 @@ function App() {
 
                       {/* Dashboard Routes */}
                       <Route
-                        path="/overview"
+                        path="/vcenter/overview"
                         element={
                           <ProtectedRoute
                             component={Overview}
@@ -161,7 +220,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/hosts"
+                        path="/vcenter/hosts"
                         element={
                           <ProtectedRoute
                             component={Hosts}
@@ -170,7 +229,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/data-stores"
+                        path="/vcenter/data-stores"
                         element={
                           <ProtectedRoute
                             component={DataStores}
@@ -179,14 +238,14 @@ function App() {
                         }
                       />
                       <Route
-                        path="/vms"
+                        path="/vcenter/vms"
                         element={
                           <ProtectedRoute component={VMs} componentKey="VMS" />
                         }
                       />
 
                       <Route
-                        path="/px-overview"
+                        path="/proxmox/px-overview"
                         element={
                           <ProtectedRoute
                             component={ProxmoxOverview}
@@ -195,7 +254,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/px-nodes"
+                        path="/proxmox/px-nodes"
                         element={
                           <ProtectedRoute
                             component={ProxmoxNodes}
@@ -204,7 +263,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/px-storage"
+                        path="/proxmox/px-storage"
                         element={
                           <ProtectedRoute
                             component={ProxmoxStorage}
@@ -213,7 +272,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/px-vms"
+                        path="/proxmox/px-vms"
                         element={
                           <ProtectedRoute
                             component={ProxmoxVMs}
@@ -272,7 +331,7 @@ function App() {
 
                       {/* Reports Routes */}
                       <Route
-                        path="/reports"
+                        path="/reports/horizon"
                         element={
                           <ProtectedRoute
                             tokenParsed={tokenParsed}
@@ -282,7 +341,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="/vamanitreports"
+                        path="/reports/vamanit"
                         element={
                           <ProtectedRoute
                             tokenParsed={tokenParsed}
@@ -569,7 +628,7 @@ function App() {
                   </div>
                 </Suspense>
               </BrowserRouter>
-            </RBACProvider>
+            {/* </RBACProvider> */}
           </PoolContextProvider>
         </GrafanaToolbarContextProvider>
       ) : (
@@ -585,14 +644,14 @@ function FooterWrapper({ workflowId, tokenParsed }) {
 
   // List of dashboard section paths (exact matches)
   const dashboardPaths = [
-    "/overview",
-    "/hosts",
-    "/data-stores",
-    "/vms",
-    "/px-overview",
-    "/px-nodes",
-    "/px-storage",
-    "/px-vms",
+    "/vcenter/overview",
+    "/vcenter/hosts",
+    "/vcenter/data-stores",
+    "/vcenter/vms",
+    "/proxmox/px-overview",
+    "/proxmox/px-nodes",
+    "/proxmox/px-storage",
+    "/proxmox/px-vms",
     "/ipmi-dashboard",
     "/vcenter",
     "/landingpage",

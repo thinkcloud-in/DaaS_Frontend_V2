@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useRbac } from '../Context/RBAC Context';
+import { useRbac } from '../redux/features/Rbac/useRbac';
 
 const ProtectedRoute = ({ component: Component, componentKey, ...rest }) => {
   const { hasAccess, loading } = useRbac();

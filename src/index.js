@@ -7,6 +7,8 @@ import { negotiateLanguages } from "@fluent/langneg";
 import { FluentBundle, FluentResource } from "@fluent/bundle";
 import { LocalizationProvider, ReactLocalization } from "@fluent/react";
 import { Localized } from "@fluent/react";
+import { Provider } from 'react-redux';
+import store from './redux/store';
 // Store all translations as a simple object which is available
 // synchronously and bundled with the rest of the code.
 const RESOURCES = {
@@ -38,11 +40,15 @@ let l10n = new ReactLocalization(generateBundles(navigator.languages));
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <LocalizationProvider l10n={l10n}>
-    <Localized id="app">
-      <App />
-    </Localized>
-  </LocalizationProvider>
+  // <LocalizationProvider l10n={l10n}>
+  //   <Localized id="app">
+  //     <App />
+  //   </Localized>
+  // </LocalizationProvider>
+  <Provider store={store}>
+    <App />
+  </Provider>
+
 );
 
 // If you want to start measuring performance in your app, pass a function
