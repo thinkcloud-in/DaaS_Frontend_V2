@@ -1,124 +1,57 @@
 import React, { useState, useEffect,useContext } from "react";
 import "./TOTP.css";
-
 import { Slide, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { PoolContext } from "../../Context/PoolContext";
-import axiosInstance from "Services/AxiosInstance";
-import { getEnv } from "utils/getEnv";
+import {
+  getTotpBrowserStatus,
+  getTotpGuacStatus,
+  updateTotpBrowserStatus,
+  updateTotpGuacStatus
+} from "Services/TotpService";
+
 const TOTP = () => {
   let navigate = useNavigate();
   let [enableAdminOTP, setEnableAdminOTP] = useState(false);
   let [enableClientOTP, setEnableClientOTP] = useState(false);
   const pc = useContext(PoolContext);
-  const token=pc.token
-  const backendUrl = getEnv('BACKEND_URL');
-  useEffect(() => {
+  const token = pc.token;
   
-    axiosInstance
-      .get(
-        `${backendUrl}/v1/get-enable-disable-totp-browser`,{
-          headers: {
-            Authorization: `Bearer ${token}` // Include the Bearer token in the Authorization header
-          }
-        }
-      )
-      .then((res) => {
-        setEnableAdminOTP(res.data);
-      });
-    axiosInstance
-      .get(`${backendUrl}/v1/get-enable-disable-guac`,{
-        headers: {
-          Authorization: `Bearer ${token}` // Include the Bearer token in the Authorization header
-        }
-      })
-      .then((res) => {
-        setEnableClientOTP(res.data);
-      });
-  }, []);
+  useEffect(() => {
+    const fetchTotpStatus = async () => {
+      try {
+        const adminStatus = await getTotpBrowserStatus(token);
+        setEnableAdminOTP(adminStatus);
+        
+        const clientStatus = await getTotpGuacStatus(token);
+        setEnableClientOTP(clientStatus);
+      } catch (error) {
 
-  let handleChange = (e) => {
-    // setEnableOTP({ ...enableOTP, [e.target.name]: e.target.checked });
-    if (e.target.name == "admin") {
-      setEnableAdminOTP(e.target.checked);
-      axiosInstance
-        .put(
-          `${backendUrl}/v1/enable-disable-totp-browser/${e.target.checked}`,{},{
-            headers: {
-              Authorization: `Bearer ${token}` // Include the Bearer token in the Authorization header
-            }
-          }
-        )
-        .then((res) => {
-         
-          if (res.statusText== "OK") {
-           
-            toast.success("Success", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            });
-          } else {
-         
-            toast.error("enable-disable-totp-browser Faild", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            });
-          }
-        });
+      }
+    };
+    
+    fetchTotpStatus();
+  }, [token]);
+
+  let handleChange = async (e) => {
+    const { name, checked } = e.target;
+    
+    if (name === "admin") {
+      setEnableAdminOTP(checked);
+      try {
+        await updateTotpBrowserStatus(token, checked);
+      } catch (error) {
+        setEnableAdminOTP(!checked); 
+      }
     }
-    if (e.target.name == "client") {
-      setEnableClientOTP(e.target.checked);
-      axiosInstance
-        .put(
-          `${backendUrl}/v1/enable-disable-guac/${e.target.checked}`,{},{
-            headers: {
-              Authorization: `Bearer ${token}` // Include the Bearer token in the Authorization header
-            }
-          }
-        )
-        .then((res) => {
-          if (res.statusText== "OK") {
-         
-            toast.success("Success", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            });
-          } else {
-       
-            toast.error("enable-disable-guac Failed", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            });
-          }
-        });
+    
+    if (name === "client") {
+      setEnableClientOTP(checked);
+      try {
+        await updateTotpGuacStatus(token, checked);
+      } catch (error) {
+        setEnableClientOTP(!checked); 
+      }
     }
   };
   const Goback = () => {
