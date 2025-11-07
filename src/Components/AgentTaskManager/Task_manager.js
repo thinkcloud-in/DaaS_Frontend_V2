@@ -32,21 +32,19 @@ const TaskManagerPage = () => {
 
   const backendUrl = getEnv("BACKEND_URL");
   const DASHBOARD_GRAFANA_URL = getEnv('GRAFANA_URL');
-  const agentBackendUrl = process.env.REACT_APP_AGENT_BACKEND_URL;
+  const agentBackendUrl = getEnv('AGENT_BACKEND_URL');
 
   // Linux Configuration
-  const INFLUXDB_DATASOURCE_LINUX = process.env.REACT_APP_INFLUXDB_DATASOURCE_LINUX;
-  const BUCKET_LINUX = process.env.REACT_APP_BUCKET_LINUX;
-  const DASHBOARD_UID_LINUX = process.env.REACT_APP_DASHBOARD_UID_LINUX;
-  const DASHBOARD_NAME_LINUX = process.env.REACT_APP_DASHBOARD_NAME_LINUX;
+  const INFLUXDB_DATASOURCE_LINUX = getEnv('INFLUXDB_DATASOURCE_LINUX');
+  const BUCKET_LINUX = getEnv('BUCKET_LINUX');
+  const DASHBOARD_UID_LINUX = getEnv('DASHBOARD_UID_LINUX');
+  const DASHBOARD_NAME_LINUX = getEnv('DASHBOARD_NAME_LINUX');
 
   // Windows Configuration
-  const INFLUXDB_DATASOURCE_WINDOWS = process.env.REACT_APP_INFLUXDB_DATASOURCE_WINDOWS;
-  const BUCKET_WINDOWS = process.env.REACT_APP_BUCKET_WINDOWS;
-  const DASHBOARD_UID_WINDOWS = process.env.REACT_APP_DASHBOARD_UID_WINDOWS;
-  const DASHBOARD_NAME_WINDOWS = process.env.REACT_APP_DASHBOARD_NAME_WINDOWS;
-
-
+  const INFLUXDB_DATASOURCE_WINDOWS = getEnv('INFLUXDB_DATASOURCE_WINDOWS');
+  const BUCKET_WINDOWS = getEnv('BUCKET_WINDOWS');
+  const DASHBOARD_UID_WINDOWS = getEnv('DASHBOARD_UID_WINDOWS');
+  const DASHBOARD_NAME_WINDOWS = getEnv('DASHBOARD_NAME_WINDOWS');
 
   // Function to get configuration based on VM OS type (no default, must be provided)
   const getVMConfig = (osType) => {
@@ -87,11 +85,11 @@ const TaskManagerPage = () => {
 
     let hostForApi = vmName?.trim();
 
-    fetchBackgroundProcesses(agentBackendUrl, config, hostForApi, osType)
+    fetchBackgroundProcesses(config, hostForApi, osType)
       .then((data) => setProcessData(data))
       .catch(() => setProcessData([]));
 
-    fetchHostStats(agentBackendUrl, config, hostForApi, osType)
+    fetchHostStats(config, hostForApi, osType)
       .then((data) => setHostStats(data))
       .catch(() => setHostStats({ cpu: null, memory: null, diskio: null }));
   };
@@ -192,7 +190,7 @@ const TaskManagerPage = () => {
           toast.error("No IP address available for this VM. Cannot kill processes.");
           return;
         }
-        await killProcesses(agentBackendUrl, processHost, hostIp, pids, osType);
+        await killProcesses( processHost, hostIp, pids, osType);
         toast.success(`Successfully killed ${pids.length} process(es)`);
         fetchAll();
         setSelectedRows([]);
@@ -265,11 +263,8 @@ const TaskManagerPage = () => {
                   if (!config) {
                     return <div className="text-red-500">Unsupported or missing OS type for dashboard.</div>;
                   }
-                  // For testing: use static host for Windows
-                  let hostForGrafana = vmDetails?.name?.trim() || "";
-                  if (osType && osType.toLowerCase() === "windows") {
-                    hostForGrafana = "DEVTEAMLAPTOP"; // <-- set your static test host here
-                  }
+                  // Use VM name for Grafana host variable
+                  const hostForGrafana = vmDetails?.name?.trim() || vmName?.trim() || "";
                   return (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
@@ -284,9 +279,7 @@ const TaskManagerPage = () => {
                           `?orgId=1` +
                           `&var-datasource=${encodeURIComponent(config.datasource)}` +
                           `&var-bucket=${encodeURIComponent(config.bucket)}` +
-                          `&var-host=${encodeURIComponent(vmName?.trim() || "")}` +
-                          // `&var-host=${encodeURIComponent(vmDetails?.name?.trim() || "")}` +
-                          // `&var-host=${encodeURIComponent(hostForGrafana)}` +
+                          `&var-host=${encodeURIComponent(hostForGrafana)}` +
                           `&from=now-1h&to=now&theme=light&disableLazyLoad=true&kiosk`
                         }
                         width="100%"

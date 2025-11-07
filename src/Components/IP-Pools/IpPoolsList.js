@@ -1,10 +1,19 @@
-import React, { useEffect, useState,useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "Services/AxiosInstance";
-import { getEnv } from "utils/getEnv";
 import { toast } from "react-toastify";
 import { PoolContext } from "../../Context/PoolContext";
-import { fetchIpPools, deleteIpPoolByName } from "Services/IP_PoolService";
+import { 
+  fetchIpPoolsThunk, 
+  deleteIpPoolThunk 
+} from '../../redux/features/IP-Pools/IpPoolsThunks';
+import { 
+  selectIpPools, 
+  selectIpPoolsLoading, 
+  selectIpPoolsError, 
+  selectIsPoolDeleteLoading 
+} from '../../redux/features/IP-Pools/IpPoolsSelectors';
+import { clearError } from '../../redux/features/IP-Pools/IpPoolsSlice';
 
 const SkeletonLoader = () => (
   <tr>
@@ -15,77 +24,39 @@ const SkeletonLoader = () => (
     ))}
   </tr>
 );
+
 const IpPoolsList = () => {
-  const [pools, setPools] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [apiError, setApiError] = useState('');
-  let navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const pc = useContext(PoolContext);
   const token = pc.token;
-  
-  // const fetchPools = async () => {
-  //   setLoading(true);
-  //   setApiError('');
-  //   try {
-  //     const res = await axiosInstance.get(
-  //       `${backendUrl}/v1/ips/get_all_ips`,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
 
-  //     setPools(res.data?.data || []);
-  //   } catch (err) {
-  //     setApiError(err.response?.data?.msg);
-  //     toast.error(err.response?.data?.msg);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // useEffect(() => {
-  //   fetchPools();
-  // }, []);
-
-  const fetchPools = async () => {
-    setLoading(true);
-    setApiError('');
-    try {
-      const data = await fetchIpPools(token);
-      setPools(data);
-    } catch (err) {
-      setApiError(err.response?.data?.msg);
-      toast.error(err.response?.data?.msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Redux selectors
+  const pools = useSelector(selectIpPools);
+  const loading = useSelector(selectIpPoolsLoading);
+  const error = useSelector(selectIpPoolsError);
 
   useEffect(() => {
-    fetchPools();
-  }, []);
+    if (token) {
+      dispatch(fetchIpPoolsThunk(token));
+    }
+  }, [dispatch, token]);
 
-    // const handleDelete = async (poolName) => {
-  //   if (!window.confirm(`Are you sure you want to delete pool "${poolName}"?`)) return;
-  //   try {
-  //     const response = await axiosInstance.delete(
-  //       `${backendUrl}/v1/ips/delete_pool_by_name/${encodeURIComponent(poolName)}`,
-  //       { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-  //     toast.success(response?.data?.msg || `IP Pool "${poolName}" deleted successfully.`);
-  //     // Refresh list
-  //     fetchPools();
-  //   } catch (err) {
-  //     toast.warn(err.response?.data?.msg);
-  //   }
-  // };
-
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   const handleDelete = async (poolName) => {
     if (!window.confirm(`Are you sure you want to delete pool "${poolName}"?`)) return;
+    
     try {
-      const response = await deleteIpPoolByName(token, poolName);
-      toast.success(response?.msg || `IP Pool "${poolName}" deleted successfully.`);
-      fetchPools();
-    } catch (err) {
-      toast.warn(err.response?.data?.msg);
+      const result = await dispatch(deleteIpPoolThunk({ token, poolName })).unwrap();
+      toast.success(result?.msg || `IP Pool "${poolName}" deleted successfully.`);
+    } catch (error) {
+      toast.error(error || 'Failed to delete IP pool');
     }
   };
 
@@ -97,6 +68,27 @@ const IpPoolsList = () => {
     navigate(-1);
   };
 
+  const DeleteButton = ({ poolName }) => {
+    const isDeleting = useSelector(state => selectIsPoolDeleteLoading(state, poolName));
+    
+    return (
+      <button
+        onClick={() => handleDelete(poolName)}
+        className="text-red-600 hover:text-red-800"
+        title="Delete IP Pool"
+        disabled={isDeleting}
+      >
+        {isDeleting ? (
+          <svg className="inline w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C6.477 0 2 4.477 2 10h2zm2 5.291A7.962 7.962 0 014 12H2c0 2.042.784 3.895 2.059 5.291z"></path>
+          </svg>
+        ) : (
+          <i className="fa-solid fa-trash"></i>
+        )}
+      </button>
+    );
+  };
 
   return (
     <div className="w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
@@ -138,10 +130,6 @@ const IpPoolsList = () => {
           <tbody>
             {loading ? (
               [...Array(5)].map((_, index) => <SkeletonLoader key={index} />)
-            ) : apiError ? (
-              <tr>
-                <td colSpan={7} className="text-red-600 text-center py-8">{apiError}</td>
-              </tr>
             ) : pools.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-500">No Pools found.</td>
@@ -159,13 +147,7 @@ const IpPoolsList = () => {
                   <td className="py-2 px-3">{pool.Gateway}</td>
                   <td className="py-2 px-3">{Array.isArray(pool.DNS) ? pool.DNS.join(", ") : pool.DNS}</td>
                   <td className="py-2 px-3">
-                    <button
-                      onClick={() => handleDelete(pool.Pool_name)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Delete IP Pool"
-                    >
-                      <i className="fa-solid fa-trash"></i>
-                    </button>
+                    <DeleteButton poolName={pool.Pool_name} />
                   </td>
                 </tr>
               ))

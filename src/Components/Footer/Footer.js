@@ -1,14 +1,22 @@
-
-import { useState, useRef } from "react";
-import axiosInstance from "Services/AxiosInstance";
+import { useEffect, useRef ,useState} from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { FaTasks, FaRedo, FaMinus, FaExpand, FaCheckCircle } from "react-icons/fa";
 import { AiOutlineLoading3Quarters, AiOutlineCloseCircle } from "react-icons/ai";
-import {fetchFooterTasks} from "Services/FooterService";
-
-
+import {
+  fetchFooterTasksThunk,
+} from "../../redux/features/Footer/FooterThunks";
+import {
+  selectFooterTasks,
+  selectFooterLoading,
+  selectFooterError,
+} from "../../redux/features/Footer/FooterSelectors";
 
 const Footer = ({ tokenParsed }) => {
-  const [data, setData] = useState([]);
+  const dispatch = useDispatch();
+  const data = useSelector(selectFooterTasks);
+  const loading = useSelector(selectFooterLoading);
+  const error = useSelector(selectFooterError);
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshTimerRef = useRef(null);
@@ -17,26 +25,25 @@ const Footer = ({ tokenParsed }) => {
   const loadRecentTasks = async () => {
     setIsRefreshing(true);
     try {
-      const recentTasks = await fetchFooterTasks(userName);
-      setData(recentTasks);
-    } catch (error) {
-      console.error("Error loading recent tasks:", error);
+      await dispatch(fetchFooterTasksThunk(userName));
     } finally {
       setIsRefreshing(false);
     }
   };
 
+  useEffect(() => {
+    loadRecentTasks();
+  }, [userName]);
+
   return (
     <footer
-  className={`bottom-0 w-[98%] mx-auto mt-2 transition-all duration-500 ease-in-out ${isExpanded ? "flex flex-col" : ""}`}
-  style={{
-    ...(isExpanded
-      ? { height: "200px" }
-      : {}),
-    backgroundColor: "white",
-    overflow: "hidden",
-  }}
->
+      className={`bottom-0 w-[98%] mx-auto mt-2 transition-all duration-500 ease-in-out ${isExpanded ? "flex flex-col" : ""}`}
+      style={{
+        ...(isExpanded ? { height: "200px" } : {}),
+        backgroundColor: "white",
+        overflow: "hidden",
+      }}
+    >
       {/* Header */}
       <div className="flex justify-between items-center border-b border-gray-200 px-3 py-2">
         <div className="flex items-center space-x-2">
@@ -84,7 +91,13 @@ const Footer = ({ tokenParsed }) => {
                 </tr>
               </thead>
               <tbody>
-                {data.length > 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan="7" className="p-3 text-center text-[0.75rem] text-gray-500 italic">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : data.length > 0 ? (
                   data.map((task, index) => (
                     <tr
                       key={index}

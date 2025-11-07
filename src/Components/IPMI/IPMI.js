@@ -1,11 +1,18 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import { PoolContext } from "../../Context/PoolContext";
 import ShowIpmi from "./ShowIpmi";
-import { getEnv } from "utils/getEnv";
 import CreateNewIpmi from "./CreateNewIpmi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {GetAllIpmiLists} from "Services/IPMI_Service";
+import { fetchIpmiListThunk } from '../../redux/features/IPMI/IpmiThunks';
+import { 
+  selectIpmiList, 
+  selectIpmiLoading, 
+  selectIpmiError 
+} from '../../redux/features/IPMI/IpmiSelectors';
+import { clearError } from '../../redux/features/IPMI/IpmiSlice';
+
 const columnStyles = [
   "w-[20%] text-center", 
   "w-[20%] text-center", 
@@ -23,6 +30,7 @@ const SkeletonRow = () => (
     ))}
   </tr>
 );
+
 const SkeletonLoader = ({ rows = 5 }) => (
   <div className="w-[98%]  m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
     <div className="relative mb-4">
@@ -54,49 +62,36 @@ const SkeletonLoader = ({ rows = 5 }) => (
   </div>
 );
  
- 
- 
 const IPMI = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [AvailableIpmi, setAvailableIpmi] = useState([]);
-  const [loading, setLoading] = useState(true); // <-- loading state
   const pc = useContext(PoolContext);
   const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
-  const backendUrl = getEnv("BACKEND_URL");
- 
-  // const fetchIpmiList = () => {
-  //   setLoading(true);
-  //   axiosInstance
-  //     .get(`${backendUrl}/v1/ipmi/get_all_ipmi_servers`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((response) => {
-  //       setAvailableIpmi(response.data?.data || []);
-  //     })
-  //     .catch((error) => {
-  //       toast.error(error.response?.data?.msg || "Failed to fetch IPMI list", { position: "top-right", autoClose: 3000 });
-  //     })
-  //     .finally(() => {
-  //       setLoading(false);
-  //     });
-  // };
- const fetchIpmiList = async () => {
-    setLoading(true);
-    try {
-      const ipmiList = await GetAllIpmiLists(token);
-      setAvailableIpmi(ipmiList);
-    } catch (error) {
-      toast.error(error.response?.data?.msg || "Failed to fetch IPMI list", { position: "top-right", autoClose: 3000 });
-    } finally {
-      setLoading(false);
+
+  // Redux selectors
+  const ipmiList = useSelector(selectIpmiList);
+  const loading = useSelector(selectIpmiLoading);
+  const error = useSelector(selectIpmiError);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchIpmiListThunk(token));
+    }
+  }, [dispatch, token]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
+  const refreshIpmiList = () => {
+    if (token) {
+      dispatch(fetchIpmiListThunk(token));
     }
   };
 
-  useEffect(() => {
-    fetchIpmiList();
-  }, []);
- 
   return (
     <div className="pools w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md overflow-hidden">
       <div className="flex justify-start ml-4 mt-3 mb-2">
@@ -112,8 +107,8 @@ const IPMI = () => {
       <div className="flex-1 overflow-auto">
         {loading ? (
           <SkeletonLoader />
-        ) : AvailableIpmi.length > 0 ? (
-          <ShowIpmi ipmiList={AvailableIpmi} refreshIpmiList={fetchIpmiList} />
+        ) : ipmiList.length > 0 ? (
+          <ShowIpmi ipmiList={ipmiList} refreshIpmiList={refreshIpmiList} />
         ) : (
           <CreateNewIpmi />
         )}
@@ -123,4 +118,3 @@ const IPMI = () => {
 };
  
 export default IPMI;
- 
