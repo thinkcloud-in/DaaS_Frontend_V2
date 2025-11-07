@@ -1,17 +1,35 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useEffect, useRef } from "react";
 import "./Reports.css";
-import {
-  fetchSessionReports,
-  fetchDayReports,
-  fetchConsolidateReports,
-  fetchCompanyDetails
-} from "Services/ReportsService";
 import dayjs from "dayjs";
 import { useReactToPrint } from "react-to-print";
-import {  ColorRing } from "react-loader-spinner";
+import { ColorRing } from "react-loader-spinner";
 import { DatePicker } from "antd";
-import { PoolContext } from "../../Context/PoolContext";
-import { useNavigate } from "react-router-dom";
+// react-router navigation not used in this component after migration
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import {
+  fetchUsersForDateRange,
+  fetchSessionReports as fetchSessionReportsThunk,
+  fetchDayReports as fetchDayReportsThunk,
+  fetchConsolidateReports as fetchConsolidateReportsThunk,
+  fetchCompanyDetails as fetchCompanyDetailsThunk,
+} from '../../redux/features/Reports/ReportsThunks';
+import {
+  selectUserOptions,
+  selectSelectedUser,
+  selectDateRange,
+  selectSessionReports,
+  selectDayReports,
+  selectConsolidateReports,
+  selectShowSessionReports,
+  selectShowDayReports,
+  selectShowConsolidateReports,
+  selectLoader,
+  selectPrint,
+  selectCompany,
+  selectActiveTab,
+} from '../../redux/features/Reports/ReportsSelectors';
+import { setUser, setDateRange, setActiveTab } from '../../redux/features/Reports/ReportsSlice';
 const { RangePicker } = DatePicker;
 
 
@@ -67,75 +85,45 @@ const formatHoursDuration = (totalDurationInSeconds) => {
 };
 
 const Reports = (tokenParsed) => {
-  const [userOptions, setUserOptions] = useState([]);
-  const [user, setUser] = useState("All Users");
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
-  const [value, setValue] = useState({
-    startDate: null,
-    endDate: null,
-  });
-  const [sessionReports, setSessionReports] = useState([]);
-  const [dayReports, setDayReports] = useState([]);
-  const [consolidateReports, setConsolidateReports] = useState([]);
-  const [showSessionReports, setShowSessionReports] = useState(false);
-  const [showDayReports, setShowDayReports] = useState(false);
-  const [showConsolidateReports, setShowConsolidateReports] = useState(false);
-  const [loader, setLoader] = useState(false);
-  const [print, setPrint] = useState(false);
-  const [company, setCompany] = useState({
-    company_name: "",
-    company_logo: "",
-  });
-  const [showHorizonReports, setShowHorizanReports] = useState(true);
-  
-  const [activeTab, setActiveTab] = React.useState("");
-
+  const dispatch = useDispatch();
+  const userOptions = useSelector(selectUserOptions);
+  const user = useSelector(selectSelectedUser);
+  const dateRange = useSelector(selectDateRange);
+  const sessionReports = useSelector(selectSessionReports);
+  const dayReports = useSelector(selectDayReports);
+  const consolidateReports = useSelector(selectConsolidateReports);
+  const showSessionReports = useSelector(selectShowSessionReports);
+  const showDayReports = useSelector(selectShowDayReports);
+  const showConsolidateReports = useSelector(selectShowConsolidateReports);
+  const loader = useSelector(selectLoader);
+  const print = useSelector(selectPrint);
+  const company = useSelector(selectCompany);
+  const activeTab = useSelector(selectActiveTab);
   const componentRef = useRef();
-  const pc = useContext(PoolContext);
-
-  const token = pc.token;
-  let Userprofileicon = tokenParsed.tokenParsed.name;
+  const token = useSelector(selectAuthToken);
+  const authTokenParsed = useSelector(selectAuthTokenParsed);
+  const Userprofileicon = authTokenParsed?.name || tokenParsed?.tokenParsed?.name;
   const today = new Date();
   const formattedDateTime = today.toLocaleString();
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
+  // This component always shows the Horizon Reports section
+  const showHorizonReports = true;
 
   useEffect(() => {
-    const { start, end } = dateRange;
-    if (!start || !end) {
-      return;
-    }
-    setLoader(true);
-    // Fetch all users for the date range (not in ReportsService, so keep this logic here)
-    fetchSessionReports(token, start, end)
-      .then((data) => {
-        // If the API returns user list, sort and set; else, fallback to empty
-        if (Array.isArray(data)) {
-          const users = [...new Set(data.map(r => r.username))].sort((a, b) => a.localeCompare(b));
-          setUserOptions(users);
-        } else {
-          setUserOptions([]);
-        }
-      })
-      .catch(() => setUserOptions([]))
-      .finally(() => setLoader(false));
-  }, [dateRange, token]);
+    const { start, end } = dateRange || {};
+    if (!start || !end) return;
+    if (!token) return;
+    dispatch(fetchUsersForDateRange({ token, start, end }));
+  }, [dateRange, token, dispatch]);
 
   const fetchCompanyDetailsLocal = async (reportType) => {
+    if (!token) return;
     try {
-      const response = await fetchCompanyDetails(token, reportType);
-      const companyData = Array.isArray(response)
-        ? response.find((company) => company.report_type === reportType)
-        : response;
-      if (companyData) {
-        setCompany({
-          company_name: companyData.company_name,
-          company_logo: companyData.company_logo,
-        });
-      }
-    } catch (error) {
-      // handle error if needed
+      await dispatch(fetchCompanyDetailsThunk({ token, reportType })).unwrap();
+    } catch (_) {
+      // ignore
     }
   };
 
@@ -145,88 +133,49 @@ const Reports = (tokenParsed) => {
 
   const handleValueChange = (dates) => {
     if (dates && dates.length === 2) {
-      setDateRange({
+      dispatch(setDateRange({
         start: dates[0].format("YYYY-MM-DD HH:mm:ss.SSSSSS"),
         end: dates[1].format("YYYY-MM-DD HH:mm:ss.SSSSSS"),
-      });
+      }));
     } else {
-      // If dates are not selected or cleared, reset all reports and user options
-      setDateRange({ start: "", end: "" });
-      setSessionReports([]);
-      setDayReports([]);
-      setUserOptions([]);
-      setShowSessionReports(false);
-      setShowDayReports(false);
-      setShowConsolidateReports(false);
+      dispatch(setDateRange({ start: '', end: '' }));
+      // clear view handled by slice or actions
     }
   };
   const fetchSessionReportsLocal = async () => {
-    const { start, end } = dateRange;
-    if (!start || !end) return;
-    setLoader(true);
+    const { start, end } = dateRange || {};
+    if (!start || !end || !token) return;
     await fetchCompanyDetailsLocal("Session Reports");
     try {
-      const data = await fetchSessionReports(token, start, end, user);
-      setSessionReports(data);
-      setPrint(true);
-      setShowSessionReports(true);
-      setShowDayReports(false);
-      setShowConsolidateReports(false);
+      await dispatch(fetchSessionReportsThunk({ token, start, end, user })).unwrap();
     } catch {
-      setSessionReports([]);
-    } finally {
-      setLoader(false);
+      // handled in slice
     }
   };
 
   const fetchDayReportsLocal = async () => {
-    const { start, end } = dateRange;
-    if (!start || !end) {
-      setDayReports([]);
-      return;
-    }
-    setLoader(true);
+    const { start, end } = dateRange || {};
+    if (!start || !end || !token) return;
     await fetchCompanyDetailsLocal("Daily Reports");
     try {
-      const data = await fetchDayReports(token, start, end, user);
-      setDayReports(data);
-      setPrint(true);
-      setShowSessionReports(false);
-      setShowDayReports(true);
-      setShowConsolidateReports(false);
+      await dispatch(fetchDayReportsThunk({ token, start, end, user })).unwrap();
     } catch {
-      setDayReports([]);
-    } finally {
-      setLoader(false);
+      // handled in slice
     }
   };
 
   const fetchConsolidateReportsLocal = async () => {
-    const { start, end } = dateRange;
-    if (!start || !end) {
-      setConsolidateReports([]);
-      return;
-    }
-    setLoader(true);
+    const { start, end } = dateRange || {};
+    if (!start || !end || !token) return;
     await fetchCompanyDetailsLocal("Consolidate Reports");
     try {
-      const data = await fetchConsolidateReports(token, start, end, user);
-      setConsolidateReports(data);
-      setPrint(true);
-      setShowSessionReports(false);
-      setShowDayReports(false);
-      setShowConsolidateReports(true);
+      await dispatch(fetchConsolidateReportsThunk({ token, start, end, user })).unwrap();
     } catch {
-      setConsolidateReports([]);
-    } finally {
-      setLoader(false);
+      // handled in slice
     }
   };
-  const navigate = useNavigate();
-  const handleSchedule = (e) => {
-    e.preventDefault();
-    navigate("/reportdetails");
-  };
+  
+  // schedule navigation removed (was unused)
   return (
     <div className="Reports_main_container w-[98%] m-auto mt-5 p-5 rounded-[10px] bg-white overflow-hidden">
       <div className="Report_page">
@@ -269,7 +218,7 @@ const Reports = (tokenParsed) => {
                   <select
                     id="user"
                     value={user}
-                    onChange={(e) => setUser(e.target.value)}
+                    onChange={(e) => dispatch(setUser(e.target.value))}
                   >
                     <option value="All Users">All Users</option>
                     {userOptions.map((userName, index) => (
@@ -307,7 +256,7 @@ const Reports = (tokenParsed) => {
                       }`}
                       type="button"
                       onClick={() => {
-                        setActiveTab("session");
+                        dispatch(setActiveTab("session"));
                         fetchSessionReportsLocal();
                       }}
                     >
@@ -319,7 +268,7 @@ const Reports = (tokenParsed) => {
                       }`}
                       type="button"
                       onClick={() => {
-                        setActiveTab("day");
+                        dispatch(setActiveTab("day"));
                         fetchDayReportsLocal();
                       }}
                     >
@@ -331,7 +280,7 @@ const Reports = (tokenParsed) => {
                       }`}
                       type="button"
                       onClick={() => {
-                        setActiveTab("consolidate");
+                        dispatch(setActiveTab("consolidate"));
                         fetchConsolidateReportsLocal();
                       }}
                     >
@@ -348,7 +297,7 @@ const Reports = (tokenParsed) => {
                     </button>
                   )}
                 </div>
-                {dateRange.start==="" && dateRange.end=="" &&<div className="text-gray-500 mt-20 ">Please select Date Range</div>}
+                {dateRange.start === "" && dateRange.end === "" && <div className="text-gray-500 mt-20 ">Please select Date Range</div>}
               </div>
             </div>
             <div ref={componentRef}>

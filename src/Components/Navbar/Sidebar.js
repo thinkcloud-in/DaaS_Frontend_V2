@@ -7,7 +7,6 @@ import Navbar from "./Navbar";
 import {
   faChevronLeft,
   faAngleRight,
-  faTimes,
   faTachometerAlt,
   faChartBar,
   faCog,
@@ -31,7 +30,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Beta from "../Beta/Beta";
 import Thinkcloud from "../../images/t3.jpg";
-// import { useRbac } from "../../Context/RBAC Context";
 import { useRbac } from "../../redux/features/Rbac/useRbac";
 import "./Sidebar.css";
 
@@ -111,7 +109,6 @@ const Sidebar = ({ tokenParsed }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { navigation, loading } = useRbac();
-  console.log("RBAC loading:", loading, "navigation:", navigation);
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {

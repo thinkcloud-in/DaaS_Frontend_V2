@@ -1,16 +1,23 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { PoolContext } from "../../Context/PoolContext";
 import DomainCard from "./DomainCard";
 import { useNavigate } from "react-router-dom";
 import "./ShowDomainsSkeleton.css";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchDomains } from '../../redux/features/Domain/DomainThunks';
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { selectDomains, selectDomainLoading } from '../../redux/features/Domain/DomainSelectors';
 const ShowDomains = (props) => {
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const [isLoading, setIsLoading] = useState(true); // Initialize loading state
+  const token = useSelector(selectAuthToken);
+  const dispatch = useDispatch();
+  const domains = useSelector(selectDomains);
+  const loading = useSelector(selectDomainLoading);
 
+  // fetch domains from Redux when token is available
   useEffect(() => {
-    setIsLoading(false); 
-  }, []);
+    if (token) dispatch(fetchDomains({ token }));
+  }, [token, dispatch]);
 
   const Goback = () => {
     navigate("/");
@@ -41,7 +48,7 @@ const ShowDomains = (props) => {
               + Add new provider
             </button>
           </div>
-          {isLoading ? (
+          {loading ? (
             <div className="skeleton-domain-list">
               {[1,2,3].map((i) => (
                 <div className="skeleton-domain-card" key={i}></div>
@@ -49,9 +56,10 @@ const ShowDomains = (props) => {
             </div>
           ) : (
             <div className="m-5 flex gap-10">
-              {pc.availableDomains.length > 0 ? (
-                pc.availableDomains
-                  .sort((a, b) => a.name.localeCompare(b.name))
+              {domains && domains.length > 0 ? (
+                domains
+                  .slice() // copy before sorting
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                   .map((item) => (
                     <DomainCard
                       key={item.id}
@@ -59,7 +67,7 @@ const ShowDomains = (props) => {
                       name={item.name}
                       providerId={item.providerId}
                       enabled={
-                        item.config.enabled === "true" ? "Enabled" : "Disabled"
+                        item.config && item.config.enabled === "true" ? "Enabled" : "Disabled"
                       }
                     />
                   ))

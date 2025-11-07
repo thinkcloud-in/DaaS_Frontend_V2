@@ -1,26 +1,21 @@
-import { Fragment, useRef, useState, useContext, useEffect } from "react";
+import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { createMachineService } from "../../Services/PoolService";
 import { Slide, toast } from "react-toastify";
-import { PoolContext } from "../../Context/PoolContext";
 import MachineRdp from "./MachineRdp";
 import MachineSSH from "./MachineSSH";
 import MachineVNC from "./MachineVNC";
 import { Loader2 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken,selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import { setAvailablePools } from "../../redux/features/Pools/PoolsSlice";
+import { createMachine, fetchPoolById } from "../../redux/features/Pools/PoolsThunks";
+import { selectCurrentPoolDetails, selectPoolSaveLoading } from "../../redux/features/Pools/PoolsSelectors";
 export default function AddMachinePopover(props) {
-  //pool context
-  const pc = useContext(PoolContext);
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
 
-  const token = pc.token;
-  const tokenParsed = pc.tokenParsed
-
-
-  let userEmail = tokenParsed.preferred_username
-
-  // Destructering props
+  let userEmail = tokenParsed.preferred_username;
   let setVmAvailable = props.setVmAvailable;
-  let vmAvailable = props.vmAvailable;
-  // Security mode dropdown menu options
   let securityMode = [
     "None",
     "Any",
@@ -29,22 +24,12 @@ export default function AddMachinePopover(props) {
     "TLS encryption",
     "Hyper-V / VMConnect",
   ];
-  // state for machine details
-  // const [addMachine, setAddMachine] = useState({
-  //   name: "",
-  //   ip: "",
-  //   port: null,
-  //   protocol: "",
-  //   pool_id: props.poolId,
-  //   users_assigned: [],
-  // });
   const [addMachine, setAddMachine] = useState({
     name: "",
     hostname: "",
     port: null,
     protocol: "",
-    pool_id: props.poolId || "", // Ensure a default value if props.poolId is undefined
-    users_assigned: [],
+    pool_id: props.poolId || "", 
     guacd_port: null,
     guacd_encryption: "",
     guacd_hostname: "",
@@ -138,6 +123,10 @@ export default function AddMachinePopover(props) {
     is_custom_machine: false,
   });
   const [rename, setRename] = useState("");
+  const dispatch = useDispatch();
+  const currentPool = useSelector(selectCurrentPoolDetails) || null;
+  const poolSaveLoading = useSelector(selectPoolSaveLoading);
+
   useEffect(() => {
     if (props.selectedPoolDetails) {
       setAddMachine((prevState) => ({
@@ -263,16 +252,117 @@ export default function AddMachinePopover(props) {
     }
   }, [props.selectedPoolDetails, props.poolId, props.onSuccess]);
 
-  // State for custom settigns checkbox
-  const [isChecked, setIsChecked] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  // // function to handle checkbox change
-  const handleCheckboxChange = () => {
-    setIsChecked((prevState) => !prevState); // Use a function to toggle the state
-  };
-  const cancelButtonRef = useRef(null);
+  // Ensure pool details are available in redux when this popover is opened or poolId changes
+  useEffect(() => {
+    if (props.open && props.poolId) {
+      dispatch(fetchPoolById({ token, poolId: props.poolId }));
+    }
+  }, [props.open, props.poolId, token, dispatch]);
 
-  // Function to handle input changes
+  // If redux has the current pool details and parent didn't supply selectedPoolDetails, sync into form
+  useEffect(() => {
+    if (!props.selectedPoolDetails && currentPool && currentPool.id === props.poolId) {
+      setAddMachine((prevState) => ({
+        ...prevState,
+        hostname: currentPool.pool_hostname || "",
+        port: currentPool.pool_port || null,
+        protocol: currentPool.pool_protocol || "",
+        pool_id: props.poolId || "",
+        users_assigned: currentPool.pool_users_assigned || [],
+        guacd_port: currentPool.pool_guacd_port || null,
+        guacd_encryption: currentPool.pool_guacd_encryption || "",
+        guacd_hostname: currentPool.pool_guacd_hostname || "",
+        weight: currentPool.pool_weight || null,
+        failover_only: currentPool.pool_failover_only || false,
+        type: currentPool.pool_type || "",
+        os_type: currentPool.pool_os_type || "",
+        entitled: currentPool.pool_entitled || null,
+        machines: currentPool.pool_machines || [],
+        username: currentPool.pool_username || "",
+        password: currentPool.pool_password || "",
+        security: currentPool.pool_security || "",
+        domain: currentPool.pool_domain || "",
+        disable_auth: currentPool.pool_disable_auth || false,
+        ignore_cert: currentPool.pool_ignore_cert || false,
+        max_connections: currentPool.pool_max_connections || null,
+        max_connections_per_user: currentPool.pool_max_connections_per_user || null,
+        gateway_port: currentPool.pool_gateway_port || null,
+        gateway_username: currentPool.pool_gateway_username || "",
+        gateway_password: currentPool.pool_gateway_password || "",
+        gateway_domain: currentPool.pool_gateway_domain || "",
+        initial_program: currentPool.pool_initial_program || "",
+        client_name: currentPool.pool_client_name || "",
+        timezone: currentPool.pool_timezone || "",
+        console: currentPool.pool_console || false,
+        width: currentPool.pool_width || null,
+        height: currentPool.pool_height || null,
+        dpi: currentPool.pool_dpi || null,
+        color_depth: currentPool.pool_color_depth || "",
+        resize_method: currentPool.pool_resize_method || "",
+        read_only: currentPool.pool_read_only || false,
+        clipboard_encoding: currentPool.pool_clipboard_encoding || "",
+        disable_copy: currentPool.pool_disable_copy || false,
+        disable_paste: currentPool.pool_disable_paste || false,
+        console_audio: currentPool.pool_console_audio || false,
+        custom_disable_audio: currentPool.pool_custom_disable_audio || false,
+        enable_audio_input: currentPool.pool_enable_audio_input || false,
+        enable_printing: currentPool.pool_enable_printing || false,
+        printer_name: currentPool.pool_printer_name || "",
+        enable_drive: currentPool.pool_enable_drive || false,
+        drive_name: currentPool.pool_drive_name || "",
+        drive_path: currentPool.pool_drive_path || "",
+        cursor: currentPool.pool_cursor || "",
+        enable_wallpaper: currentPool.pool_enable_wallpaper || false,
+        enable_theming: currentPool.pool_enable_theming || false,
+        enable_font_smoothing: currentPool.pool_enable_font_smoothing || false,
+        enable_full_window_drag: currentPool.pool_enable_full_window_drag || false,
+        enable_desktop_composition: currentPool.pool_enable_desktop_composition || false,
+        enable_menu_animations: currentPool.pool_enable_menu_animations || false,
+        disable_bitmap_caching: currentPool.pool_disable_bitmap_caching || false,
+        disable_offscreen_caching: currentPool.pool_disable_offscreen_caching || false,
+        disable_glyph_caching: currentPool.pool_disable_glyph_caching || false,
+        load_balance_info: currentPool.pool_load_balance_info || "",
+        recording_path: currentPool.pool_recording_path || "",
+        recording_name: currentPool.pool_recording_name || "",
+        create_recording_path: currentPool.pool_create_recording_path || false,
+        recording_exclude_mouse: currentPool.pool_recording_exclude_mouse || false,
+        recording_include_keys: currentPool.pool_recording_include_keys || false,
+        exclude_touch_events: currentPool.pool_exclude_touch_events || false,
+        enable_sftp: currentPool.pool_enable_sftp || false,
+        sftp_port: currentPool.pool_sftp_port || null,
+        sftp_username: currentPool.pool_sftp_username || "",
+        font_name: currentPool.pool_font_name || "",
+        sftp_password: currentPool.pool_sftp_password || "",
+        sftp_host_key: currentPool.pool_sftp_host_key || "",
+        sftp_private_key: currentPool.pool_sftp_private_key || "",
+        sftp_passphrase: currentPool.pool_sftp_passphrase || "",
+        sftp_root_directory: currentPool.pool_sftp_root_directory || "",
+        sftp_directory: currentPool.pool_sftp_directory || "",
+        sftp_server_alive_interval: currentPool.pool_sftp_server_alive_interval || null,
+        private_key: currentPool.pool_private_key || "",
+        passphrase: currentPool.pool_passphrase || "",
+        color_scheme: currentPool.pool_color_scheme || "",
+        custom_font_name: currentPool.pool_custom_font_name || "",
+        scrollback: currentPool.pool_scrollback || 0,
+        font_size: currentPool.pool_font_size || null,
+        backspace: currentPool.pool_backspace || "",
+        terminal_type: currentPool.pool_terminal_type || "",
+        typescript_path: currentPool.pool_typescript_path || "",
+        typescript_name: currentPool.pool_typescript_name || "",
+        create_typescript_path: currentPool.pool_create_typescript_path || false,
+        swap_red_blue: currentPool.pool_swap_red_blue || false,
+        destination_host: currentPool.pool_destination_host || "",
+        destination_port: currentPool.pool_destination_port || null,
+        exclude_mouse: currentPool.pool_exclude_mouse || false,
+        exclude_graphics_streams: currentPool.pool_exclude_graphics_streams || false,
+        enable_audio: currentPool.pool_enable_audio || false,
+        audio_servername: currentPool.pool_audio_servername || "",
+        args: currentPool.pool_args || [],
+      }));
+    }
+  }, [currentPool, props.selectedPoolDetails, props.poolId]);
+  const [isLoading, setIsLoading] = useState(false);
+  const cancelButtonRef = useRef(null);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let newValue = value;
@@ -335,12 +425,14 @@ export default function AddMachinePopover(props) {
       email: userEmail  
     };
     try {
-      const response = await createMachineService(token, requestData);
-
-      const { msg, machine, pools } = response.data?.data;
-      if (response.data?.code === 200) {
+      const res = await dispatch(createMachine({ token, requestData })).unwrap();
+      // res expected to contain { machine, pools, msg }
+      const machine = res?.machine;
+      const pools = res?.pools || res?.available_pools || null;
+      const msg = res?.msg || (res && res.message) || "Machine created";
+      if (machine) {
         setVmAvailable((prevMachines) => [...prevMachines, machine]);
-        pc.setAvailablePools(pools);
+        if (pools) dispatch(setAvailablePools(pools));
         toast.success(msg, {
           position: "top-right",
           autoClose: 5000,
@@ -598,7 +690,7 @@ export default function AddMachinePopover(props) {
                           </div>
                         </td>
                         </tr>
-                        {addMachine.type=="Manual" && <tr className="flex items-start">
+                        {addMachine.type==="Manual" && <tr className="flex items-start">
                            <td className="pl-4 w-1/3">
                           <label
                             htmlFor="protocol"
@@ -678,17 +770,17 @@ export default function AddMachinePopover(props) {
                   <button
                     onClick={handleConfirm}
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || poolSaveLoading}
                     className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
                     ${
-                      isLoading
+                      (isLoading || poolSaveLoading)
                         ? "bg-[#1a365d] cursor-not-allowed"
                         : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
                     }
                   `}
                   >
-                    {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                    <span>{isLoading ? "Submitting..." : "Confirm"}</span>
+                    {(isLoading || poolSaveLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
+                    <span>{isLoading || poolSaveLoading ? "Submitting..." : "Confirm"}</span>
                   </button>
                   <button
                     type="button"

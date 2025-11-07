@@ -3,7 +3,8 @@ import { getEnv } from 'utils/getEnv';
 const backendUrl = getEnv('BACKEND_URL');
 
 
-export const testLdapConnectionService = async (backendUrl, token, editAD) => {
+export const testLdapConnectionService = async (token, editAD) => {
+	// use module-level backendUrl (from getEnv)
 	return axiosInstance.post(
 		`${backendUrl}/v1/test_ldap_connection`,
 		{
@@ -21,8 +22,7 @@ export const testLdapConnectionService = async (backendUrl, token, editAD) => {
 	);
 };
 
-// Test LDAP authentication
-export const testLdapAuthenticationService = async (backendUrl, token, editAD) => {
+export const testLdapAuthenticationService = async (token, editAD) => {
 	return axiosInstance.post(
 		`${backendUrl}/v1/test_ldap_authentication`,
 		{ ...editAD },

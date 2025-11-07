@@ -1,11 +1,12 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { Slide, toast } from "react-toastify";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
-import { getDomainDetails, deleteDomain as deleteDomainService, syncUsers } from "../../Services/DomainService";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { fetchDomainDetails, deleteDomain as deleteDomainThunk, syncUsers as syncUsersThunk } from '../../redux/features/Domain/DomainThunks';
 import {  useNavigate } from "react-router-dom";
-import { PoolContext } from "../../Context/PoolContext";
 import { Loader2 } from "lucide-react";
 import { useRef } from "react";
 function classNames(...classes) {
@@ -16,14 +17,13 @@ const DomainCard = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef(null);
-  //pool context
-  const pc = useContext(PoolContext);
-  const token=pc.token
-  let [domainDetails, setDomainDetails] = useState();
-  let get_domainDetails = async (domain_id) => {
+  const token = useSelector(selectAuthToken);
+  const dispatch = useDispatch();
+
+  // Fetch domain details via redux thunk and navigate to edit page
+  const get_domainDetails = async (domain_id) => {
     try {
-      const data = await getDomainDetails(token, domain_id);
-      setDomainDetails(data);
+      await dispatch(fetchDomainDetails({ token, domain_id })).unwrap();
       navigate(`/domain/edit-domain/${domain_id}`);
     } catch (err) {
       toast.error("Failed to fetch domain details", {
@@ -42,11 +42,10 @@ const DomainCard = (props) => {
   let deleteDomain = async (domain_id) => {
     setIsLoading(true);
     try {
-      const res = await deleteDomainService(token, domain_id);
-      let status_code = res.data.code;
-      let ldaps = res.data.data;
-      if (status_code == 200) {
-        toast.success(res.data.msg, {
+  const res = await dispatch(deleteDomainThunk({ token, domain_id })).unwrap();
+      // res is expected to be the updated domains array
+      if (Array.isArray(res)) {
+        toast.success('Domain deleted', {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -57,10 +56,12 @@ const DomainCard = (props) => {
           theme: "light",
           transition: Slide,
         });
-        pc.setAvailableDomains(ldaps);
+        // Redux slice is updated by the deleteDomain thunk; no context update required.
         navigate("/domain");
       } else {
-        toast.error(res.data.msg || "Deletion Failed", {
+        // fallback: if backend returned a message-like object
+        const msg = res?.msg || 'Deletion completed';
+        toast.success(msg, {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -71,6 +72,8 @@ const DomainCard = (props) => {
           theme: "light",
           transition: Slide,
         });
+        // navigate back; Redux state will be consistent via thunk or caller can re-fetch
+        navigate('/domain');
       }
     } catch (err) {
       toast.error("Deletion failed", {
@@ -93,9 +96,16 @@ const DomainCard = (props) => {
     switch (exp) {
       case "sync":
         try {
-          const res = await syncUsers(token, id);
-          if (res.data.code == 200) {
-            toast.success(res.data.msg, {
+          const res = await dispatch(syncUsersThunk({ token, domain_id: id })).unwrap();
+          const code = res?.code ?? res?.data?.code;
+          const status =
+            res?.data?.data?.status ?? 
+            res?.data?.status ?? 
+            res?.payload?.status ??
+            null;
+          const detailedStatus = status || res?.msg || res?.data?.msg || 'Sync completed';
+          if (code === 200) {
+            toast.success(detailedStatus, {
               position: "top-right",
               autoClose: 3000,
               hideProgressBar: false,
@@ -107,7 +117,7 @@ const DomainCard = (props) => {
               transition: Slide,
             });
           } else {
-            toast.error(res.data.msg, {
+            toast.error(detailedStatus, {
               position: "top-right",
               autoClose: 3000,
               hideProgressBar: false,
