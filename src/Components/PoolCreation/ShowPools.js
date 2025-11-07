@@ -1,12 +1,24 @@
 import { updatePoolStatus } from "../../Services/PoolService";
-import React, { useContext, useState } from "react";
-import { PoolContext } from "../../Context/PoolContext";
+import React, { useState, useEffect } from "react";
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPools } from "../../redux/features/Pools/PoolsThunks";
+import { selectAvailablePools, selectIsPoolAvailable } from "../../redux/features/Pools/PoolsSelectors";
 import "./css/ShowPools.css";
 import { useNavigate } from "react-router-dom";
 
 const ShowPools = () => {
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
+  const token = useSelector(selectAuthToken);
+  const dispatch = useDispatch();
+  const availablePools = useSelector(selectAvailablePools);
+  const isPoolAvailable = useSelector(selectIsPoolAvailable);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchPools(token));
+    }
+  }, [token, dispatch]);
   const [selectedPools, setSelectedPools] = useState([]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
@@ -91,7 +103,7 @@ const ShowPools = () => {
       </div>
 
       {/* Table */}
-      {pc.isPoolAvailable && (
+      {isPoolAvailable && (
         <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
           <table className="min-w-full bg-white text-sm border-collapse">
             <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
@@ -125,8 +137,8 @@ const ShowPools = () => {
               </tr>
             </thead>
             <tbody>
-              {Array.isArray(pc.availablePools) &&
-                pc.availablePools
+              {Array.isArray(availablePools) &&
+                availablePools
                   .slice()
                   .filter((item) => item && typeof item.pool_name === "string")
                   .sort((a, b) => a.pool_name.localeCompare(b.pool_name))

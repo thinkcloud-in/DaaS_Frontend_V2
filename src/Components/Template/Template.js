@@ -1,82 +1,93 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
 import "./TemplatePreview.css";
-import { fetchReports, updateReport } from "../../Services/TemplateService";
 import "./Template.css";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import Popup from "../Popup/Popup";
-import { PoolContext } from "../../Context/PoolContext";
 import CircularProgress from "@mui/material/CircularProgress";
-import Skeleton from "@mui/material/Skeleton"; 
+import Skeleton from "@mui/material/Skeleton";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { fetchReports, updateReport } from '../../redux/features/Template/TemplateThunks';
+import { setReportType, setCompanyName, setImage } from '../../redux/features/Template/TemplateSlice';
+import {
+  selectReportType,
+  selectReports,
+  selectCompanyName,
+  selectImage,
+  selectIsLoading,
+  selectIsSubmitting,
+} from '../../redux/features/Template/TemplateSelectors';
+
 const Template = ({ tokenParsed }) => {
   const today = new Date();
   const formattedDateTime = today.toLocaleString();
   const userProfileIcon = tokenParsed.name;
 
   const [open, setOpen] = useState(false);
-  const [image, setImage] = useState(null); 
-  const [reportType, setReportType] = useState("");
-  const [reports, setReports] = useState([]);
-  const [companyName, setCompanyName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); 
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+  const dispatch = useDispatch();
+  // template state moved to redux
+  const reportType = useSelector(selectReportType);
+  const reports = useSelector(selectReports);
+  const companyName = useSelector(selectCompanyName);
+  const image = useSelector(selectImage);
+  const isLoading = useSelector(selectIsLoading);
+  const isSubmitting = useSelector(selectIsSubmitting);
+  // auth token from redux state
+  const token = useSelector(selectAuthToken);
   const handleFileOnChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result.split(",")[1]; 
-        setImage(base64String);
+        const base64String = reader.result.split(",")[1];
+        dispatch(setImage(base64String));
       };
       reader.readAsDataURL(file);
     }
   };
   const handleOnChange = async (event) => {
     const selectedReportType = event.target.value;
-    setReportType(selectedReportType);
-    setIsLoading(true);
+    dispatch(setReportType(selectedReportType));
+    // don't call API when placeholder/empty selection is chosen
+    if (!selectedReportType) {
+      // clear image and company name when user resets selection
+      dispatch(setCompanyName(''));
+      dispatch(setImage(null));
+      return;
+    }
+
+    if (!token) {
+      toast.error('Missing auth token');
+      return;
+    }
     try {
-      const data = await fetchReports(token, selectedReportType);
-      setReports(data);
-      if (data.length > 0) {
-        setImage(data[0].company_logo);
-        setCompanyName(data[0].company_name);
-      } else {
-        setImage(null);
-        setCompanyName("");
-      }
-    } catch (error) {
-      toast.error("Failed to fetch reports");
-    } finally {
-      setIsLoading(false);
+      await dispatch(fetchReports({ token, reportType: selectedReportType })).unwrap();
+    } catch (err) {
+      toast.error(err || 'Failed to fetch reports');
     }
   };
 
   const handleCompanySelection = (event) => {
     const selectedCompanyName = event.target.value;
-    setCompanyName(selectedCompanyName);
+    dispatch(setCompanyName(selectedCompanyName));
   };
   const handleSubmit = async () => {
-    setIsSubmitting(true);
+    if (!token) {
+      toast.error('Missing auth token');
+      return;
+    }
     const formData = new FormData();
     formData.append("company_name", companyName);
     formData.append("report_type", reportType);
     if (image) {
-      if (typeof image === "string") {
-        formData.append("company_logo", image);
-      } else {
-        formData.append("company_logo", image);
-      }
+      formData.append("company_logo", image);
     }
     try {
-      await updateReport(token, formData);
+      await dispatch(updateReport({ token, formData })).unwrap();
       toast.success("File uploaded successfully");
     } catch (error) {
-      toast.error("Failed to upload file");
-    } finally {
-      setIsSubmitting(false);
+      toast.error(error || "Failed to upload file");
     }
   };
 
@@ -174,7 +185,7 @@ const Template = ({ tokenParsed }) => {
                         <button
                           type="button"
                           className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 border-2"
-                          onClick={() => setImage(null)}
+                          onClick={() => dispatch(setImage(null))}
                         >
                           Remove
                         </button>

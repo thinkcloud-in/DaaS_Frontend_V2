@@ -1,20 +1,15 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { PoolContext } from "../../Context/PoolContext";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 import "./css/PoolCreationForm.css";
 import VNCsettings from "./VNCsettings";
 import SSHsettings from "./SSHsettings";
 import RDPsettings from "./RDPsettings";
 import CustomTabs from "../CustomTabs/CustomTabs";
-import {
-  getPoolByIdService,
-  getClusterNodes,
-  getTemplates,
-  getVmwareDCs,
-  getVmwareFolders,
-  getIpPoolNames,
-  updatePoolService
-} from "../../Services/PoolService";
+import { getPoolByIdService } from "../../Services/PoolService";
+import { useDispatch, useSelector } from "react-redux";
+import { updatePool, fetchClusterNodes, fetchTemplates, fetchVmwareDCs, fetchVmwareFolders, fetchIpPoolNames } from "../../redux/features/Pools/PoolsThunks";
+import { selectCreationNodes, selectCreationTemplates, selectCreationIpPoolNames, selectCreationVmwareDCs, selectCreationVmwareFolders, selectPoolSaveLoading } from "../../redux/features/Pools/PoolsSelectors";
 import { Loader2 } from "lucide-react";
 import { Slide, toast } from "react-toastify";
 import SkeletonEditPool from "./SkeletonEditPool";
@@ -28,15 +23,17 @@ const EditPool = (props) => {
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("RDP");
-  const [nodes, setNodes] = useState([]);
-  const [templates, setTemplates] = useState([]);
-  const [ipPoolNames, setIpPoolNames] = useState([]);
-  const [vmwareDCs, setVmwareDCs] = useState([]);
-  const [vmwareFolders, setVmwareFolders] = useState([]);
+  const nodes = useSelector(selectCreationNodes) || [];
+  const templates = useSelector(selectCreationTemplates) || [];
+  const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
+  const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
+  const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
   const [selectedCluster, setSelectedCluster] = useState(null);
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
+  const poolSaveLoading = useSelector(selectPoolSaveLoading);
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username || tokenParsed?.email || "";
+  const dispatch = useDispatch();
 
   const selectStyles = {
     container: (base) => ({
@@ -65,13 +62,16 @@ const EditPool = (props) => {
           } else {
             clusterId = res.data.data.pool.cluster_id;
           }
-          fetchNodesAndTemplates(
-            clusterId,
-            res.data.data.pool.cluster_type 
-          );
+          // dispatch thunks to populate nodes/templates and vmware lists
+          dispatch(fetchClusterNodes({ token, clusterId }));
+          dispatch(fetchTemplates({ token, clusterId }));
+          if (res.data.data.pool.cluster_type === "VMware") {
+            dispatch(fetchVmwareDCs({ token, clusterId }));
+            dispatch(fetchVmwareFolders({ token, clusterId }));
+          }
         }
         if (res.data.data.pool.pool_type === "Automated") {
-          fetchIpPools();
+          dispatch(fetchIpPoolNames(token));
         }
       })
       .catch((err) => {
@@ -80,43 +80,7 @@ const EditPool = (props) => {
       .finally(() => {
         setLoading(false);
       });
-  }, [poolId]);
-
-  const fetchNodesAndTemplates = async (clusterId, clusterType) => {
-    try {
-      const [nodesData, templatesData] = await Promise.all([
-        getClusterNodes(token, clusterId),
-        getTemplates(token, clusterId),
-      ]);
-      setNodes(nodesData);
-      setTemplates(templatesData);
-
-      // Fetch VMware DCs/Folders if cluster is VMware
-      if (clusterType === "VMware") {
-        const [dcsData, foldersData] = await Promise.all([
-          getVmwareDCs(token, clusterId),
-          getVmwareFolders(token, clusterId),
-        ]);
-        setVmwareDCs(dcsData?.data);
-        setVmwareFolders(foldersData?.data);
-      }
-    } catch (err) {
-      setNodes([]);
-      setTemplates([]);
-      setVmwareDCs([]);
-      setVmwareFolders([]);
-    }
-  };
-
-  const fetchIpPools = () => {
-    getIpPoolNames(token)
-      .then((data) => {
-        setIpPoolNames(data);
-      })
-      .catch(() => {
-        setIpPoolNames([]);
-      });
-  };
+  }, [poolId, dispatch, token]);
   const handleOnChange = (e) => {
     const { name, type, checked, value } = e.target;
     let newValue;
@@ -203,50 +167,28 @@ const EditPool = (props) => {
       ...poolDetails,
       email: userEmail,
     };
-
-    updatePoolService(token, poolDetails.id, requestData)
-      .then((res) => {
-        if (res.data?.data?.pool) {
-          setPoolDetails(res.data.data.pool);
-          if (pc.setAvailablePools) {
-            pc.setAvailablePools((prevPools) =>
-              prevPools.map((pool) =>
-                pool.id === res.data.data.pool.id ? res.data?.data?.pool : pool
-              )
-            );
-          }
+    dispatch(
+      updatePool({ token, poolId: poolDetails.id, requestData })
+    )
+      .unwrap()
+      .then((payload) => {
+        if (payload?.pool) {
+          setPoolDetails(payload.pool);
         }
-        toast.success(res.data.msg, {
+        toast.success(payload?.msg || "Pool updated", {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
         });
         navigate("/pools");
-        pc.getPools();
       })
       .catch((err) => {
         setPoolDetails({});
-        toast.error("Pool modification failed", {
+        toast.error(err?.msg || err?.message || "Pool modification failed", {
           position: "top-right",
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
         });
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   };
 
   let securityMode = [
@@ -623,17 +565,17 @@ const EditPool = (props) => {
           <button
             onClick={handleOnClick}
             type="button"
-            disabled={isLoading}
+            disabled={isLoading || poolSaveLoading}
             className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
               ${
-                isLoading
+                (isLoading || poolSaveLoading)
                   ? "bg-[#1a365d] cursor-not-allowed"
                   : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
               }
             `}
           >
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            <span>{isLoading ? "Updating..." : "Update"}</span>
+            {(isLoading || poolSaveLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
+            <span>{isLoading || poolSaveLoading ? "Updating..." : "Update"}</span>
           </button>
         </div>
       </div>

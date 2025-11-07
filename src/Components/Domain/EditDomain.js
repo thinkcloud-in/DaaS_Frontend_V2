@@ -1,26 +1,27 @@
 
-import React, { useState, useContext, useEffect } from "react";
-import { PoolContext } from "../../Context/PoolContext";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, Fragment } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import {
-  getDomainDetails,
-  deleteDomain as deleteDomainService,
-  syncUsers,
-  syncChangedUsers,
-  unlinkUsers,
-  removeImportedUsers,
-  updateDomain,
-  testLdapConnectionService,
-  testLdapAuthenticationService
-} from "../../Services/DomainService";
 import { Slide, toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
-import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import "./EditDomain.css";
-import { getEnv } from "utils/getEnv";
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchDomains,
+  fetchDomainDetails,
+  deleteDomain as deleteDomainThunk,
+  syncUsers as syncUsersThunk,
+  syncChangedUsers as syncChangedUsersThunk,
+  unlinkUsers as unlinkUsersThunk,
+  removeImportedUsers as removeImportedUsersThunk,
+  updateDomain as updateDomainThunk,
+  testLdapConnection,
+  testLdapAuthentication,
+} from '../../redux/features/Domain/DomainThunks';
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { selectDomainDetails, selectDomainLoading } from '../../redux/features/Domain/DomainSelectors';
 function EditDomainSkeleton() {
   return (
     <div className="animate-pulse space-y-5 mt-4 w-[98%] m-auto mb-5 h-[90vh] rounded-md bg-white edit_domain flex flex-col justify-between">
@@ -53,471 +54,246 @@ function EditDomainSkeleton() {
 }
 
 const EditDomain = () => {
-  function stringToBoolean(str) {
-    return str === "true";
-  }
-  let [editAD, setEditAD] = useState({});
-  let [domainID, setDomainID] = useState(useParams().id);
-  let [pageReady, setPageReady] = useState(false);
-  let [isLoading, setIsLoading] = useState(false);
-  const [loading, setLoading] = useState({
-    testConnection: false,
-    testAuth: false,
-    submit: false,
-  });
-
-
-  useEffect(() => {
-    setIsLoading(true);
-    (async () => {
-      try {
-        const data = await getDomainDetails(token, domainID);
-        setEditAD({
-          name: data?.name,
-          vendor: data?.vendor,
-          connectionUrl: data?.connectionUrl,
-          startTls: stringToBoolean(data?.startTls),
-          useTruststoreSpi: data?.useTruststoreSpi,
-          connectionPooling: stringToBoolean(data?.connectionPooling),
-          connectionTimeout: data?.connectionTimeout,
-          authType: data?.authType,
-          bindDn: data?.bindDn,
-          bindCredential: "",
-          editMode: data?.editMode,
-          usersDn: data?.usersDn,
-          usernameLDAPAttribute: data?.usernameLDAPAttribute,
-          rdnLDAPAttribute: data?.rdnLDAPAttribute,
-          uuidLDAPAttribute: data?.uuidLDAPAttribute,
-          userObjectClasses: data?.userObjectClasses,
-          searchScope: data?.searchScope,
-          readTimeout: data?.readTimeout,
-          pagination: stringToBoolean(data?.pagination),
-          referral: data?.referral,
-          importEnabled: stringToBoolean(data?.importEnabled),
-          syncRegistrations: stringToBoolean(data?.syncRegistrations),
-          batchSizeForSync: data?.batchSizeForSync,
-          fullSyncPeriod: data?.fullSyncPeriod,
-          changedSyncPeriod: data?.changedSyncPeriod,
-          allowKerberosAuthentication: stringToBoolean(data?.allowKerberosAuthentication),
-          useKerberosForPasswordAuthentication: stringToBoolean(data?.useKerberosForPasswordAuthentication),
-          cachePolicy: data?.cachePolicy,
-          usePasswordModifyExtendedOp: stringToBoolean(data?.usePasswordModifyExtendedOp),
-          validatePasswordPolicy: stringToBoolean(data?.validatePasswordPolicy),
-          trustEmail: stringToBoolean(data?.trustEmail),
-          customUserSearchFilter: data?.customUserSearchFilter,
-          debug: stringToBoolean(data?.debug),
-          enabled: stringToBoolean(data?.enabled),
-          kerberosRealm: data?.kerberosRealm,
-          keyTab: data?.keyTab,
-          serverPrincipal: data?.serverPrincipal,
-          krbPrincipalAttribute: data?.krbPrincipalAttribute,
-        });
-      } catch (err) {
-        toast.error("Failed to fetch domain data", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    })();
-    return () => {
-      setPageReady(true);
-    };
-  }, []);
+  const dispatch = useDispatch();
+  const token = useSelector(selectAuthToken);
   const navigate = useNavigate();
-  //pool context
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+  const { id: domainID } = useParams();
+
+  const domainDetails = useSelector(selectDomainDetails);
+  const globalLoading = useSelector(selectDomainLoading);
+
+  const [editAD, setEditAD] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState({ testConnection: false, testAuth: false, submit: false });
   const [showPassword, setShowPassword] = useState(false);
-  const location = useLocation();
-  const navigation = useNavigate();
-  const togglePassword = () => {
-    setShowPassword(!showPassword);
+  const [syncSettingsEnable, setSyncSettingsEnable] = useState({ fullSyncEnabled: false, changedSyncEnabled: false });
+
+  function stringToBoolean(str) {
+    return str === true || str === "true";
+  }
+
+  const togglePassword = () => setShowPassword((s) => !s);
+
+  // fetch domain details when token & id available
+  useEffect(() => {
+    if (!token || !domainID) return;
+    setIsLoading(true);
+    dispatch(fetchDomainDetails({ token, domain_id: domainID }))
+      .unwrap()
+      .then((data) => {
+        if (!data) return;
+        // backend may send the domain object directly
+        const src = data?.data || data;
+        // map values and normalize booleans
+        setEditAD({
+          name: src?.name || "",
+          vendor: src?.vendor || "ad",
+          connectionUrl: src?.connectionUrl || "",
+          startTls: stringToBoolean(src?.startTls),
+          useTruststoreSpi: src?.useTruststoreSpi || "always",
+          connectionPooling: stringToBoolean(src?.connectionPooling),
+          connectionTimeout: src?.connectionTimeout || "",
+          authType: src?.authType || "simple",
+          bindDn: src?.bindDn || "",
+          bindCredential: "",
+          editMode: src?.editMode || "read_only",
+          usersDn: src?.usersDn || "",
+          usernameLDAPAttribute: src?.usernameLDAPAttribute || "",
+          rdnLDAPAttribute: src?.rdnLDAPAttribute || "",
+          uuidLDAPAttribute: src?.uuidLDAPAttribute || "",
+          userObjectClasses: src?.userObjectClasses || "",
+          searchScope: src?.searchScope || "",
+          readTimeout: src?.readTimeout || "",
+          pagination: stringToBoolean(src?.pagination),
+          referral: src?.referral || "",
+          importEnabled: stringToBoolean(src?.importEnabled),
+          syncRegistrations: stringToBoolean(src?.syncRegistrations),
+          batchSizeForSync: src?.batchSizeForSync || "",
+          fullSyncPeriod: src?.fullSyncPeriod || "-1",
+          changedSyncPeriod: src?.changedSyncPeriod || "-1",
+          allowKerberosAuthentication: stringToBoolean(src?.allowKerberosAuthentication),
+          useKerberosForPasswordAuthentication: stringToBoolean(src?.useKerberosForPasswordAuthentication),
+          cachePolicy: src?.cachePolicy || "DEFAULT",
+          usePasswordModifyExtendedOp: stringToBoolean(src?.usePasswordModifyExtendedOp),
+          validatePasswordPolicy: stringToBoolean(src?.validatePasswordPolicy),
+          trustEmail: stringToBoolean(src?.trustEmail),
+          customUserSearchFilter: src?.customUserSearchFilter || "",
+          debug: stringToBoolean(src?.debug),
+          enabled: stringToBoolean(src?.enabled),
+          kerberosRealm: src?.kerberosRealm || "",
+          keyTab: src?.keyTab || "",
+          serverPrincipal: src?.serverPrincipal || "",
+          krbPrincipalAttribute: src?.krbPrincipalAttribute || "",
+        });
+        // Normalize full/changed sync enabled flags — backend may return number -1 or string "-1"
+        const fullEnabled = src?.fullSyncPeriod != null && String(src.fullSyncPeriod) !== "-1";
+        const changedEnabled = src?.changedSyncPeriod != null && String(src.changedSyncPeriod) !== "-1";
+        setSyncSettingsEnable({ fullSyncEnabled: fullEnabled, changedSyncEnabled: changedEnabled });
+      })
+      .catch(() => {
+        toast.error("Failed to fetch domain data", { position: "top-right", autoClose: 3000, transition: Slide });
+      })
+      .finally(() => setIsLoading(false));
+  }, [token, domainID, dispatch]);
+
+  const Goback = () => {
+    navigate("/domain");
   };
-  const [open, setOpen] = useState(false);
-  let [syncSettingsEnable, setSyncSettingsEnable] = useState({
-    fullSyncEnabled: false,
-    changedSyncEnabled: false,
-  });
-  let deleteDomain = async (domain_id) => {
+
+  const handleDelete = async (id) => {
+    if (!token) return;
     try {
-      const res = await deleteDomainService(token, domain_id);
-      let status_code = res.data.code;
-      let ldaps = res.data?.data;
-      if (status_code == 200) {
-        toast.success(res.data.msg, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-        pc.setAvailableDomains(ldaps);
-        navigate("/domain");
-      } else {
-        toast.error(res.data.msg || "Failed to delete domain", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-      }
+      const res = await dispatch(deleteDomainThunk({ token, domain_id: id })).unwrap();
+      // show message (try several common shapes)
+      const msg = res?.msg || res?.data?.msg || 'Domain deleted';
+      toast.success(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+      dispatch(fetchDomains({ token }));
+      navigate('/domain');
     } catch (err) {
-      toast.error("Deletion failed", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-      });
+      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Deletion failed';
+      toast.error(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
     }
   };
 
-  let handleOnClick = async (exp, id) => {
+  const handleOnClick = async (exp, id) => {
+    if (!token) return;
     try {
       switch (exp) {
-        case "sync": {
-          const res = await syncUsers(token, id);
-          if (res.data.code == 200) {
-            toast.info(res.data.msg, {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            });
-          }
+        case 'sync': {
+          const res = await dispatch(syncUsersThunk({ token, domain_id: id })).unwrap();
+          const code = res?.code ?? res?.data?.code;
+          const status = res?.data?.data?.status ?? res?.data?.status ?? res?.payload?.status ?? res?.status ?? null;
+          const detailedStatus = status || res?.msg || res?.data?.msg || 'Sync completed';
+          if (code === 200) toast.success(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
+          else toast.error(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
           break;
         }
-        case "syncChanged": {
-          const res = await syncChangedUsers(token, id);
-          if (res.data.code == 200) {
-            toast.info(res.data.msg, {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            });
-          }
+        case 'syncChanged': {
+          const res = await dispatch(syncChangedUsersThunk({ token, domain_id: id })).unwrap();
+          const code = res?.code ?? res?.data?.code;
+          const status = res?.data?.data?.status ?? res?.data?.status ?? res?.payload?.status ?? res?.status ?? null;
+          const detailedStatus = status || res?.msg || res?.data?.msg || 'Sync completed';
+          if (code === 200) toast.success(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
+          else toast.error(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
           break;
         }
-        case "unlink": {
-          const res = await unlinkUsers(token, id);
-          let msg = res.data.msg;
-          toast.info(msg, {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Slide,
-          });
+        case 'unlink': {
+          const res = await dispatch(unlinkUsersThunk({ token, domain_id: id })).unwrap();
+          const msg = res?.msg || res?.data?.msg || 'Unlink completed';
+          toast.info(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
           break;
         }
-        case "remove": {
-          const res = await removeImportedUsers(token, id);
-          let msg = res.data.msg;
-          toast.info(msg, {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Slide,
-          });
+        case 'remove': {
+          const res = await dispatch(removeImportedUsersThunk({ token, domain_id: id })).unwrap();
+          const msg = res?.msg || res?.data?.msg || 'Remove completed';
+          toast.info(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
           break;
         }
-        case "delete":
-          await deleteDomain(id);
+        case 'delete':
+          await handleDelete(id);
           break;
         default:
       }
     } catch (err) {
-      toast.error("Operation failed", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-      });
+      toast.error('Operation failed', { position: 'top-right', autoClose: 3000, transition: Slide });
     }
   };
-  let sendData = async () => {
+
+  const sendData = async () => {
+    if (!token || !domainID || !editAD) return;
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
-      const res = await updateDomain(token, domainID, editAD);
-      if (res.data.code == 200) {
-        toast.success(res.data.msg, {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-        pc.setAvailableDomains(res.data?.data);
-        navigate("/domain");
+      const res = await dispatch(updateDomainThunk({ token, domain_id: domainID, ad: editAD })).unwrap();
+      const code = res?.code ?? res?.data?.code;
+      const msg = res?.msg || res?.data?.msg || 'Domain update completed';
+      if (code === 200) {
+        toast.success(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+        dispatch(fetchDomains({ token }));
+        navigate('/domain');
       } else {
-        toast.error(res.data.msg || "Failed to update domain", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
+        toast.error(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
       }
     } catch (err) {
-      toast.error((err?.data?.msg) || "Failed to update domain", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-      });
+      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Failed to update domain';
+      toast.error(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
   };
-  let handleOnChange = (e) => {
+
+  const handleOnChange = (e) => {
     setEditAD({ ...editAD, [e.target.name]: e.target.value });
   };
-  let handleChange = (e) => {
-    if (
-      e.target.name == "fullSyncEnabled" ||
-      e.target.name == "changedSyncEnabled"
-    ) {
-      setSyncSettingsEnable({
-        ...syncSettingsEnable,
-        [e.target.name]: e.target.checked,
-      });
+
+  const handleChange = (e) => {
+    if (e.target.name === 'fullSyncEnabled' || e.target.name === 'changedSyncEnabled') {
+      const name = e.target.name;
+      const checked = e.target.checked;
+      setSyncSettingsEnable({ ...syncSettingsEnable, [name]: checked });
+      // keep the editAD period fields consistent: when disabling, set period to "-1"
+      if (!checked) {
+        const periodField = name === 'fullSyncEnabled' ? 'fullSyncPeriod' : 'changedSyncPeriod';
+        setEditAD((prev) => (prev ? { ...prev, [periodField]: "-1" } : prev));
+      }
     } else {
       setEditAD({ ...editAD, [e.target.name]: e.target.checked });
     }
   };
-  let handleOnSubmit = (e) => {
-    if (
-      editAD.name &&
-      editAD.vendor &&
-      editAD.connectionUrl &&
-      editAD.authType &&
-      editAD.bindDn &&
-      editAD.bindCredential &&
-      editAD.editMode &&
-      editAD.usersDn &&
-      editAD.usernameLDAPAttribute &&
-      editAD.rdnLDAPAttribute &&
-      editAD.uuidLDAPAttribute &&
-      editAD.userObjectClasses
-    ) {
-      sendData();
-    } else {
-      toast.error("Please enter all details", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-      });
+
+  const handleOnSubmit = (e) => {
+    // Basic required fields check
+    const basicRequired = (
+      editAD?.name &&
+      editAD?.vendor &&
+      editAD?.connectionUrl &&
+      editAD?.authType &&
+      editAD?.bindDn &&
+      editAD?.editMode &&
+      editAD?.usersDn &&
+      editAD?.usernameLDAPAttribute &&
+      editAD?.rdnLDAPAttribute &&
+      editAD?.uuidLDAPAttribute &&
+      editAD?.userObjectClasses &&
+      editAD?.bindCredential
+    );
+
+    if (!basicRequired) {
+      toast.error('Please enter all required details', { position: 'top-right', autoClose: 3000, transition: Slide });
+      return;
     }
-  };
-  let reset = () => {
-    setEditAD({
-      name: "",
-      vendor: "ad",
-      connectionUrl: "",
-      startTls: false,
-      useTruststoreSpi: "always",
-      connectionPooling: false,
-      connectionTimeout: "",
-      authType: "simple",
-      bindDn: "",
-      bindCredential: "",
-      editMode: "read_only",
-      usersDn: "",
-      usernameLDAPAttribute: "",
-      rdnLDAPAttribute: "",
-      uuidLDAPAttribute: "",
-      userObjectClasses: "",
-      searchScope: "",
-      readTimeout: "",
-      pagination: false,
-      referral: "",
-      importEnabled: true,
-      syncRegistrations: true,
-      batchSizeForSync: "",
-      fullSyncPeriod: "-1",
-      changedSyncPeriod: "-1",
-      allowKerberosAuthentication: false,
-      useKerberosForPasswordAuthentication: false,
-      cachePolicy: "DEFAULT",
-      usePasswordModifyExtendedOp: false,
-      validatePasswordPolicy: false,
-      trustEmail: false,
-      customUserSearchFilter: "",
-      debug: false,
-      enabled: true,
-      kerberosRealm: "",
-      keyTab: "",
-      lastSync: "",
-      serverPrincipal: "",
-      krbPrincipalAttribute: "",
-    });
-    setSyncSettingsEnable({
-      fullSyncEnabled: false,
-      changedSyncEnabled: false,
-    });
+    sendData();
   };
 
-  let handleTestConnection = async () => {
+  const handleTestConnection = async () => {
+    if (!token || !editAD) return;
     setLoading((prev) => ({ ...prev, testConnection: true }));
     try {
-      const res = await testLdapConnectionService(token, editAD);
-      if (res.data.msg) {
-        toast.success(res.data.msg, {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-      } else {
-        toast.error(
-          `Error when trying to connect to LDAP:'${res.data.errorMessage}'`,
-          {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: Slide,
-          }
-        );
-      }
+      const res = await dispatch(testLdapConnection({ token, ad: editAD })).unwrap();
+      const msg = res?.msg || res?.data?.msg;
+      if (msg) toast.success(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
+      else toast.error('Test ldap connection error occurred', { position: 'top-right', autoClose: 5000, transition: Slide });
     } catch (err) {
-      toast.error((err?.data?.msg) || "Test ldap connection error occurred", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-      });
+      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Test ldap connection error occurred';
+      toast.error(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
     } finally {
       setLoading((prev) => ({ ...prev, testConnection: false }));
     }
   };
-  let handleTestAuthentication = async () => {
+
+  const handleTestAuthentication = async () => {
+    if (!token || !editAD) return;
     setLoading((prev) => ({ ...prev, testAuth: true }));
     try {
-      const res = await testLdapAuthenticationService(token, editAD);
-      if (res.data.msg) {
-        toast.success(res.data.msg, {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-      } else {
-        toast.error(res.data.msg, {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        });
-      }
+      const res = await dispatch(testLdapAuthentication({ token, ad: editAD })).unwrap();
+      const msg = res?.msg || res?.data?.msg;
+      if (msg) toast.success(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
+      else toast.error('Test ldap authentication error occurred', { position: 'top-right', autoClose: 5000, transition: Slide });
     } catch (err) {
-      toast.error((err?.data?.msg) || "Test ldap authentication error occurred", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
-      });
+      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Test ldap authentication error occurred';
+      toast.error(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
     } finally {
       setLoading((prev) => ({ ...prev, testAuth: false }));
     }
-  };
-  const Goback = () => {
-    navigate("/domain");
   };
 
   if (isLoading) {
@@ -527,6 +303,7 @@ const EditDomain = () => {
       </div>
     );
   }
+
   return (
     <div className="domain_creation_wrapper domain_create flex flex-col h-[90vh] w-[98%] m-auto bg-white mt-4 rounded-md overflow-hidden shadow-md">
       <div className="flex justify-between items-center mx-5 p-3 pb-0 mt-3">

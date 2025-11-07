@@ -2,192 +2,87 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { PoolContext } from "../../Context/PoolContext";
 import "./css/PoolCreationForm.css";
-import { getIpPoolNames, getClusterNodes, getTemplates, getVmwareDCs, getVmwareFolders, createPool } from "../../Services/PoolService";
+// service calls are routed through redux thunks (PoolsThunks)
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import { createPool, fetchIpPoolNames, fetchClusterNodes, fetchTemplates, fetchVmwareDCs, fetchVmwareFolders } from "../../redux/features/Pools/PoolsThunks";
+import { setPoolCreationDetails, resetPoolCreation } from "../../redux/features/Pools/PoolsSlice";
+import {
+  selectPoolCreationDetails,
+  selectCreationNodes,
+  selectCreationTemplates,
+  selectCreationIpPoolNames,
+  selectCreationVmwareDCs,
+  selectCreationVmwareFolders,
+  selectPoolSaveLoading,
+} from "../../redux/features/Pools/PoolsSelectors";
 import VNCsettings from "./VNCsettings";
 import SSHsettings from "./SSHsettings";
 import RDPsettings from "./RDPsettings";
+import { initialPoolDetails } from "../../redux/features/Pools/poolDefaults";
 import CustomTabs from "../CustomTabs/CustomTabs";
 import { Slide, toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import Select from "react-select";
 const poolType = ["Automated", "Manual"];
 
-const initialPoolDetails = {
-  pool_protocol: "",
-  pool_port: null,
-  pool_hostname: "",
-  pool_type: "",
-  pool_name: "",
-  entitled: null,
-  pool_machines: [],
-  pool_os_type: "",
-  pool_username: "",
-  pool_password: "",
-  pool_security: "",
-  pool_weight: 0,
-  pool_domain: "",
-  pool_disable_auth: false,
-  pool_ignore_cert: false,
-  pool_max_connections: null,
-  pool_max_connections_per_user: null,
-  pool_guacd_hostname: "",
-  pool_guacd_port: null,
-  pool_guacd_encryption: "",
-  pool_gateway_port: null,
-  pool_gateway_username: "",
-  pool_gateway_password: "",
-  pool_gateway_domain: "",
-  pool_initial_program: "",
-  pool_client_name: "",
-  pool_timezone: "",
-  pool_console: false,
-  pool_width: null,
-  pool_height: null,
-  pool_dpi: null,
-  pool_color_depth: "",
-  pool_resize_method: "",
-  pool_read_only: false,
-  pool_clipboard_encoding: "",
-  pool_disable_copy: false,
-  pool_disable_paste: false,
-  pool_console_audio: false,
-  pool_enable_audio_input: false,
-  pool_enable_printing: false,
-  pool_printer_name: "",
-  pool_enable_drive: false,
-  pool_drive_name: "",
-  pool_drive_path: "",
-  pool_cursor: "",
-  pool_enable_wallpaper: false,
-  pool_enable_theming: false,
-  pool_enable_font_smoothing: false,
-  pool_enable_full_window_drag: false,
-  pool_enable_desktop_composition: false,
-  pool_enable_menu_animations: false,
-  pool_disable_bitmap_caching: false,
-  pool_disable_offscreen_caching: false,
-  pool_disable_glyph_caching: false,
-  pool_load_balance_info: "",
-  pool_recording_path: "",
-  pool_recording_name: "",
-  pool_create_recording_path: false,
-  pool_recording_exclude_mouse: false,
-  pool_recording_include_keys: false,
-  pool_exclude_touch_events: false,
-  pool_enable_sftp: false,
-  pool_sftp_port: null,
-  pool_sftp_username: "",
-  pool_font_name: "",
-  pool_sftp_password: "",
-  pool_sftp_host_key: "",
-  pool_sftp_private_key: "",
-  pool_sftp_passphrase: "",
-  pool_sftp_root_directory: "",
-  pool_sftp_directory: "",
-  pool_sftp_server_alive_interval: null,
-  pool_private_key: "",
-  pool_passphrase: "",
-  pool_color_scheme: "",
-  pool_custom_font_name: "",
-  pool_scrollback: 0,
-  pool_font_size: 0,
-  pool_backspace: "",
-  pool_terminal_type: "",
-  pool_typescript_path: "",
-  pool_typescript_name: "",
-  pool_create_typescript_path: false,
-  pool_swap_red_blue: false,
-  pool_dest_host: "",
-  pool_dest_port: null,
-  pool_exclude_mouse: false,
-  pool_exclude_graphics_streams: false,
-  pool_enable_audio: false,
-  pool_audio_servername: "",
-  pool_failover_only: "false",
-  pool_args: [],
-  pool_vmids: [],
-  cluster_id: "",
-  pool_ip_pool_names: [],
-  pool_number_of_vms: null,
-  pool_naming_pattern: "",
-  pool_template_vm_id: null,
-  pool_selected_nodes: [],
-  pool_vmware_dc: "",
-  pool_vmware_folder: "",
-};
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
 const PoolCreationForm = (props) => {
 
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = useSelector(selectPoolSaveLoading);
   const [rename, setRename] = useState("");
-  let token = props.token;
-  let userEmail = props.tokenParsed.preferred_username;
-  const [poolDetails, setPoolDetails] = useState(initialPoolDetails);
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  let userEmail = tokenParsed?.preferred_username || tokenParsed?.email || "";
+  const poolDetails = useSelector(selectPoolCreationDetails) || {};
   const pc = useContext(PoolContext);
-  const [selectedCluster, setSelectedCluster] = useState(null);
-  const [nodes, setNodes] = useState([]);
-  const [templates, setTemplates] = useState([]);
-  const [ipPoolNames, setIpPoolNames] = useState([]);
-  const [vmwareDCs, setVmwareDCs] = useState([]);
-  const [vmwareFolders, setVmwareFolders] = useState([]);
+  const dispatch = useDispatch();
+  const selectedCluster = (poolDetails?.cluster_id && pc.availableClusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) || null;
+  const nodes = useSelector(selectCreationNodes) || [];
+  const templates = useSelector(selectCreationTemplates) || [];
+  const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
+  const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
+  const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
   const [error, setError] = useState(null);
 
   let navigate = useNavigate();
   useEffect(() => {
     if (poolDetails.pool_type === "Automated") {
-      getIpPoolNames(token)
-        .then((data) => setIpPoolNames(data))
-        .catch(() => setIpPoolNames([]));
+      dispatch(fetchIpPoolNames(token)).catch(() => {});
     }
-  }, [poolDetails.pool_type, token]);
+    return () => {
+    };
+  }, [poolDetails.pool_type, token, dispatch]);
   const handleClusterSelect = async (e) => {
     const clusterId = e.target.value;
-    setPoolDetails((prev) => ({
-      ...prev,
-      cluster_id: clusterId,
-      pool_selected_nodes: [],
-      pool_template_vm_id: "",
-      pool_vmware_dc: "",
-      pool_vmware_folder: "",
-    }));
-    setSelectedCluster(null);
-    setNodes([]);
-    setTemplates([]);
-    setVmwareDCs([]);
-    setVmwareFolders([]);
+    // update cluster selection in redux
+    dispatch(
+      setPoolCreationDetails({
+        cluster_id: clusterId,
+        pool_selected_nodes: [],
+        pool_template_vm_id: "",
+        pool_vmware_dc: "",
+        pool_vmware_folder: "",
+      })
+    );
     if (!clusterId) return;
     const cluster = pc.availableClusters.find((c) => String(c.id) === clusterId);
-    setSelectedCluster(cluster);
     try {
       setError(null);
-      const [nodes, templates] = await Promise.all([
-        getClusterNodes(token, cluster.id),
-        getTemplates(token, cluster.id),
+      // fetch nodes and templates via thunks
+      await Promise.all([
+        dispatch(fetchClusterNodes({ token, clusterId })).unwrap(),
+        dispatch(fetchTemplates({ token, clusterId })).unwrap(),
       ]);
-      setNodes(nodes);
-      setTemplates(templates);
-
-      // Fetch VMware DCs/Folders if cluster is VMware
-      if (cluster.type === "VMware") {
-        const [dcs, folders] = await Promise.all([
-          getVmwareDCs(token, cluster.id),
-          getVmwareFolders(token, cluster.id),
+      if (cluster?.type === "VMware") {
+        await Promise.all([
+          dispatch(fetchVmwareDCs({ token, clusterId })).unwrap(),
+          dispatch(fetchVmwareFolders({ token, clusterId })).unwrap(),
         ]);
-        setVmwareDCs(dcs);
-        setVmwareFolders(folders);
       }
     } catch (err) {
       setError("Failed to fetch cluster nodes/templates/DCs/folders.");
-      setNodes([]);
-      setTemplates([]);
-      setVmwareDCs([]);
-      setVmwareFolders([]);
     }
   };
 
@@ -221,62 +116,37 @@ const PoolCreationForm = (props) => {
     } else {
       newValue = value;
     }
-    setPoolDetails((prevState) => ({
-      ...prevState,
-      [name]: newValue,
-    }));
+    dispatch(setPoolCreationDetails({ [name]: newValue }));
   };
   const handleProtocolChange = (e) => {
     const value = e.target.value;
-    setPoolDetails((prev) => ({ ...prev, [e.target.name]: value }));
+    dispatch(setPoolCreationDetails({ [e.target.name]: value }));
     setSelectedProtocol(value);
     setSelectedTab(value);
   };
   const handleIpPoolsChange = (selectedOptions) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_ip_pool_names: (selectedOptions || []).map((opt) => opt.value),
-    }));
+    dispatch(setPoolCreationDetails({ pool_ip_pool_names: (selectedOptions || []).map((opt) => opt.value) }));
   };
   const handleNodesChange = (selectedOptions) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_selected_nodes: (selectedOptions || []).map((opt) => opt.value),
-    }));
+    dispatch(setPoolCreationDetails({ pool_selected_nodes: (selectedOptions || []).map((opt) => opt.value) }));
   };
   const handleTemplateChange = (e) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_template_vm_id: e.target.value ? parseInt(e.target.value, 10) : null,
-    }));
+    dispatch(setPoolCreationDetails({ pool_template_vm_id: e.target.value ? parseInt(e.target.value, 10) : null }));
   };
   const handleNamingPatternChange = (e) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_naming_pattern: e.target.value,
-    }));
+    dispatch(setPoolCreationDetails({ pool_naming_pattern: e.target.value }));
   };
   const handleCountChange = (e) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_number_of_vms: Number(e.target.value),
-    }));
+    dispatch(setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) }));
   };
   const handleVmwareDCChange = (e) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_vmware_dc: e.target.value,
-    }));
+    dispatch(setPoolCreationDetails({ pool_vmware_dc: e.target.value }));
   };
   const handleVmwareFolderChange = (e) => {
-    setPoolDetails((prev) => ({
-      ...prev,
-      pool_vmware_folder: e.target.value,
-    }));
+    dispatch(setPoolCreationDetails({ pool_vmware_folder: e.target.value }));
   };
 
   const handleOnClick = async () => {
-    setIsLoading(true);
     if (
       !poolDetails.pool_type ||
       !poolDetails.pool_protocol ||
@@ -296,31 +166,21 @@ const PoolCreationForm = (props) => {
           transition: Slide,
         }
       );
-      setIsLoading(false);
       return;
     }
-    let requestData = { ...poolDetails, email: userEmail };
+  let requestData = { ...initialPoolDetails, ...poolDetails, email: userEmail };
+    console.log(requestData);
     try {
-      const res = await createPool(token, requestData);
-      const msg = res.data?.data?.msg;
-      if (res.data.code === 200) {
-        toast.success(msg, { position: "top-right", autoClose: 5000 });
-        pc.setAvailablePools([...pc.availablePools, res.data?.data?.pool]);
-        pc.setIsPoolAvailable(true);
-        navigate("/pools");
-        setPoolDetails(initialPoolDetails);
-      } else {
-        setRename(msg);
-        toast.error(msg, { position: "top-right", autoClose: 5000 });
-        navigate("/pools/pool-creation-form");
-      }
-    } catch {
-      toast.error("Pool creation failed", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-    } finally {
-      setIsLoading(false);
+      const payload = await dispatch(createPool({ token, requestData })).unwrap();
+      const msg = payload?.msg || "Pool created";
+      toast.success(msg, { position: "top-right", autoClose: 5000 });
+      navigate("/pools");
+      dispatch(resetPoolCreation());
+    } catch (err) {
+      const message = err?.msg || err?.message || "Pool creation failed";
+      setRename(message);
+      toast.error(message, { position: "top-right", autoClose: 5000 });
+      navigate("/pools/pool-creation-form");
     }
   };
 

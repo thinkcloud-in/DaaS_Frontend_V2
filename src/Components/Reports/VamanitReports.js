@@ -1,19 +1,35 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useEffect, useRef } from "react";
 import "./Reports.css";
-import {
-  fetchVamanitAllUsers,
-  fetchVamanitSessionReports,
-  fetchVamanitDayReports,
-  fetchVamanitConsolidateReports,
-  fetchCompanyDetails,
-} from "Services/ReportsService";
 import dayjs from "dayjs";
 
 import { useReactToPrint } from "react-to-print";
-import { PoolContext } from "../../Context/PoolContext";
 import { ColorRing } from "react-loader-spinner";
 import { DatePicker } from "antd";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchVamanitUsersForDateRange,
+  fetchVamanitSessionReports as fetchVamanitSessionReportsThunk,
+  fetchVamanitDayReports as fetchVamanitDayReportsThunk,
+  fetchVamanitConsolidateReports as fetchVamanitConsolidateReportsThunk,
+  fetchVamanitCompanyDetails,
+} from '../../redux/features/VamanitReports/VamanitReportsThunks';
+import {
+  selectVamanitUserOptions,
+  selectVamanitUser,
+  selectVamanitDateRange,
+  selectVamanitSessionReports,
+  selectVamanitDayReports,
+  selectVamanitConsolidateReports,
+  selectVamanitShowSession,
+  selectVamanitShowDay,
+  selectVamanitShowConsolidate,
+  selectVamanitLoader,
+  selectVamanitPrint,
+  selectVamanitCompany,
+  selectVamanitActiveTab,
+} from '../../redux/features/VamanitReports/VamanitReportsSelectors';
+import { setUser, setDateRange, setActiveTab, clearVamanitState } from '../../redux/features/VamanitReports/VamanitReportsSlice';
 
 const { RangePicker } = DatePicker;
 // Utility function to format durations
@@ -68,32 +84,23 @@ const formatHoursDuration = (totalDurationInSeconds) => {
 };
 
 const VamanitReports = (tokenParsed) => {
-  const [userOptions, setUserOptions] = useState([]);
-  const [user, setUser] = useState("All Users");
-  const [dateRange, setDateRange] = useState({ start: "", end: "" });
-  const [value, setValue] = useState({
-    startDate: null,
-    endDate: null,
-  });
-  const [sessionReports, setSessionReports] = useState([]);
-  const [dayReports, setDayReports] = useState([]);
-  const [showSessionReports, setShowSessionReports] = useState(false);
-  const [showDayReports, setShowDayReports] = useState(false);
-  const [loader, setLoader] = useState(false);
-  const [print, setPrint] = useState(false);
-  const [company, setCompany] = useState({
-    company_name: "",
-    company_logo: "",
-  });
-  const [consolidateReports, setConsolidateReports] = useState([]);
-  const [showConsolidateReports, setShowConsolidateReports] = useState(false);
-  const [activeTab, setActiveTab] = React.useState("");
-
-  const pc = useContext(PoolContext);
-
+  const dispatch = useDispatch();
+  const userOptions = useSelector(selectVamanitUserOptions);
+  const user = useSelector(selectVamanitUser);
+  const dateRange = useSelector(selectVamanitDateRange);
+  const sessionReports = useSelector(selectVamanitSessionReports);
+  const dayReports = useSelector(selectVamanitDayReports);
+  const consolidateReports = useSelector(selectVamanitConsolidateReports);
+  const showSessionReports = useSelector(selectVamanitShowSession);
+  const showDayReports = useSelector(selectVamanitShowDay);
+  const showConsolidateReports = useSelector(selectVamanitShowConsolidate);
+  const loader = useSelector(selectVamanitLoader);
+  const print = useSelector(selectVamanitPrint);
+  const company = useSelector(selectVamanitCompany);
+  const activeTab = useSelector(selectVamanitActiveTab);
   const componentRef = useRef();
-  const token = pc.token;
-  let Userprofile = tokenParsed.tokenParsed.name;
+  const token = useSelector((s) => s.auth?.token);
+  const Userprofile = tokenParsed?.tokenParsed?.name;
   const today = new Date();
   const formattedDateTime = today.toLocaleString();
   const handlePrint = useReactToPrint({
@@ -101,29 +108,18 @@ const VamanitReports = (tokenParsed) => {
   });
 
   useEffect(() => {
-    const { start, end } = dateRange;
+    const { start, end } = dateRange || {};
     if (!start || !end) return;
-    setLoader(true);
-    fetchVamanitAllUsers(token, start, end)
-      .then((data) => setUserOptions(data))
-      .catch(() => setUserOptions([]))
-      .finally(() => setLoader(false));
-  }, [dateRange, token]);
+    if (!token) return;
+    dispatch(fetchVamanitUsersForDateRange({ token, start, end }));
+  }, [dateRange, token, dispatch]);
 
   const fetchCompanyDetailsLocal = async (reportType) => {
+    if (!token) return;
     try {
-      const response = await fetchCompanyDetails(token, reportType);
-      const companyData = Array.isArray(response.data)
-        ? response.data.find((company) => company.report_type === reportType)
-        : response.data;
-      if (companyData) {
-        setCompany({
-          company_name: companyData.company_name,
-          company_logo: companyData.company_logo,
-        });
-      }
-    } catch (error) {
-      toast.error("Error fetching company details");
+      await dispatch(fetchVamanitCompanyDetails({ token, reportType })).unwrap();
+    } catch (err) {
+      toast.error('Error fetching company details');
     }
   };
 
@@ -133,79 +129,47 @@ const VamanitReports = (tokenParsed) => {
 
   const handleValueChange = (dates) => {
     if (dates && dates.length === 2) {
-      setDateRange({
+      dispatch(setDateRange({
         start: dates[0].format("YYYY-MM-DD HH:mm:ss.SSSSSS"),
         end: dates[1].format("YYYY-MM-DD HH:mm:ss.SSSSSS"),
-      });
+      }));
     } else {
-      // If dates are not selected or cleared, reset all reports and user options
-      setDateRange({ start: "", end: "" });
-      setSessionReports([]);
-      setDayReports([]);
-      setUserOptions([]);
-      setShowSessionReports(false);
-      setShowDayReports(false);
-      setShowConsolidateReports(false);
+      dispatch(setDateRange({ start: '', end: '' }));
+      dispatch(clearVamanitState());
     }
   };
   const fetchSessionReportsLocal = async () => {
-    const { start, end } = dateRange;
-    if (!start || !end) return;
-    setLoader(true);
-    await fetchCompanyDetailsLocal("Session Reports");
+    const { start, end } = dateRange || {};
+    if (!start || !end || !token) return;
+    await fetchCompanyDetailsLocal('Session Reports');
     try {
-      const response = await fetchVamanitSessionReports(token, start, end, user);
-      setSessionReports(response.data);
-      setPrint(true);
-      setShowSessionReports(true);
-      setShowDayReports(false);
-      setShowConsolidateReports(false);
-      toast.success(response.msg);
-    } catch (error) {
-      setSessionReports([]);
-      toast.error(error?.data?.msg || "Error fetching session reports");
-    } finally {
-      setLoader(false);
+      const res = await dispatch(fetchVamanitSessionReportsThunk({ token, start, end, user })).unwrap();
+      // res may contain msg; show success if provided
+      if (res?.msg) toast.success(res.msg);
+    } catch (err) {
+      toast.error(err || 'Error fetching session reports');
     }
   };
   const fetchDayReportsLocal = async () => {
-    const { start, end } = dateRange;
-    if (!start || !end) return;
-    setLoader(true);
-    await fetchCompanyDetailsLocal("Daily Reports");
+    const { start, end } = dateRange || {};
+    if (!start || !end || !token) return;
+    await fetchCompanyDetailsLocal('Daily Reports');
     try {
-      const response = await fetchVamanitDayReports(token, start, end, user);
-      setDayReports(response.data);
-      setPrint(true);
-      setShowSessionReports(false);
-      setShowDayReports(true);
-      setShowConsolidateReports(false);
-      toast.success(response.msg);
-    } catch (error) {
-      setDayReports([]);
-      toast.error(error?.data?.msg || "Error fetching day reports");
-    } finally {
-      setLoader(false);
+      const res = await dispatch(fetchVamanitDayReportsThunk({ token, start, end, user })).unwrap();
+      if (res?.msg) toast.success(res.msg);
+    } catch (err) {
+      toast.error(err || 'Error fetching day reports');
     }
   };
   const fetchConsolidateReportsLocal = async () => {
-    const { start, end } = dateRange;
-    if (!start || !end) return;
-    setLoader(true);
-    await fetchCompanyDetailsLocal("Consolidate Reports");
+    const { start, end } = dateRange || {};
+    if (!start || !end || !token) return;
+    await fetchCompanyDetailsLocal('Consolidate Reports');
     try {
-      const response = await fetchVamanitConsolidateReports(token, start, end, user);
-      setConsolidateReports(response.data);
-      setPrint(true);
-      setShowSessionReports(false);
-      setShowDayReports(false);
-      setShowConsolidateReports(true);
-      toast.success(response.msg);
-    } catch (error) {
-      setConsolidateReports([]);
-      toast.error(error?.data?.msg || "Error fetching consolidate reports");
-    } finally {
-      setLoader(false);
+      const res = await dispatch(fetchVamanitConsolidateReportsThunk({ token, start, end, user })).unwrap();
+      if (res?.msg) toast.success(res.msg);
+    } catch (err) {
+      toast.error(err || 'Error fetching consolidate reports');
     }
   };
 
@@ -242,7 +206,7 @@ const VamanitReports = (tokenParsed) => {
                 <select
                   id="user"
                   value={user}
-                  onChange={(e) => setUser(e.target.value)}
+                  onChange={(e) => dispatch(setUser(e.target.value))}
                 >
                   <option value="All Users">All Users</option>
                   {userOptions.map((userName, index) => (
@@ -279,7 +243,7 @@ const VamanitReports = (tokenParsed) => {
                     }`}
                     type="button"
                     onClick={() => {
-                      setActiveTab("session");
+                      dispatch(setActiveTab("session"));
                       fetchSessionReportsLocal();
                     }}
                   >
@@ -291,7 +255,7 @@ const VamanitReports = (tokenParsed) => {
                     }`}
                     type="button"
                     onClick={() => {
-                      setActiveTab("day");
+                      dispatch(setActiveTab("day"));
                       fetchDayReportsLocal();
                     }}
                   >
@@ -303,7 +267,7 @@ const VamanitReports = (tokenParsed) => {
                     }`}
                     type="button"
                     onClick={() => {
-                      setActiveTab("consolidate");
+                      dispatch(setActiveTab("consolidate"));
                       fetchConsolidateReportsLocal();
                     }}
                   >

@@ -1,20 +1,20 @@
-import React, { useState, useContext, useEffect } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import TextField from "@mui/material/TextField";
 import { Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
-import { PoolContext } from "../../Context/PoolContext";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 import { toast } from "react-toastify";
-import axiosInstance from "Services/AxiosInstance";
 import CircularProgress from "@mui/material/CircularProgress";
-import { getEnv } from "utils/getEnv";
-import { addOrUpdateSchedule } from "Services/ReportsService";
+import { useDispatch, useSelector } from 'react-redux';
+import { addOrUpdateSchedule } from '../../redux/features/Reports/ReportsThunks';
+import { selectScheduleSaveLoading } from '../../redux/features/Reports/ReportsSelectors';
 
-export default function Auto_Mail(tokenParsed) {
-  const pc = useContext(PoolContext);
-  let token = pc.token;
-  
+export default function Auto_Mail() {
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+
   const [formData, setFormData] = useState({
-    userEmail: tokenParsed.tokenParsed.email,
+    userEmail: tokenParsed?.preferred_username,
     receiverEmail: "",
     reportName: "",
     report: "Vamanit",
@@ -23,7 +23,8 @@ export default function Auto_Mail(tokenParsed) {
     schedule_type: "",
     schedule_id: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const scheduleSaveLoading = useSelector(selectScheduleSaveLoading);
 
   const location = useLocation();
   const reports = location.state?.report;
@@ -123,8 +124,7 @@ export default function Auto_Mail(tokenParsed) {
 
   const navigate = useNavigate();
   const handleSubmit = async (e) => {
-    setIsLoading(true);
-    e.preventDefault();
+  e.preventDefault();
 
     if (
       !formData.time ||
@@ -134,12 +134,10 @@ export default function Auto_Mail(tokenParsed) {
       !formData.reportName
     ) {
       toast.error("Please fill all the fields");
-      setIsLoading(false);
       return;
     }
     if (!formData.schedule_type) {
       toast.error("Please select a schedule type");
-      setIsLoading(false);
       return;
     }
     const emailList = formData.receiverEmail
@@ -151,27 +149,26 @@ export default function Auto_Mail(tokenParsed) {
     for (const email of emailList) {
       if (!email_valid.test(email)) {
         toast.error(`Invalid email: ${email}`);
-        setIsLoading(false);
         return;
       }
     }
 
     try {
-      let response;
+      const result = await dispatch(
+        addOrUpdateSchedule({ token, formData, isUpdate: !!reports })
+      ).unwrap();
+      // show a success message depending on response
       if (reports) {
-        response = await addOrUpdateSchedule(token, formData, true);
         toast.success("Report Updated Successfully");
+      } else if (result && result.code === 201) {
+        toast.success(result.msg || "Report Scheduled Successfully");
       } else {
-        response = await addOrUpdateSchedule(token, formData, false);
-        if (response.data.code === 201){
-          toast.success(response.data.msg || "Report Scheduled Successfully");
-        }
+        toast.success("Report scheduled");
       }
       navigate("/ReportList");
     } catch (error) {
-      toast.error("Something went wrong, Report Is Not Scheduled");
-    } finally {
-      setIsLoading(false);
+      const msg = error?.msg || error?.message || "Something went wrong, Report Is Not Scheduled";
+      toast.error(msg);
     }
   };
     const Goback = () => {
@@ -310,7 +307,7 @@ export default function Auto_Mail(tokenParsed) {
               </div>
             </div>
             <div className="flex justify-end mt-4">
-              {isLoading ? (
+              {scheduleSaveLoading ? (
                 <div className="flex items-center gap-2 px-5 py-2 rounded bg-[#1a365d] text-[#f5f5f5] cursor-wait">
                   <CircularProgress size={18} style={{ color: "#f5f5f5" }} />
                   <span className="text-lg">Submitting...</span>

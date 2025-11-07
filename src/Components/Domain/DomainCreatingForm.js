@@ -4,8 +4,9 @@ import "./Domain.css";
 import "./DomainCreatingForm.css";
 import Popup from "../Popup/Popup";
 import { Slide, toast } from "react-toastify";
-import axiosInstance from "Services/AxiosInstance";
-import { createDomain } from "../../Services/DomainService";
+import { useDispatch ,useSelector } from 'react-redux';
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { createDomain as createDomainThunk, testLdapConnection as testLdapConnectionThunk, testLdapAuthentication as testLdapAuthenticationThunk, fetchDomains } from '../../redux/features/Domain/DomainThunks';
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { getEnv } from "utils/getEnv";
@@ -13,9 +14,8 @@ import { getEnv } from "utils/getEnv";
 export default function DomainCreationForm() {
   const navigate = useNavigate();
   const backendUrl = getEnv('BACKEND_URL');
-  //pool context
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+  const token = useSelector(selectAuthToken);
+  const dispatch = useDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState({
     testConnection: false,
@@ -78,9 +78,9 @@ export default function DomainCreationForm() {
   let sendData = async () => {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
-      const res = await createDomain(backendUrl, token, ad);
-      if (res.data.code == 200) {
-        toast.success(res.data.msg, {
+      const payload = await dispatch(createDomainThunk({ token, ad })).unwrap();
+      if (payload?.code == 200) {
+        toast.success(payload.msg, {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -91,12 +91,12 @@ export default function DomainCreationForm() {
           theme: "light",
           transition: Slide,
         });
-        pc.setisDomainAvailable(true);
-        pc.setAvailableDomains(res.data?.data?.ldaps);
+        // refresh domains in redux store
+        dispatch(fetchDomains({ token }));
         navigate("/domain");
         reset();
       } else {
-        toast.error(res.data.msg || "Failed to create domain", {
+        toast.error(payload?.msg || 'Failed to create domain', {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -242,137 +242,95 @@ export default function DomainCreationForm() {
   };
   let handleTestConnection = () => {
     setLoading((prev) => ({ ...prev, testConnection: true }));
-    axiosInstance
-      .post(
-        `${backendUrl}/v1/test_ldap_connection`,
-        {
-          authType: ad.authType,
-          bindCredential: ad.bindCredential,
-          bindDn: ad.bindDn,
-          connectionTimeout: ad.connectionTimeout,
-          connectionUrl: ad.connectionUrl,
-          startTls: ad.startTls,
-          useTruststoreSpi: ad.useTruststoreSpi,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the Bearer token in the Authorization header
-          },
-        }
-      )
-      .then((res) => {
-        if (res.data.code == 200) {
-          toast.success(res.data.msg, {
-            position: "top-right",
+    dispatch(testLdapConnectionThunk({ backendUrl, token, ad }))
+      .unwrap()
+      .then((payload) => {
+        if (payload?.code === 200) {
+          toast.success(payload.msg, {
+            position: 'top-right',
             autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
-            theme: "light",
+            theme: 'light',
             transition: Slide,
           });
         } else {
-          toast.error(
-            res.data.msg || "Connection test failed",
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            }
-          );
+          toast.error(payload?.msg || 'Connection test failed', {
+            position: 'top-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: 'light',
+            transition: Slide,
+          });
         }
       })
       .catch((err) => {
-        toast.error(err, {
-          position: "top-right",
+        toast.error(err || 'Connection test failed', {
+          position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          theme: "light",
+          theme: 'light',
           transition: Slide,
         });
       })
-      .finally(() => {
-        setLoading((prev) => ({ ...prev, testConnection: false }));
-      });
+      .finally(() => setLoading((prev) => ({ ...prev, testConnection: false })));
   };
   let handleTestAuthentication = () => {
     setLoading((prev) => ({ ...prev, testAuth: true }));
-    axiosInstance
-      .post(
-        `${backendUrl}/v1/test_ldap_authenticaion`,
-        {
-          authType: ad.authType,
-          bindCredential: ad.bindCredential,
-          bindDn: ad.bindDn,
-          connectionTimeout: ad.connectionTimeout,
-          connectionUrl: ad.connectionUrl,
-          startTls: ad.startTls,
-          useTruststoreSpi: ad.useTruststoreSpi,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the Bearer token in the Authorization header
-          },
-        }
-      )
-      .then((res) => {
-        if (res.data.code === 200) {
-          toast.success(res.data.msg, {
-            position: "top-right",
+    dispatch(testLdapAuthenticationThunk({ backendUrl, token, ad }))
+      .unwrap()
+      .then((payload) => {
+        if (payload?.code === 200) {
+          toast.success(payload.msg, {
+            position: 'top-right',
             autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
-            theme: "light",
+            theme: 'light',
             transition: Slide,
           });
         } else {
-          toast.error(
-            res.data.msg || "Authentication test failed",
-            {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              transition: Slide,
-            }
-          );
+          toast.error(payload?.msg || 'Authentication test failed', {
+            position: 'top-right',
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: 'light',
+            transition: Slide,
+          });
         }
       })
       .catch((err) => {
-        toast.error(err.msg || "Connection test failed", {
-          position: "top-right",
+        toast.error(err?.msg || 'Authentication test failed', {
+          position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          theme: "light",
+          theme: 'light',
           transition: Slide,
         });
       })
-      .finally(() => {
-        setLoading((prev) => ({ ...prev, testAuth: false }));
-      });
+      .finally(() => setLoading((prev) => ({ ...prev, testAuth: false })));
   };
   const Goback = () => {
     navigate(-1);

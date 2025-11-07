@@ -3,6 +3,12 @@ import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import React, { Suspense, useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setAuth, clearAuth } from './redux/features/Auth/AuthSlice';
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+  selectAuthRefreshToken,
+  selectIsLoggedIn,
+} from './redux/features/Auth/AuthSelectors';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from "./images/loading.png";
@@ -79,9 +85,10 @@ const ChangePassword = React.lazy(() =>
 function App() {
   const [workflowId, setWorkflowId] = useState("");
   const dispatch = useDispatch();
-   const token = useSelector(state => state.auth.token);
-   const tokenParsed = useSelector(state => state.auth.tokenParsed);
-   const { refreshToken, loggedIn } = useSelector(state => state.auth);
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const refreshToken = useSelector(selectAuthRefreshToken);
+  const loggedIn = useSelector(selectIsLoggedIn);
 
   useEffect(() => {
     keycloakConfig

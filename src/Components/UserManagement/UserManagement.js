@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./UserManagement.css";
@@ -15,18 +15,31 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { PoolContext } from "../../Context/PoolContext"; 
+// token will be read from redux auth slice
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
 import {
-  fetchUsers as fetchUsersService,
-  fetchRoles as fetchRolesService,
-  fetchRoleComponents as fetchRoleComponentsService,
-  addRole as addRoleService,
-  deleteRole as deleteRoleService,
-  submitRoleComponents as submitRoleComponentsService,
-  getUserPermission as getUserPermissionService,
-  assignUserRole as assignUserRoleService,
-  removeRoleFromUserService
-} from '../../Services/UserManagementService';
+  selectUsers,
+  selectRoles,
+  selectRoleComponents,
+  selectUserRoles,
+  selectLoading,
+  selectComponentsLoading,
+  selectUserRolesLoading,
+  selectActionsLoading,
+} from '../../redux/features/UserManagement/UserManagementSelectors';
+import {
+  fetchUsers,
+  fetchRoles,
+  fetchRoleComponents,
+  addRole,
+  deleteRole,
+  submitRoleComponents,
+  getUserPermission,
+  assignUserRole,
+  removeRoleFromUser as removeRoleFromUserThunk,
+} from '../../redux/features/UserManagement/UserManagementThunks';
+import { clearUserRoles } from '../../redux/features/UserManagement/UserManagementSlice';
 import {
   RolesSkeleton,
   UsersSkeleton,
@@ -57,28 +70,25 @@ const componentCategories = {
   ],
 };
 const UserManagement = () => {
+  const dispatch = useDispatch();
+  const users = useSelector(selectUsers);
+  const roles = useSelector(selectRoles);
+  const roleComponents = useSelector(selectRoleComponents);
+  const userRoles = useSelector(selectUserRoles);
+  const loading = useSelector(selectLoading);
+  const isComponentsLoading = useSelector(selectComponentsLoading);
+  const userRolesLoading = useSelector(selectUserRolesLoading);
+  const actionsLoading = useSelector(selectActionsLoading);
+
   const [activeTab, setActiveTab] = useState("roles");
-  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [role, setRole] = useState("");
+  // local components state for UI selection; initialized from redux roleComponents
   const [components, setComponents] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [fetchroles, setFetchroles] = useState([]);
-  const [userPermissions, setUserPermissions] = useState([]);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
-  const [userRoles, setUserRoles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingStates, setLoadingStates] = useState({
-    addRole: false,
-    deleteRole: null,
-    submit: false,
-    assignRole: false,
-    removeRole: null,
-  });
-  const [isComponentsLoading, setIsComponentsLoading] = useState(false);
-  const [userRolesLoading, setUserRolesLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const flattenAllComponents = () => {
@@ -91,48 +101,30 @@ const UserManagement = () => {
     });
   };
 
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    try {
-      const usernames = await fetchUsersService(token);
-      setUsers(usernames);
-      setFilteredUsers(usernames);
-    } catch (error) {
-      showError("Failed to fetch users");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchRoles = async () => {
-    setIsLoading(true);
-    try {
-      const roles = await fetchRolesService(token);
-      setFetchroles(roles);
-    } catch (error) {
-      showError("Failed to fetch roles");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const token = useSelector(selectAuthToken);
 
   useEffect(() => {
-    fetchUsers();
-    fetchRoles();
-  }, []);
+    // initial load
+    dispatch(fetchUsers({ token }));
+    dispatch(fetchRoles({ token }));
+  }, [dispatch, token]);
 
+  // keep local components in sync with redux roleComponents
+  useEffect(() => {
+    setComponents(roleComponents || []);
+  }, [roleComponents]);
+  useEffect(() => {
+    setFilteredUsers(users || []);
+  }, [users]);
   useEffect(() => {
     if (selectedUser) {
-      GetuserPermission(selectedUser);
+      dispatch(getUserPermission({ token, username: selectedUser }));
     } else {
-      setUserPermissions(null);
+      dispatch(clearUserRoles());
       setRole("");
       setComponents([]);
     }
-  }, [selectedUser]);
+  }, [selectedUser, dispatch, token]);
 
   const showError = (message) => toast.error(message);
   const showSuccess = (message) => toast.success(message);
@@ -140,33 +132,21 @@ const UserManagement = () => {
   const handleSearch = (term) => {
     setSearchTerm(term);
     const results = term
-      ? users.filter((user) => user.toLowerCase().includes(term.toLowerCase()))
-      : users;
+      ? (users || []).filter((user) => user.toLowerCase().includes(term.toLowerCase()))
+      : (users || []);
     setFilteredUsers(results);
   };
 
   const handleUserClick = async (username) => {
-    setSelectedUser((prevSelected) => {
-      const newSelected = prevSelected === username ? null : username;
-      if (newSelected) {
-        GetuserPermission(newSelected);
-      } else {
-        setUserRoles([]);
-      }
-      return newSelected;
-    });
+    // Avoid dispatching inside the functional state updater (causes render-phase side-effects).
+    // Let the effect that listens to `selectedUser` handle the permission fetch/clear.
+    const newSelected = selectedUser === username ? null : username;
+    setSelectedUser(newSelected);
   };
 
-  const fetchRoleComponents = async (selectedRole) => {
-    setIsComponentsLoading(true);
-    try {
-      const components = await fetchRoleComponentsService(token, selectedRole);
-      setComponents(components);
-    } catch (error) {
-      setComponents([]);
-    } finally {
-      setIsComponentsLoading(false);
-    }
+  // dispatches thunk to load components for a role
+  const loadRoleComponents = async (selectedRole) => {
+    dispatch(fetchRoleComponents({ token, role: selectedRole }));
   };
   const handleRoleSelect = (selectedRole) => {
     if (role === selectedRole) {
@@ -179,7 +159,7 @@ const UserManagement = () => {
     setRole(selectedRole);
     setSelectedCategory(null);
     setSelectedSubCategory(null);
-    fetchRoleComponents(selectedRole);
+  loadRoleComponents(selectedRole);
   };
   const handleCategorySelect = (category) => {
     setSelectedCategory(category === selectedCategory ? null : category);
@@ -206,38 +186,31 @@ const UserManagement = () => {
       showError("Please enter a role name");
       return;
     }
-    setLoadingStates((prev) => ({ ...prev, addRole: true }));
     try {
-      const response = await addRoleService(token, role);
-      if (response.status === 200) {
-        showSuccess(response.data.msg);
-        fetchRoles();
-        setRole("");
-      } else if (
-        response.status === 400 ||
-        response.data.msg === "Role already exists"
-      ) {
-        showError("Role already exists");
+      const res = await dispatch(addRole({ token, role })).unwrap();
+      if (res?.status === 200) {
+        showSuccess(res.data?.msg || 'Role created');
+        dispatch(fetchRoles({ token }));
+        setRole('');
+      } else {
+        showError(res?.data?.msg || 'Failed to add role');
       }
-    } catch (error) {
-      showError("Failed to add role");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, addRole: false }));
+    } catch (err) {
+      showError(err || 'Failed to add role');
     }
   };
 
   const handleDelete = async (roleToDelete) => {
-    setLoadingStates((prev) => ({ ...prev, deleteRole: roleToDelete }));
     try {
-      const response = await deleteRoleService(token, roleToDelete);
-      if (response.status === 200) {
-        showSuccess("Role deleted successfully!");
-        setFetchroles(fetchroles.filter((r) => r !== roleToDelete));
+      const res = await dispatch(deleteRole({ token, role: roleToDelete })).unwrap();
+      if (res?.status === 200 || res?.status === 204) {
+        showSuccess('Role deleted successfully!');
+        // roles will be updated by reducer
+      } else {
+        showError('Failed to delete role');
       }
-    } catch (error) {
-      showError("Failed to delete role");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, deleteRole: null }));
+    } catch (err) {
+      showError('Failed to delete role');
     }
   };
 
@@ -246,41 +219,24 @@ const UserManagement = () => {
       showError("Please select a role");
       return;
     }
-    setLoadingStates((prev) => ({ ...prev, submit: true }));
     try {
-      const response = await submitRoleComponentsService(token, role, components);
-      if (response.status === 200) {
-        showSuccess("Role and components saved successfully");
-        await fetchRoles();
+      const res = await dispatch(submitRoleComponents({ token, role, components })).unwrap();
+      if (res?.status === 200) {
+        showSuccess('Role and components saved successfully');
+        dispatch(fetchRoles({ token }));
         setComponents([]);
-        setRole("");
+        setRole('');
         setSelectedCategory(null);
         setSelectedSubCategory(null);
       } else {
-        throw new Error(
-          response.data?.detail || "Failed to save role and components"
-        );
+        showError('Failed to save role and components');
       }
-    } catch (error) {
-      showError(error.message || "Failed to save role and components");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, submit: false }));
+    } catch (err) {
+      showError(err || 'Failed to save role and components');
     }
   };
 
-  const GetuserPermission = async (username) => {
-    setUserRolesLoading(true);
-    try {
-      const response = await getUserPermissionService(token, username);
-      if (response.data.code === 200) {
-        setUserRoles(response.data?.data?.roles || []);
-      }
-    } catch (error) {
-      showError("Failed to fetch user roles");
-    } finally {
-      setUserRolesLoading(false);
-    }
-  };
+  // getUserPermission handled via redux thunk
 
   const handleRoleAssignment = async () => {
     if (!selectedRole) {
@@ -291,23 +247,17 @@ const UserManagement = () => {
       showError("Please select a user");
       return;
     }
-    setIsLoading(true);
     try {
-      const response = await assignUserRoleService(token, selectedUser, selectedRole, []);
-      if (response.data.code === 200) {
-        await GetuserPermission(selectedUser);
-        showSuccess(response.data.msg || "Role assigned successfully");
+      const res = await dispatch(assignUserRole({ token, username: selectedUser, role: selectedRole })).unwrap();
+      if (res?.data?.code === 200) {
+        showSuccess(res?.data?.msg || 'Role assigned successfully');
         setShowRoleDialog(false);
-        setSelectedRole("");
-        setUserRoles((prev) => [...prev, selectedRole]);
-        
+        setSelectedRole('');
       } else {
-        showError(response.data?.msg || "Failed to assign role");
+        showError('Failed to assign role');
       }
-    } catch (error) {
-      showError(error.msg || "Failed to assign role");
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      showError(err || 'Failed to assign role');
     }
   };
 
@@ -320,19 +270,16 @@ const UserManagement = () => {
   };
 
   const removeRoleFromUser = async (username, roleToRemove) => {
-    setLoadingStates((prev) => ({ ...prev, removeRole: roleToRemove }));
     try {
-      const response = await removeRoleFromUserService(token, username, roleToRemove, []);
-      if (response.status === 200) {
-        showSuccess("Role removed successfully");
-        await GetuserPermission(username);
+      const res = await dispatch(removeRoleFromUserThunk({ token, username, role: roleToRemove })).unwrap();
+      if (res?.status === 200 || res?.status === 204) {
+        showSuccess('Role removed successfully');
+        dispatch(getUserPermission({ token, username }));
       } else {
-        showError(response.data?.msg || "Failed to remove role");
+        showError('Failed to remove role');
       }
-    } catch (error) {
-      showError(error.msg || "Failed to remove role");
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, removeRole: null }));
+    } catch (err) {
+      showError('Failed to remove role');
     }
   };
   const renderComponentsPanel = () => {
@@ -476,14 +423,14 @@ const UserManagement = () => {
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className="flex-1 p-2 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200"
-                disabled={loadingStates.addRole}
+                disabled={actionsLoading?.addRole}
               />
               <button
                 onClick={handleAddRole}
-                disabled={loadingStates.addRole}
+                disabled={actionsLoading?.addRole}
                 className="px-4 py-2 bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white rounded-md transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loadingStates.addRole ? (
+                {actionsLoading?.addRole ? (
                   <span className="flex items-center gap-2">
                     <CircularProgress size={16} color="inherit" />
                     Creating...
@@ -503,10 +450,10 @@ const UserManagement = () => {
                     <div className="line mt-1"></div>
                   </div>
                   <div className="h-[48vh] overflow-y-auto custom-scrollbar">
-                    {isLoading ? (
+                    {loading ? (
                       <RolesSkeleton />
                     ) : (
-                      fetchroles.map((roleItem, index) => (
+                      (roles || []).map((roleItem, index) => (
                         <div
                           key={index}
                           className="flex items-center justify-between p-2 hover:bg-gray-50 transition-colors duration-150 border-b last:border-none"
@@ -530,10 +477,10 @@ const UserManagement = () => {
 
                           <button
                             onClick={() => handleDelete(roleItem)}
-                            disabled={loadingStates.deleteRole === roleItem}
+                            disabled={actionsLoading?.deleteRole === roleItem}
                             className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {loadingStates.deleteRole === roleItem ? (
+                            {actionsLoading?.deleteRole === roleItem ? (
                               <CircularProgress size={16} color="inherit" />
                             ) : (
                               <i className="fa-solid fa-trash"></i>
@@ -595,10 +542,10 @@ const UserManagement = () => {
               <div className="flex justify-between mt-4 mr-[7rem]">
                 <button
                   onClick={handleSubmit}
-                  disabled={loadingStates.submit || !role}
+                  disabled={actionsLoading?.submit || !role}
                   className="w-full px-6 py-2 bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white rounded-md transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loadingStates.submit ? (
+                  {actionsLoading?.submit ? (
                     <span className="flex items-center justify-center gap-2">
                       <CircularProgress size={16} color="inherit" />
                       Saving...
@@ -627,7 +574,7 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white custom-scrollbar">
-                {isLoading ? (
+                {loading ? (
                   <UsersSkeleton />
                 ) : (
                   filteredUsers.map((user, index) => (
@@ -655,10 +602,10 @@ const UserManagement = () => {
                   {selectedUser ? (
                     <button
                       onClick={handleAssignRole}
-                      disabled={loadingStates.assignRole}
+                      disabled={actionsLoading?.assignRole}
                       className="px-4 py-2 bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white rounded-md transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loadingStates.assignRole ? (
+                      {actionsLoading?.assignRole ? (
                         <span className="flex items-center gap-2">
                           <CircularProgress size={16} color="inherit" />
                           Assigning...
@@ -688,10 +635,10 @@ const UserManagement = () => {
                             onClick={() =>
                               removeRoleFromUser(selectedUser, userRole)
                             }
-                            disabled={loadingStates.removeRole === userRole}
+                            disabled={actionsLoading?.removeRole === userRole}
                             className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {loadingStates.removeRole === userRole ? (
+                            {actionsLoading?.removeRole === userRole ? (
                               <CircularProgress size={16} color="inherit" />
                             ) : (
                               <i className="fa-solid fa-trash"></i>
@@ -733,7 +680,7 @@ const UserManagement = () => {
                 value={selectedRole}
                 label="Select Role"
                 onChange={(e) => setSelectedRole(e.target.value)}
-                disabled={isLoading}
+                disabled={actionsLoading?.assignRole}
                 sx={{
                   backgroundColor: "#f5f5f5",
                   color: "#1a365d",
@@ -751,7 +698,7 @@ const UserManagement = () => {
                 }}
               >
                 <MenuItem value="selectrole"></MenuItem>
-                {fetchroles.map((role, index) => (
+                {(roles || []).map((role, index) => (
                   <MenuItem
                     key={index}
                     value={role}
@@ -780,7 +727,7 @@ const UserManagement = () => {
                 setShowRoleDialog(false);
                 setSelectedRole("");
               }}
-              disabled={isLoading}
+              disabled={actionsLoading?.assignRole}
               sx={{
                 backgroundColor: "#1a365dcc",
                 color: "#f5f5f5",
@@ -788,8 +735,8 @@ const UserManagement = () => {
                 borderRadius: "0.375rem",
                 p: 1,
                 boxShadow: 1,
-                opacity: isLoading ? 0.5 : 1,
-                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: actionsLoading?.assignRole ? 0.5 : 1,
+                cursor: actionsLoading?.assignRole ? "not-allowed" : "pointer",
               }}
             >
               Cancel
@@ -797,24 +744,22 @@ const UserManagement = () => {
 
             <Button
               onClick={handleRoleAssignment}
-              disabled={isLoading}
-              startIcon={
-                isLoading && (
-                  <CircularProgress sx={{ color: "#f5f5f5" }} size={20} />
-                )
-              }
+              disabled={actionsLoading?.assignRole}
+              startIcon={actionsLoading?.assignRole ? (
+                <CircularProgress sx={{ color: "#f5f5f5" }} size={20} />
+              ) : null}
               sx={{
                 backgroundColor: "#1a365dcc",
-                color: isLoading ? "#fff" : "#f5f5f5",
+                color: actionsLoading?.assignRole ? "#fff" : "#f5f5f5",
                 "&:hover": { backgroundColor: "#1a365d", color: "#fff" },
                 borderRadius: "0.375rem",
                 p: 1,
                 boxShadow: 1,
-                opacity: isLoading ? 0.5 : 1,
-                cursor: isLoading ? "not-allowed" : "pointer",
+                opacity: actionsLoading?.assignRole ? 0.5 : 1,
+                cursor: actionsLoading?.assignRole ? "not-allowed" : "pointer",
               }}
             >
-              {isLoading ? "Adding..." : "Add Role"}
+              {actionsLoading?.assignRole ? "Adding..." : "Add Role"}
             </Button>
           </DialogActions>
         </Dialog>
