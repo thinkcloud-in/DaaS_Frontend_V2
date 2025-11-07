@@ -14,7 +14,9 @@ import tasksReducer from './features/Tasks/TasksSlice';
 import footerReducer from './features/Footer/FooterSlice';
 import totpReducer from './features/TOTP/TotpSlice';
 import agentTaskManagerReducer from './features/AgentTaskManager/TaskManagerSlice';
-// import clustersReducer from './features/Clusters/ClustersSlice';
+import activeSessionsReducer from './features/ActiveSessions/ActiveSessionsSlice';
+import recordingsReducer from './features/Recordings/RecordingsSlice';
+import clustersReducer from './features/Clusters/ClustersSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -32,7 +34,9 @@ const rootReducer = combineReducers({
   footer: footerReducer,
   totp: totpReducer,
   agentTaskManager: agentTaskManagerReducer,
-  // clusters: clustersReducer,
+  activeSessions: activeSessionsReducer,
+  recordings: recordingsReducer,
+  clusters: clustersReducer,
   
 });
 
