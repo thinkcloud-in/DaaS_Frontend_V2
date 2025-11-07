@@ -7,12 +7,14 @@ import { PoolContext } from "../../Context/PoolContext";
 import { createIpPoolThunk } from '../../redux/features/IP-Pools/IpPoolsThunks';
 import { selectCreateLoading, selectIpPoolsError } from '../../redux/features/IP-Pools/IpPoolsSelectors';
 import { clearError } from '../../redux/features/IP-Pools/IpPoolsSlice'; 
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const IpPoolsCreate = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userName = tokenParsed?.preferred_username;
 
   // Redux selectors
   const loading = useSelector(selectCreateLoading);

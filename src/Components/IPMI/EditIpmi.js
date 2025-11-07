@@ -14,6 +14,8 @@ import {
   selectIpmiError 
 } from '../../redux/features/IPMI/IpmiSelectors';
 import { clearError, clearSelectedIpmi } from '../../redux/features/IPMI/IpmiSlice';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+
 
 const SkeletonInput = () => (
   <div className="w-[40%] h-[36px] bg-gray-200 animate-pulse rounded-lg ml-2"></div>
@@ -23,11 +25,11 @@ const EditIpmi = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
 
-  // Redux selectors
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
+
   const selectedIpmi = useSelector(selectSelectedIpmi);
   const fetchLoading = useSelector(selectFetchByIdLoading);
   const updateLoading = useSelector(selectUpdateLoading);
@@ -57,7 +59,7 @@ const EditIpmi = () => {
         ipmi_server_ip: selectedIpmi.ipmi_server_ip ?? "",
         name: selectedIpmi.name ?? "",
         username: selectedIpmi.username ?? "",
-        password: "", // Don't show the real password
+        password: "", 
       });
     }
   }, [selectedIpmi]);
@@ -98,10 +100,8 @@ const EditIpmi = () => {
         };
         
         await dispatch(updateIpmiServerThunk({ token, id, payload })).unwrap();
-        toast.success("IPMI Server updated successfully!");
         navigate("/ipmi");
       } catch (error) {
-        toast.error(error || 'Failed to update IPMI server');
       }
     }
   };

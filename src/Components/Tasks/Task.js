@@ -14,6 +14,7 @@ import {
   selectTasksDays,
 } from "../../redux/features/Tasks/TasksSelectors";
 import { setDays } from "../../redux/features/Tasks/TasksSlice";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const SkeletonLoader = () => (
   <tr>
@@ -27,7 +28,10 @@ const SkeletonLoader = () => (
 
 const Tasks = (props) => {
   const dispatch = useDispatch();
-  const userName = props.tokenParsed.name;
+
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userName = tokenParsed?.preferred_username;
 
   const data = useSelector(selectTasks);
   const loading = useSelector(selectTasksLoading);
