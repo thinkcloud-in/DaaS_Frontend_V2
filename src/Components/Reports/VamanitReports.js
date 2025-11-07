@@ -30,6 +30,7 @@ import {
   selectVamanitActiveTab,
 } from '../../redux/features/VamanitReports/VamanitReportsSelectors';
 import { setUser, setDateRange, setActiveTab, clearVamanitState } from '../../redux/features/VamanitReports/VamanitReportsSlice';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const { RangePicker } = DatePicker;
 // Utility function to format durations
@@ -83,7 +84,7 @@ const formatHoursDuration = (totalDurationInSeconds) => {
   return `${hours} hours ${minutes} minutes ${seconds} seconds`;
 };
 
-const VamanitReports = (tokenParsed) => {
+const VamanitReports = () => {
   const dispatch = useDispatch();
   const userOptions = useSelector(selectVamanitUserOptions);
   const user = useSelector(selectVamanitUser);
@@ -99,8 +100,10 @@ const VamanitReports = (tokenParsed) => {
   const company = useSelector(selectVamanitCompany);
   const activeTab = useSelector(selectVamanitActiveTab);
   const componentRef = useRef();
-  const token = useSelector((s) => s.auth?.token);
-  const Userprofile = tokenParsed?.tokenParsed?.name;
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
+  const Userprofile = tokenParsed?.name;
   const today = new Date();
   const formattedDateTime = today.toLocaleString();
   const handlePrint = useReactToPrint({

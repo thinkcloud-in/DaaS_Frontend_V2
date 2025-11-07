@@ -41,7 +41,7 @@ export const deleteIpPoolThunk = createAsyncThunk(
       const response = await deleteIpPoolByName(token, poolName);
       return response;
     } catch (error) {
-      const errorMessage = error.response?.data?.msg || 'Failed to delete IP pool';
+      const errorMessage = error.response?.data?.msg || `Failed to delete IP pool "${poolName}"`;
       return rejectWithValue(errorMessage);
     }
   }

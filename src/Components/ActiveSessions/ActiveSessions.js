@@ -1,7 +1,12 @@
-import React, { useEffect, useState, useContext } from "react";
-import { fetchGuacamoleActiveSessions } from "Services/ActiveSessionsService";
-import { PoolContext } from "../../Context/PoolContext";
-import { getEnv } from "utils/getEnv";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchActiveSessionsThunk } from "../../redux/features/ActiveSessions/ActiveSessionsThunks";
+import {
+  selectActiveSessions,
+  selectActiveSessionsLoading,
+  selectActiveSessionsError,
+} from "../../redux/features/ActiveSessions/ActiveSessionsSelectors";
+import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import dayjs from "dayjs";
 
 const PAGE_SIZE = 15;
@@ -23,32 +28,24 @@ const SkeletonLoader = () => (
 );
 
 const GuacamoleActiveSessions = () => {
-  const [sessions, setSessions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const token = useSelector(selectAuthToken);
+
+  const sessions = useSelector(selectActiveSessions);
+  const loading = useSelector(selectActiveSessionsLoading);
+  const error = useSelector(selectActiveSessionsError);
+
   const [page, setPage] = useState(1);
   const [iframeUrl, setIframeUrl] = useState(null);
 
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  // backendUrl no longer needed for API calls
-
   useEffect(() => {
-    async function fetchActiveSessions() {
-      setLoading(true);
-      try {
-        const data = await fetchGuacamoleActiveSessions(token);
-        setSessions(Array.isArray(data) ? data : []);
-      } catch (error) {
-        setSessions([]);
-      } finally {
-        setLoading(false);
-      }
+    if (token) {
+      dispatch(fetchActiveSessionsThunk(token));
     }
-    fetchActiveSessions();
-  }, [token]);
+  }, [dispatch, token]);
 
-  const totalPages = Math.ceil(sessions.length / PAGE_SIZE);
-  const paginatedSessions = sessions.slice(
+  const totalPages = Math.ceil((sessions?.length || 0) / PAGE_SIZE);
+  const paginatedSessions = (sessions || []).slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
@@ -121,6 +118,12 @@ const GuacamoleActiveSessions = () => {
           <tbody>
             {loading ? (
               [...Array(10)].map((_, idx) => <SkeletonLoader key={idx} />)
+            ) : error ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4 text-red-500">
+                  {error}
+                </td>
+              </tr>
             ) : paginatedSessions.length > 0 ? (
               paginatedSessions.map((item) => (
                 <tr key={item.connectionUUID} className="text-center border-b border-gray-200">
@@ -155,4 +158,3 @@ const GuacamoleActiveSessions = () => {
 };
 
 export default GuacamoleActiveSessions;
-

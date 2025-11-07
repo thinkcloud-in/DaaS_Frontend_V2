@@ -14,11 +14,15 @@ import {
   selectTotpLoading,
   selectTotpError,
 } from "../../redux/features/TOTP/TotpSelectors";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const TOTP = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const token = useSelector(state => state.auth.token);
+
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userName = tokenParsed?.preferred_username;
 
   const enableAdminOTP = useSelector(selectTotpAdminEnabled);
   const enableClientOTP = useSelector(selectTotpClientEnabled);

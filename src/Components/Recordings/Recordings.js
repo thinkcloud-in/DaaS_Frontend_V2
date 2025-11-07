@@ -1,16 +1,18 @@
-
-import React, { useEffect, useState, useContext } from "react";
-import { fetchGuacamoleHistory } from "Services/RecordingsService";
-import { PoolContext } from "../../Context/PoolContext";
-import { getEnv } from "utils/getEnv";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRecordingsThunk } from "../../redux/features/Recordings/RecordingsThunks";
+import {
+  selectRecordings,
+  selectRecordingsLoading,
+  selectRecordingsError,
+} from "../../redux/features/Recordings/RecordingsSelectors";
+import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import dayjs from "dayjs";
 import { BiPlayCircle } from "react-icons/bi";
+import { getEnv } from "utils/getEnv";
 
 const PAGE_SIZE = 15;
-
-// Make sure to set your Guacamole base URL in env file or replace with your actual host as a string
-const GUACAMOLE_BASE_URL =
-  getEnv("GUACAMOLE_BASE_URL") ;
+const GUACAMOLE_BASE_URL = getEnv("GUACAMOLE_BASE_URL");
 
 function formatDate(epoch) {
   if (!epoch) return "--";
@@ -37,39 +39,28 @@ const SkeletonLoader = () => (
 );
 
 const GuacamoleHistory = () => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const token = useSelector(selectAuthToken);
+
+  const recordings = useSelector(selectRecordings);
+  const loading = useSelector(selectRecordingsLoading);
+  const error = useSelector(selectRecordingsError);
+
   const [page, setPage] = useState(1);
   const [iframeUrl, setIframeUrl] = useState(null);
 
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  // backendUrl no longer needed for API calls
-
   useEffect(() => {
-    async function fetchHistory() {
-      setLoading(true);
-      try {
-        const data = await fetchGuacamoleHistory(token);
-        if (data && Array.isArray(data)) {
-          setHistory(data);
-        }
-      } catch (error) {
-        setHistory([]);
-      } finally {
-        setLoading(false);
-      }
+    if (token) {
+      dispatch(fetchRecordingsThunk(token));
     }
-    fetchHistory();
-  }, [token]);
+  }, [dispatch, token]);
 
-  const totalPages = Math.ceil(history.length / PAGE_SIZE);
-  const paginatedHistory = history.slice(
+  const totalPages = Math.ceil((recordings?.length || 0) / PAGE_SIZE);
+  const paginatedHistory = (recordings || []).slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
 
-  // Construct Guacamole recording URL if available
   const getRecordingUrl = (item) => {
     if (!item.logs || !item.identifier) return null;
     const entry = Object.entries(item.logs).find(
@@ -129,6 +120,12 @@ const GuacamoleHistory = () => {
           <tbody>
             {loading ? (
               [...Array(10)].map((_, idx) => <SkeletonLoader key={idx} />)
+            ) : error ? (
+              <tr>
+                <td colSpan={6} className="text-center py-4 text-red-500">
+                  {error}
+                </td>
+              </tr>
             ) : paginatedHistory.length > 0 ? (
               paginatedHistory.map((item) => {
                 const recordingUrl = getRecordingUrl(item);
@@ -176,8 +173,6 @@ const GuacamoleHistory = () => {
       {iframeUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="bg-white rounded shadow-lg p-4 relative w-full max-w-5xl h-[90vh] flex flex-col">
-            {" "}
-            {/* <-- CHANGED WIDTH/HEIGHT */}
             <button
               onClick={() => setIframeUrl(null)}
               className="absolute top-2 right-2 text-white hover:text-red-500 text-3xl"
@@ -190,7 +185,7 @@ const GuacamoleHistory = () => {
               src={iframeUrl}
               className="flex-1 w-full border rounded"
               allowFullScreen
-              style={{ minHeight: "80vh" }} // Optional: Ensures iframe is tall inside modal
+              style={{ minHeight: "80vh" }}
             />
           </div>
         </div>

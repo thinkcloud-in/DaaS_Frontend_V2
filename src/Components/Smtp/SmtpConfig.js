@@ -19,7 +19,6 @@ import {
 import { toast } from "react-toastify";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useNavigate } from "react-router-dom";
-// import { PoolContext } from "../../Context/PoolContext";
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchSmtpConfigThunk,
@@ -36,6 +35,7 @@ import {
   selectSmtpTestMailLoading,
   selectSmtpTestMailResult,
 } from '../../redux/features/SMTP/SmtpSelectors';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const SkeletonLoader = () => (
   <div className="w-[40%] h-[70vh] p-5 rounded-[15px] shadow-[0px_0px_5px_1px_rgba(55,37,221,0.16)]">
@@ -69,10 +69,11 @@ export default function SMTP() {
   const testMailLoading = useSelector(selectSmtpTestMailLoading);
   const testMailResult = useSelector(selectSmtpTestMailResult);
 
-  const token = useSelector(state => state.auth.token);
-  // console.log("SMTP Token from useSelector:", token);
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
 
-
+  
   const [data, setData] = useState({
     serverIP: "",
     serverPort: "",
@@ -92,12 +93,8 @@ export default function SMTP() {
   const [showPassword, setShowPassword] = useState(false);
   const [firstLoad, setFirstLoad] = useState(true);
   const location = useLocation();
-
-  // const pc = useContext(PoolContext);
-  // const token = pc.token;
   const navigate = useNavigate();
 
-  // Load config on mount
   useEffect(() => {
     if (token) {
       dispatch(fetchSmtpConfigThunk(token));
@@ -105,7 +102,6 @@ export default function SMTP() {
   }, [dispatch, token, location.key]);
 
 useEffect(() => {
-  // Only run this effect when the fetch is complete (loading is false)
   if (!loading && firstLoad) {
     if (smtpConfig) {
       setData({
@@ -128,7 +124,6 @@ useEffect(() => {
   }
 }, [smtpConfig, loading, firstLoad]);
 
-  // Show error toast
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -146,8 +141,6 @@ useEffect(() => {
           toast.success(res.msg || "SMTP config enabled!");
         } else {
           toast.warn(res.msg || "SMTP config disabled!");
-          // Do NOT clear the form data here!
-          // Only update smtpStatus in state, keep the rest of the form data.
         }
       })
       .catch((err) => {
@@ -213,10 +206,8 @@ useEffect(() => {
         if (res.code === 200) {
           toast.success(res.msg);
         }
-        // Do nothing if not 200, let .catch handle it
       })
       .catch((err) => {
-        toast.error(err.message || "Failed to send the test email.");
       })
       .finally(() => {
         setSendmail(false);

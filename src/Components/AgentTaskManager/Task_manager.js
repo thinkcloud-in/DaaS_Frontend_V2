@@ -30,10 +30,7 @@ const TaskManagerPage = () => {
   const vmNameFromProps = location.state?.vm_name;
   const vmName = vmNameFromProps; // Prefer API value, fallback to prop
 
-  const backendUrl = getEnv("BACKEND_URL");
   const DASHBOARD_GRAFANA_URL = getEnv('GRAFANA_URL');
-  const agentBackendUrl = getEnv('AGENT_BACKEND_URL');
-
   // Linux Configuration
   const INFLUXDB_DATASOURCE_LINUX = getEnv('INFLUXDB_DATASOURCE_LINUX');
   const BUCKET_LINUX = getEnv('BUCKET_LINUX');

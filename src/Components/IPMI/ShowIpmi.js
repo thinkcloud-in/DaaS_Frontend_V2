@@ -6,6 +6,7 @@ import { PoolContext } from "../../Context/PoolContext";
 import { useContext } from "react";
 import { deleteIpmiServerThunk } from '../../redux/features/IPMI/IpmiThunks';
 import { selectIsIpmiDeleteLoading } from '../../redux/features/IPMI/IpmiSelectors';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 import { toast } from "react-toastify";
 
 const columnStyles = [
@@ -19,20 +20,19 @@ const columnStyles = [
 const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
+
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
 
   const handleDeleteIPMI = async (ipmi_id) => {
     if (!window.confirm('Are you sure you want to delete this IPMI server?')) return;
     
     try {
       await dispatch(deleteIpmiServerThunk({ token, ipmiId: ipmi_id, userEmail })).unwrap();
-      toast.success("IPMI Server deleted successfully!");
       if (refreshIpmiList) refreshIpmiList();
     } catch (error) {
-      console.error("Error deleting IPMI:", error);
-      toast.error(error || 'Failed to delete IPMI server');
+
     }
   };
 
