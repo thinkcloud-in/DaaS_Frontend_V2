@@ -6,13 +6,15 @@ import { PoolContext } from "../../Context/PoolContext";
 import { createIpmiServerThunk } from '../../redux/features/IPMI/IpmiThunks';
 import { selectCreateLoading, selectIpmiError } from '../../redux/features/IPMI/IpmiSelectors';
 import { clearError } from '../../redux/features/IPMI/IpmiSlice';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const IpmiCreationForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
+
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
 
   // Redux selectors
   const loading = useSelector(selectCreateLoading);
@@ -70,10 +72,8 @@ const IpmiCreationForm = () => {
       try {
         const payload = { ...form, email: userEmail };
         const result = await dispatch(createIpmiServerThunk({ token, payload })).unwrap();
-        toast.success(result?.msg || 'IPMI server created successfully!');
         navigate("/ipmi");
       } catch (error) {
-        // Error is handled by useEffect above
       }
     }
   };

@@ -12,6 +12,7 @@ import {
   selectIpmiError 
 } from '../../redux/features/IPMI/IpmiSelectors';
 import { clearError } from '../../redux/features/IPMI/IpmiSlice';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const columnStyles = [
   "w-[20%] text-center", 
@@ -65,8 +66,10 @@ const SkeletonLoader = ({ rows = 5 }) => (
 const IPMI = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+  
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
 
   // Redux selectors
   const ipmiList = useSelector(selectIpmiList);

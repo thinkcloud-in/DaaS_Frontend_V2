@@ -10,8 +10,9 @@ import {
   selectFooterLoading,
   selectFooterError,
 } from "../../redux/features/Footer/FooterSelectors";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
-const Footer = ({ tokenParsed }) => {
+const Footer = () => {
   const dispatch = useDispatch();
   const data = useSelector(selectFooterTasks);
   const loading = useSelector(selectFooterLoading);
@@ -20,7 +21,10 @@ const Footer = ({ tokenParsed }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshTimerRef = useRef(null);
-  const userName = tokenParsed?.preferred_username || "N/A";
+
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userName = tokenParsed?.preferred_username;
 
   const loadRecentTasks = async () => {
     setIsRefreshing(true);
@@ -44,7 +48,6 @@ const Footer = ({ tokenParsed }) => {
         overflow: "hidden",
       }}
     >
-      {/* Header */}
       <div className="flex justify-between items-center border-b border-gray-200 px-3 py-2">
         <div className="flex items-center space-x-2">
           <FaTasks className="text-[#000000EA]" size={14} />

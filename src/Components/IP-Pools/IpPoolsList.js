@@ -14,6 +14,7 @@ import {
   selectIsPoolDeleteLoading 
 } from '../../redux/features/IP-Pools/IpPoolsSelectors';
 import { clearError } from '../../redux/features/IP-Pools/IpPoolsSlice';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const SkeletonLoader = () => (
   <tr>
@@ -28,8 +29,10 @@ const SkeletonLoader = () => (
 const IpPoolsList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+  
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userName = tokenParsed?.preferred_username;
 
   // Redux selectors
   const pools = useSelector(selectIpPools);
@@ -56,7 +59,7 @@ const IpPoolsList = () => {
       const result = await dispatch(deleteIpPoolThunk({ token, poolName })).unwrap();
       toast.success(result?.msg || `IP Pool "${poolName}" deleted successfully.`);
     } catch (error) {
-      toast.error(error || 'Failed to delete IP pool');
+      // toast.error(error || 'Failed to delete IP pool');
     }
   };
 
