@@ -1,11 +1,23 @@
-import React, { useState,useContext } from 'react';
+import React, { useState, useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import './IpPoolsCreate.css';
 import { useNavigate } from "react-router-dom";
-import { createIpPool } from "Services/IP_PoolService";
 import { toast } from "react-toastify";
 import { PoolContext } from "../../Context/PoolContext";
+import { createIpPoolThunk } from '../../redux/features/IP-Pools/IpPoolsThunks';
+import { selectCreateLoading, selectIpPoolsError } from '../../redux/features/IP-Pools/IpPoolsSelectors';
+import { clearError } from '../../redux/features/IP-Pools/IpPoolsSlice'; 
 
 const IpPoolsCreate = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const pc = useContext(PoolContext);
+  const token = pc.token;
+
+  // Redux selectors
+  const loading = useSelector(selectCreateLoading);
+  const error = useSelector(selectIpPoolsError);
+
   const [form, setForm] = useState({
     poolName: '',
     startIp: '',
@@ -15,11 +27,14 @@ const IpPoolsCreate = () => {
     dns: '',
   });
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
-  let navigate = useNavigate();
-  const pc = useContext(PoolContext);
-  const token = pc.token;
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -38,15 +53,14 @@ const IpPoolsCreate = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const parseDns = (dnsString) => {
     return dnsString.split(',').map(v => v.trim()).filter(v => v);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiError('');
     if (validate()) {
-      setLoading(true);
       try {
         const payload = {
           Pool_name: form.poolName,
@@ -57,15 +71,11 @@ const IpPoolsCreate = () => {
           DNS: parseDns(form.dns),
         };
 
-        const response = await createIpPool(token, payload);
-        toast.success(response?.msg || 'IP Pool created successfully!');
+        const result = await dispatch(createIpPoolThunk({ token, payload })).unwrap();
+        toast.success(result?.msg || 'IP Pool created successfully!');
         navigate("/ip-pools");
-      } catch (err) {
-        const errorMsg = err.response?.data?.msg;
-        setApiError(errorMsg);
-        toast.error(errorMsg);
-      } finally {
-        setLoading(false);
+      } catch (error) {
+        // Error is handled by useEffect above
       }
     }
   };
@@ -73,6 +83,7 @@ const IpPoolsCreate = () => {
   const Goback = () => {
     navigate(-1);
   };
+
   const inputClass = (error) =>
     `w-full input-ip-pools px-3 py-2 ${error ? 'border-red-400' : ''}`;
 
@@ -211,4 +222,5 @@ const IpPoolsCreate = () => {
     </div>
   );
 };
+
 export default IpPoolsCreate;

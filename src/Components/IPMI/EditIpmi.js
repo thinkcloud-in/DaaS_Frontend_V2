@@ -1,12 +1,38 @@
 import React, { useEffect, useState, useContext } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from "react-router-dom";
-import { getEnv } from "utils/getEnv";
 import { PoolContext } from "../../Context/PoolContext"; 
-import { getIpmiServerById,updateIpmiServer } from "Services/IPMI_Service";
+import { toast } from "react-toastify";
+import { 
+  fetchIpmiServerByIdThunk, 
+  updateIpmiServerThunk 
+} from '../../redux/features/IPMI/IpmiThunks';
+import { 
+  selectSelectedIpmi, 
+  selectFetchByIdLoading, 
+  selectUpdateLoading, 
+  selectIpmiError 
+} from '../../redux/features/IPMI/IpmiSelectors';
+import { clearError, clearSelectedIpmi } from '../../redux/features/IPMI/IpmiSlice';
+
 const SkeletonInput = () => (
   <div className="w-[40%] h-[36px] bg-gray-200 animate-pulse rounded-lg ml-2"></div>
 ); 
+
 const EditIpmi = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const pc = useContext(PoolContext);
+  const token = pc.token;
+  const userEmail = pc.tokenParsed.preferred_username;
+
+  // Redux selectors
+  const selectedIpmi = useSelector(selectSelectedIpmi);
+  const fetchLoading = useSelector(selectFetchByIdLoading);
+  const updateLoading = useSelector(selectUpdateLoading);
+  const error = useSelector(selectIpmiError);
+
   const [form, setForm] = useState({
     ipmi_server_ip: "",
     name: "",
@@ -14,54 +40,38 @@ const EditIpmi = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const [apiError, setApiError] = useState("");
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const backendUrl = getEnv("BACKEND_URL");
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
-  // useEffect(() => {
-  //   axiosInstance
-  //     .get(`${backendUrl}/v1/ipmi/get_ipmi_server/${id}`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     })
-  //     .then((res) => {
-   
-  //       setForm({
-  //         ipmi_server_ip: res.data?.data.ipmi_server_ip ?? "",
-  //         name: res.data?.data.name ?? "",
-  //         username: res.data?.data.username ?? "",
-  //         password: res.data?.data.password ?? "", // Don't show real password here
-  //       });
-  //       setFetching(false);
-  //     })
-  //     .catch((error) => {
-  //       toast.error(error.response?.data?.msg || "Failed to load IPMI device details");
-  //       navigate("/ipmi");
-  //     });
-  // }, [id, backendUrl, navigate, token]);
-   useEffect(() => {
-    const fetchIpmiDetails = async () => {
-      try {
-        const data = await getIpmiServerById(token, id);
-        setForm({
-          ipmi_server_ip: data.ipmi_server_ip ?? "",
-          name: data.name ?? "",
-          username: data.username ?? "",
-          password: "", // Don't show the real password here
-        });
-      } catch (error) {
-        navigate("/ipmi");
-      } finally {
-        setFetching(false);
-      }
-    };
 
-    fetchIpmiDetails();
-  }, [id, backendUrl, token, navigate]);
+  useEffect(() => {
+    if (token && id) {
+      dispatch(fetchIpmiServerByIdThunk({ token, id }));
+    }
+    
+    return () => {
+      dispatch(clearSelectedIpmi());
+    };
+  }, [dispatch, token, id]);
+
+  useEffect(() => {
+    if (selectedIpmi) {
+      setForm({
+        ipmi_server_ip: selectedIpmi.ipmi_server_ip ?? "",
+        name: selectedIpmi.name ?? "",
+        username: selectedIpmi.username ?? "",
+        password: "", // Don't show the real password
+      });
+    }
+  }, [selectedIpmi]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+      if (!selectedIpmi) {
+        navigate("/ipmi");
+      }
+    }
+  }, [error, dispatch, selectedIpmi, navigate]);
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -74,41 +84,10 @@ const EditIpmi = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
- 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setApiError("");
-  //   if (validate()) {
-  //     setLoading(true);
-  //     try {
-  //       const payload = {
-  //         ipmi_server_ip: form.ipmi_server_ip,
-  //         name: form.name,
-  //         username: form.username,
-  //         email : userEmail,
-  //         ...(form.password ? { password: form.password } : {}),
-  //       };
-  //       await axiosInstance.put(
-  //         `${backendUrl}/v1/ipmi/update_ipmi_server/${id}`,
-  //         payload
-  //       );
-  //       toast.success("IPMI Server updated successfully!");
-  //       navigate("/ipmi");
-  //     } catch (err) {
-  //       const errorMsg =
-  //         err.response?.data?.detail || err.message || "Error occurred";
-  //       setApiError(errorMsg);
-  //       toast.error(errorMsg);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  // };
-   const handleSubmit = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiError("");
     if (validate()) {
-      setLoading(true);
       try {
         const payload = {
           ipmi_server_ip: form.ipmi_server_ip,
@@ -117,12 +96,12 @@ const EditIpmi = () => {
           email: userEmail,
           ...(form.password ? { password: form.password } : {}),
         };
-        await updateIpmiServer(token, id, payload);
+        
+        await dispatch(updateIpmiServerThunk({ token, id, payload })).unwrap();
+        toast.success("IPMI Server updated successfully!");
         navigate("/ipmi");
       } catch (error) {
-        setApiError(error.message);
-      } finally {
-        setLoading(false);
+        toast.error(error || 'Failed to update IPMI server');
       }
     }
   };
@@ -136,7 +115,7 @@ const EditIpmi = () => {
       <div className="flex items-center mb-6 mt-10">
         <button
           onClick={Goback}
-          className="mr-3 bg-[#1a365d]/80 text-[#f5f5f5] w-8 h-8 rounded-md hover:bg-[#1a365d] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 flex items-center justify-center"
+          className="mr-3 bg-[#1a365d]/80 text-[#f5f5f5] w-8 h-8 rounded-md hover:bg-[#1a365d] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 focus:ring-opacity-10 flex items-center justify-center"
           title="Back"
           style={{
             height: 36,
@@ -151,13 +130,12 @@ const EditIpmi = () => {
             </svg>
         </button>
       </div>
- 
       <div className="w-full mx-auto pt-12 px-2 h-[90vh]">
         <h3 className="text-lg font-medium text-[#2d3146] mb-8 pb-4 pl-6 bg-transparent">
           Edit IPMI Device
         </h3>
         <div className="bg-white rounded-xl h-full p-8">
-          {fetching ? (
+          {fetchLoading ? (
             <form className="pr-2">
               <div className="mb-6 flex items-center">
                 <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -223,7 +201,7 @@ const EditIpmi = () => {
               <div className="mb-6 flex items-center">
                 <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
                   <span>
-                    <i className="fas fa-microchip mr-2"></i>
+                    <i className="fas fa-signature mr-2"></i>
                   </span>
                   Processor Name
                 </label>
@@ -234,7 +212,7 @@ const EditIpmi = () => {
                   onChange={handleChange}
                   className="w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-100 text-base bg-white"
                   placeholder="Enter  Name"
-                  disabled={loading}
+                  disabled={updateLoading}
                 />
               </div>
               <div className="mb-6 flex items-center">
@@ -253,7 +231,7 @@ const EditIpmi = () => {
                     errors.username && "border-red-400"
                   }`}
                   placeholder="Enter username"
-                  disabled={loading}
+                  disabled={updateLoading}
                 />
               </div>
               <div className="mb-6 flex items-center">
@@ -272,7 +250,7 @@ const EditIpmi = () => {
                     errors.password && "border-red-400"
                   }`}
                   placeholder="Enter new password"
-                  disabled={loading}
+                  disabled={updateLoading}
                   autoComplete="new-password"
                 />
               </div>
@@ -280,13 +258,10 @@ const EditIpmi = () => {
                 <button
                   type="submit"
                   className="w-[100px] bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white px-3 py-2 rounded-lg font-semibold text-base"
-                  disabled={loading}
+                  disabled={updateLoading}
                 >
-                  {loading ? "Saving..." : "Save"}
+                  {updateLoading ? "Saving..." : "Save"}
                 </button>
-                {apiError && (
-                  <div className="text-red-600 ml-4 mt-2">{apiError}</div>
-                )}
               </div>
             </form>
           )}
@@ -297,5 +272,3 @@ const EditIpmi = () => {
 };
  
 export default EditIpmi;
- 
- 

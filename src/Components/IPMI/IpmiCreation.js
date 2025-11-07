@@ -1,11 +1,23 @@
 import React, { useState, useContext } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "Services/AxiosInstance";
-import { getEnv } from "utils/getEnv";
 import { toast } from "react-toastify";
 import { PoolContext } from "../../Context/PoolContext";
-import { createIpmiServer } from "Services/IPMI_Service"; 
+import { createIpmiServerThunk } from '../../redux/features/IPMI/IpmiThunks';
+import { selectCreateLoading, selectIpmiError } from '../../redux/features/IPMI/IpmiSelectors';
+import { clearError } from '../../redux/features/IPMI/IpmiSlice';
+
 const IpmiCreationForm = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const pc = useContext(PoolContext);
+  const token = pc.token;
+  const userEmail = pc.tokenParsed.preferred_username;
+
+  // Redux selectors
+  const loading = useSelector(selectCreateLoading);
+  const error = useSelector(selectIpmiError);
+
   const [form, setForm] = useState({
     ipmi_server_ip: "",
     name: "",
@@ -13,87 +25,55 @@ const IpmiCreationForm = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  let navigate = useNavigate();
-  const backendUrl = getEnv('BACKEND_URL');
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
+  
   const handleChange = (e) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   };
+
   const handleTogglePassword = () => setShowPassword((prev) => !prev);
-  const pc = useContext(PoolContext);
-  const token = pc.token;
-  const userEmail = pc.tokenParsed.preferred_username;
- // Eye icon SVGs for show/hide
-const EyeIcon = ({ visible, onClick }) => (
-  <span onClick={onClick} style={{ cursor: 'pointer', marginLeft: 8 }}>
-    {visible ? (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-    ) : (
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m3.362-2.522A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 6L6 6" /></svg>
-    )}
-  </span>
-);
+
+  // Eye icon SVGs for show/hide
+  const EyeIcon = ({ visible, onClick }) => (
+    <span onClick={onClick} style={{ cursor: 'pointer', marginLeft: 8 }}>
+      {visible ? (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m3.362-2.522A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 6L6 6" /></svg>
+      )}
+    </span>
+  );
+
   const validate = () => {
     const newErrors = {};
     if (!form.ipmi_server_ip)
       newErrors.ipmi_server_ip = "IPMI Server IP is required";
- 
     if (!form.username) newErrors.username = "Username is required";
     if (!form.password) newErrors.password = "Password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
- 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setApiError("");
-  //   if (validate()) {
-  //     setLoading(true);
-  //     let payload = { ...form, email: userEmail};
-  //     try {
-  //       const res=await axiosInstance.post(`${backendUrl}/v1/ipmi/add_ipmi_server`, payload, {
-  //         headers: { Authorization: `Bearer ${token}`, },
-  //       });
-  //       if (res.data && res.data.code==400)
-  //       {
-  //         toast.info(res.data.msg);
-  //         setLoading(false);
-  //         return;
-  //       }
-  //       toast.success("IPMI server created successfully!");
-  //       navigate("/ipmi");
-  //     } catch (err) {
-  //       const errorMsg = err.response?.data?.msg ;
-  //       setApiError(errorMsg);
-  //       toast.error(errorMsg);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   }
-  // };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiError("");
     if (validate()) {
-      setLoading(true);
-      const payload = { ...form, email: userEmail };
       try {
-        const result = await createIpmiServer(token, payload);
-        if (result.success) {
-          navigate("/ipmi");
-        } else {
-          setApiError(result.message);
-        }
+        const payload = { ...form, email: userEmail };
+        const result = await dispatch(createIpmiServerThunk({ token, payload })).unwrap();
+        toast.success(result?.msg || 'IPMI server created successfully!');
+        navigate("/ipmi");
       } catch (error) {
-        setApiError(error.message);
-      } finally {
-        setLoading(false);
+        // Error is handled by useEffect above
       }
     }
   };
@@ -148,6 +128,7 @@ const EyeIcon = ({ visible, onClick }) => (
                 placeholder="Enter IPMI server IP"
                 disabled={loading}
               />
+              {errors.ipmi_server_ip && <div className="text-red-600 text-sm mt-1 ml-2">{errors.ipmi_server_ip}</div>}
             </div>
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -167,6 +148,7 @@ const EyeIcon = ({ visible, onClick }) => (
                 placeholder="Enter device Name"
                 disabled={loading}
               />
+              {errors.name && <div className="text-red-600 text-sm mt-1 ml-2">{errors.name}</div>}
             </div>
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -186,6 +168,7 @@ const EyeIcon = ({ visible, onClick }) => (
                 placeholder="Enter username"
                 disabled={loading}
               />
+              {errors.username && <div className="text-red-600 text-sm mt-1 ml-2">{errors.username}</div>}
             </div>
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -210,6 +193,7 @@ const EyeIcon = ({ visible, onClick }) => (
                   <EyeIcon visible={showPassword} onClick={handleTogglePassword} />
                 </span>
               </div>
+              {errors.password && <div className="text-red-600 text-sm mt-1">{errors.password}</div>}
             </div>
             <div className="flex justify-start mt-10">
               <button
@@ -228,4 +212,3 @@ const EyeIcon = ({ visible, onClick }) => (
 };
  
 export default IpmiCreationForm;
- 

@@ -1,11 +1,13 @@
 import React from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { TrashIcon, PencilSquareIcon } from "@heroicons/react/24/solid";
-import axiosInstance from "Services/AxiosInstance";
-import { getEnv } from "utils/getEnv";
 import { PoolContext } from "../../Context/PoolContext";
 import { useContext } from "react";
-import { deleteIpmiServer } from "Services/IPMI_Service";
+import { deleteIpmiServerThunk } from '../../redux/features/IPMI/IpmiThunks';
+import { selectIsIpmiDeleteLoading } from '../../redux/features/IPMI/IpmiSelectors';
+import { toast } from "react-toastify";
+
 const columnStyles = [
   "w-[20%] text-center", 
   "w-[20%] text-center", 
@@ -15,43 +17,62 @@ const columnStyles = [
 ];
  
 const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
-  const backendUrl = getEnv("BACKEND_URL");
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [deletingIPMIId, setDeletingIPMIId] = React.useState(null);
   const pc = useContext(PoolContext);
   const token = pc.token;
   const userEmail = pc.tokenParsed.preferred_username;
- 
-  // const deleteIPMI = async (ipmi_id) => {
-  //   setDeletingIPMIId(ipmi_id);
-  //   try {
-  //     await axiosInstance.delete(
-  //       `${backendUrl}/v1/ipmi/delete_ipmi_server/${ipmi_id}`,{
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //         data: { email: userEmail },
-  //       }
-  //     );
-  //     toast.success("IPMI Server deleted successfully!");
-  //     if (refreshIpmiList) refreshIpmiList();
-  //   } catch (err) {
-  //     toast.error("Delete failed.");
-  //   } finally {
-  //     setDeletingIPMIId(null);
-  //   }
-  // };
-    const handleDeleteIPMI = async (ipmi_id) => {
-    setDeletingIPMIId(ipmi_id);
+
+  const handleDeleteIPMI = async (ipmi_id) => {
+    if (!window.confirm('Are you sure you want to delete this IPMI server?')) return;
+    
     try {
-      await deleteIpmiServer(token, ipmi_id, userEmail);
+      await dispatch(deleteIpmiServerThunk({ token, ipmiId: ipmi_id, userEmail })).unwrap();
+      toast.success("IPMI Server deleted successfully!");
       if (refreshIpmiList) refreshIpmiList();
     } catch (error) {
       console.error("Error deleting IPMI:", error);
-    } finally {
-      setDeletingIPMIId(null);
+      toast.error(error || 'Failed to delete IPMI server');
     }
   };
+
+  const DeleteButton = ({ ipmiId }) => {
+    const isDeleting = useSelector(state => selectIsIpmiDeleteLoading(state, ipmiId));
+    
+    return (
+      <button
+        onClick={() => !isDeleting && handleDeleteIPMI(ipmiId)}
+        className={`text-[#f84545b9] hover:text-red-800 ${isDeleting ? "opacity-60 cursor-not-allowed" : ""}`}
+        title="Delete IPMI"
+        disabled={isDeleting}
+      >
+        {isDeleting ? (
+          <svg
+            className="inline w-5 h-5 text-gray-400 animate-spin"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C6.477 0 2 4.477 2 10h2zm2 5.291A7.962 7.962 0 014 12H2c0 2.042.784 3.895 2.059 5.291z"
+            ></path>
+          </svg>
+        ) : (
+          <TrashIcon className="h-5 w-5" />
+        )}
+      </button>
+    );
+  };
+
   return (
     <div className="w-[98%] flex-1 mx-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
       <div className="relative mb-4">
@@ -101,37 +122,7 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
                     />
                   </td>
                   <td className={`py-2 px-4 ${columnStyles[4]}`}>
-                    {deletingIPMIId === item.id ? (
-                      <svg
-                        className="inline w-5 h-5 text-gray-400 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C6.477 0 2 4.477 2 10h2zm2 5.291A7.962 7.962 0 014 12H2c0 2.042.784 3.895 2.059 5.291z"
-                        ></path>
-                      </svg>
-                    ) : (
-                      <button
-                        onClick={() => !deletingIPMIId && handleDeleteIPMI(item.id)}
-                        className={`text-[#f84545b9] hover:text-red-800 ${deletingIPMIId ? "opacity-60 cursor-not-allowed" : ""}`}
-                        title="Delete IPMI"
-                        aria-disabled={!!deletingIPMIId}
-                        disabled={!!deletingIPMIId}
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    )}
+                    <DeleteButton ipmiId={item.id} />
                   </td>
                 </tr>
               ))
@@ -144,4 +135,3 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
 };
  
 export default ShowIPMI;
- 

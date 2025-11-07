@@ -1,15 +1,19 @@
-import { useState, useEffect, useContext } from "react";
-import axiosInstance from "Services/AxiosInstance";
-import { PoolContext } from "../../Context/PoolContext";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { FaCheckCircle } from "react-icons/fa";
 import {
   AiOutlineLoading3Quarters,
   AiOutlineCloseCircle,
 } from "react-icons/ai";
 import "./Task.css";
-import dayjs from "dayjs";
-import { getEnv } from "utils/getEnv";
-import {fetchWorkflows} from "Services/TaskService";
+import { fetchTasksThunk } from "../../redux/features/Tasks/TasksThunks";
+import {
+  selectTasks,
+  selectTasksLoading,
+  selectTasksError,
+  selectTasksDays,
+} from "../../redux/features/Tasks/TasksSelectors";
+import { setDays } from "../../redux/features/Tasks/TasksSlice";
 
 const SkeletonLoader = () => (
   <tr>
@@ -22,22 +26,17 @@ const SkeletonLoader = () => (
 );
 
 const Tasks = (props) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  let userName = props.tokenParsed.name;
-  const pc = useContext(PoolContext);
-  const [days, setDays] = useState(1);
+  const dispatch = useDispatch();
+  const userName = props.tokenParsed.name;
+
+  const data = useSelector(selectTasks);
+  const loading = useSelector(selectTasksLoading);
+  const error = useSelector(selectTasksError);
+  const days = useSelector(selectTasksDays);
 
   useEffect(() => {
-    const getTasks = async () => {
-      if (isNaN(days) || days < 0) return;
-      setLoading(true);
-      const tasks = await fetchWorkflows(userName, days);
-      setData(tasks);
-      setLoading(false);
-    };
-    getTasks();
-  }, [userName, days]);
+    dispatch(fetchTasksThunk({ userName, days }));
+  }, [dispatch, userName, days]);
 
   return (
     <div className="w-[98%] h-[90vh] m-auto min-h-[75vh] mt-4 bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
@@ -51,7 +50,7 @@ const Tasks = (props) => {
             min="0"
             className="border border-gray-200 rounded px-2 py-1 w-20 text-sm focus:outline-none hover:cursor-pointer transition duration-150 ease-in-out"
             value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
+            onChange={(e) => dispatch(setDays(Number(e.target.value)))}
             placeholder="Days"
           />
           <span className="text-[0.8rem] text-gray-500">days</span>
