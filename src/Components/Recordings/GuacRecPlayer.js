@@ -1,42 +1,54 @@
-import React, { useEffect, useRef,useState } from "react";
-import { fetchGuacRecordingFile } from "Services/RecordingsService";
+import React, { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRecordingFileThunk, clearRecordingFile } from "../../redux/features/Recordings/RecordingsSlice";
+import {
+  selectRecordingFile,
+  selectRecordingFileLoading,
+  selectRecordingFileError,
+} from "../../redux/features/Recordings/RecordingsSelectors";
 import Guacamole from "guacamole-common-js";
-import { Toast } from "bootstrap";
- 
+import { toast } from "react-toastify";
+
 const GuacRecordingPlayer = ({ identifier, logUuid, onClose }) => {
   const playerRef = useRef(null);
-  // backendUrl no longer needed for API calls
- 
+  const dispatch = useDispatch();
+
+  const buffer = useSelector(selectRecordingFile);
+  const loading = useSelector(selectRecordingFileLoading);
+  const error = useSelector(selectRecordingFileError);
+
   useEffect(() => {
-    async function loadRecording() {
-      try {
-        // Fetch the entire recording file using the service
-        const buffer = await fetchGuacRecordingFile(identifier, logUuid);
-        // Wrap with ArrayBufferReader
-        const reader = new Guacamole.ArrayBufferReader(buffer);
-        // Create session recording
-        const recording = new Guacamole.SessionRecording(reader);
-        // Attach display canvas
-        const display = recording.getDisplay();
-        if (playerRef.current) {
-          playerRef.current.innerHTML = "";
-          playerRef.current.appendChild(display.getElement());
-        }
-        // Start playback (offline mode uses play(), not connect())
-        recording.play();
-      } catch (error) {
-        Toast.error("Failed to load recording");
-      }
-    }
-    loadRecording();
- 
+    dispatch(fetchRecordingFileThunk({ identifier, logUuid }));
+
     return () => {
+      dispatch(clearRecordingFile());
       if (playerRef.current) {
         playerRef.current.innerHTML = "";
       }
     };
-  }, [identifier, logUuid, backendUrl]);
- 
+  }, [dispatch, identifier, logUuid]);
+
+  useEffect(() => {
+    if (buffer && playerRef.current) {
+      try {
+        const reader = new Guacamole.ArrayBufferReader(buffer);
+        const recording = new Guacamole.SessionRecording(reader);
+        const display = recording.getDisplay();
+        playerRef.current.innerHTML = "";
+        playerRef.current.appendChild(display.getElement());
+        recording.play();
+      } catch (err) {
+        toast.error("Failed to play recording");
+      }
+    }
+  }, [buffer]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
       <div className="bg-white rounded shadow-lg p-4 relative w-full max-w-4xl h-[80vh] flex flex-col">
@@ -46,11 +58,14 @@ const GuacRecordingPlayer = ({ identifier, logUuid, onClose }) => {
         >
           ×
         </button>
-        <div ref={playerRef} className="flex-1 w-full border rounded" />
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">Loading...</div>
+        ) : (
+          <div ref={playerRef} className="flex-1 w-full border rounded" />
+        )}
       </div>
     </div>
   );
 };
- 
+
 export default GuacRecordingPlayer;
- 
