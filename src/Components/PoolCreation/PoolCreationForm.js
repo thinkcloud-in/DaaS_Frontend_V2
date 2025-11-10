@@ -1,12 +1,25 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PoolContext } from "../../Context/PoolContext";
 import "./css/PoolCreationForm.css";
 // service calls are routed through redux thunks (PoolsThunks)
 import { useDispatch, useSelector } from "react-redux";
-import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
-import { createPool, fetchIpPoolNames, fetchClusterNodes, fetchTemplates, fetchVmwareDCs, fetchVmwareFolders } from "../../redux/features/Pools/PoolsThunks";
-import { setPoolCreationDetails, resetPoolCreation } from "../../redux/features/Pools/PoolsSlice";
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
+import {
+  createPool,
+  fetchIpPoolNames,
+  fetchClusterNodes,
+  fetchTemplates,
+  fetchVmwareDCs,
+  fetchVmwareFolders,
+} from "../../redux/features/Pools/PoolsThunks";
+import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
+import {
+  setPoolCreationDetails,
+  resetPoolCreation,
+} from "../../redux/features/Pools/PoolsSlice";
 import {
   selectPoolCreationDetails,
   selectCreationNodes,
@@ -16,6 +29,7 @@ import {
   selectCreationVmwareFolders,
   selectPoolSaveLoading,
 } from "../../redux/features/Pools/PoolsSelectors";
+import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
 import VNCsettings from "./VNCsettings";
 import SSHsettings from "./SSHsettings";
 import RDPsettings from "./RDPsettings";
@@ -27,32 +41,37 @@ import Select from "react-select";
 const poolType = ["Automated", "Manual"];
 
 const PoolCreationForm = (props) => {
-
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
   const isLoading = useSelector(selectPoolSaveLoading);
   const [rename, setRename] = useState("");
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
+  const clusters = useSelector(selectAllClusters) || [];
   let userEmail = tokenParsed?.preferred_username || tokenParsed?.email || "";
   const poolDetails = useSelector(selectPoolCreationDetails) || {};
-  const pc = useContext(PoolContext);
   const dispatch = useDispatch();
-  const selectedCluster = (poolDetails?.cluster_id && pc.availableClusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) || null;
+  const selectedCluster =
+    (poolDetails?.cluster_id &&
+      clusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) ||
+    null;
   const nodes = useSelector(selectCreationNodes) || [];
   const templates = useSelector(selectCreationTemplates) || [];
   const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
   const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
   const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
   const [error, setError] = useState(null);
-
+   useEffect(() => {
+     if ((!clusters || clusters.length === 0) && token) {
+       dispatch(fetchClustersThunk(token));
+     }
+   }, [dispatch, token]);
   let navigate = useNavigate();
   useEffect(() => {
     if (poolDetails.pool_type === "Automated") {
       dispatch(fetchIpPoolNames(token)).catch(() => {});
     }
-    return () => {
-    };
+    return () => {};
   }, [poolDetails.pool_type, token, dispatch]);
   const handleClusterSelect = async (e) => {
     const clusterId = e.target.value;
@@ -67,7 +86,7 @@ const PoolCreationForm = (props) => {
       })
     );
     if (!clusterId) return;
-    const cluster = pc.availableClusters.find((c) => String(c.id) === clusterId);
+    const cluster = clusters.find((c) => String(c.id) === clusterId);
     try {
       setError(null);
       // fetch nodes and templates via thunks
@@ -125,19 +144,35 @@ const PoolCreationForm = (props) => {
     setSelectedTab(value);
   };
   const handleIpPoolsChange = (selectedOptions) => {
-    dispatch(setPoolCreationDetails({ pool_ip_pool_names: (selectedOptions || []).map((opt) => opt.value) }));
+    dispatch(
+      setPoolCreationDetails({
+        pool_ip_pool_names: (selectedOptions || []).map((opt) => opt.value),
+      })
+    );
   };
   const handleNodesChange = (selectedOptions) => {
-    dispatch(setPoolCreationDetails({ pool_selected_nodes: (selectedOptions || []).map((opt) => opt.value) }));
+    dispatch(
+      setPoolCreationDetails({
+        pool_selected_nodes: (selectedOptions || []).map((opt) => opt.value),
+      })
+    );
   };
   const handleTemplateChange = (e) => {
-    dispatch(setPoolCreationDetails({ pool_template_vm_id: e.target.value ? parseInt(e.target.value, 10) : null }));
+    dispatch(
+      setPoolCreationDetails({
+        pool_template_vm_id: e.target.value
+          ? parseInt(e.target.value, 10)
+          : null,
+      })
+    );
   };
   const handleNamingPatternChange = (e) => {
     dispatch(setPoolCreationDetails({ pool_naming_pattern: e.target.value }));
   };
   const handleCountChange = (e) => {
-    dispatch(setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) }));
+    dispatch(
+      setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) })
+    );
   };
   const handleVmwareDCChange = (e) => {
     dispatch(setPoolCreationDetails({ pool_vmware_dc: e.target.value }));
@@ -168,10 +203,16 @@ const PoolCreationForm = (props) => {
       );
       return;
     }
-  let requestData = { ...initialPoolDetails, ...poolDetails, email: userEmail };
+    let requestData = {
+      ...initialPoolDetails,
+      ...poolDetails,
+      email: userEmail,
+    };
     console.log(requestData);
     try {
-      const payload = await dispatch(createPool({ token, requestData })).unwrap();
+      const payload = await dispatch(
+        createPool({ token, requestData })
+      ).unwrap();
       const msg = payload?.msg || "Pool created";
       toast.success(msg, { position: "top-right", autoClose: 5000 });
       navigate("/pools");
@@ -196,13 +237,24 @@ const PoolCreationForm = (props) => {
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto  bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="flex justify-start mt-5">
-           <div
+        <div
           onClick={Goback}
           className="ml-2 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </div>
       </div>
       <div className="pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ">
@@ -299,39 +351,41 @@ const PoolCreationForm = (props) => {
               )}
               {poolDetails.pool_type === "Automated" && (
                 <>
-                <div className="protocol_field mb-4 mt-3">
-                <div className="tr">
-                  <div className="th">
-                    <label
-                      htmlFor="protocol"
-                      className="block text-sm font-medium leading-6 text-gray-900 border-0"
-                    >
-                      Pool OS Type <span className="text-red-500 text-xl">*</span>
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2 border-0">
-                      <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
-                        <select
-                          id="protocol"
-                          name="pool_os_type"
-                          onChange={handleOnChange}
-                          value={poolDetails.pool_os_type || ""}
-                          className="block flex-1  bg-transparent py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                  <div className="protocol_field mb-4 mt-3">
+                    <div className="tr">
+                      <div className="th">
+                        <label
+                          htmlFor="protocol"
+                          className="block text-sm font-medium leading-6 text-gray-900 border-0"
                         >
-                          <option value="">Select OS</option>
-                          <option value="Windows">Windows</option>
-                          <option value="Linux">Linux</option> 
-                        </select>
+                          Pool OS Type{" "}
+                          <span className="text-red-500 text-xl">*</span>
+                        </label>
+                      </div>
+                      <div className="td">
+                        <div className="mt-2 border-0">
+                          <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                            <select
+                              id="protocol"
+                              name="pool_os_type"
+                              onChange={handleOnChange}
+                              value={poolDetails.pool_os_type || ""}
+                              className="block flex-1  bg-transparent py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                            >
+                              <option value="">Select OS</option>
+                              <option value="Windows">Windows</option>
+                              <option value="Linux">Linux</option>
+                            </select>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
                   <div className="tr">
                     <div className="th">
                       <label className="block text-sm font-medium leading-6 text-gray-900">
-                        Select IP Pools <span className="text-red-500 text-xl">*</span>
+                        Select IP Pools{" "}
+                        <span className="text-red-500 text-xl">*</span>
                       </label>
                     </div>
                     <div className="td">
@@ -341,7 +395,9 @@ const PoolCreationForm = (props) => {
                           name="pool_ip_pool_names"
                           value={ipPoolNames
                             .filter((name) =>
-                              (poolDetails.pool_ip_pool_names || []).includes(name)
+                              (poolDetails.pool_ip_pool_names || []).includes(
+                                name
+                              )
                             )
                             .map((name) => ({ label: name, value: name }))}
                           onChange={handleIpPoolsChange}
@@ -371,7 +427,7 @@ const PoolCreationForm = (props) => {
                             className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400  sm:text-sm sm:leading-6"
                           >
                             <option value="">Select Cluster</option>
-                            {pc.availableClusters.map((c) => (
+                            {clusters.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {c.name}
                               </option>
@@ -393,7 +449,9 @@ const PoolCreationForm = (props) => {
                           isMulti
                           name="pool_selected_nodes"
                           value={nodeOptions.filter((opt) =>
-                            (poolDetails.pool_selected_nodes || []).includes(opt.value)
+                            (poolDetails.pool_selected_nodes || []).includes(
+                              opt.value
+                            )
                           )}
                           onChange={handleNodesChange}
                           options={nodeOptions}
@@ -513,7 +571,10 @@ const PoolCreationForm = (props) => {
                             >
                               <option value="">Select Folder</option>
                               {vmwareFolders.map((folder) => (
-                                <option key={folder.id || folder.name} value={folder.name}>
+                                <option
+                                  key={folder.id || folder.name}
+                                  value={folder.name}
+                                >
                                   {folder.name}
                                 </option>
                               ))}
@@ -530,7 +591,9 @@ const PoolCreationForm = (props) => {
           <div className="w-full rounded-md bg-white ">
             {selectedProtocol && (
               <CustomTabs
-                tablist={["RDP", "SSH", "VNC"].filter((tab) => tab === selectedProtocol)}
+                tablist={["RDP", "SSH", "VNC"].filter(
+                  (tab) => tab === selectedProtocol
+                )}
                 selectedTab={selectedTab}
                 setSelectedTab={setSelectedTab}
                 handleTabSelection={(tab) => setSelectedTab(tab)}
@@ -579,4 +642,3 @@ const PoolCreationForm = (props) => {
 };
 
 export default PoolCreationForm;
-

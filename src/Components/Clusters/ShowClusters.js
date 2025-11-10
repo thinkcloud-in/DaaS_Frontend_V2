@@ -34,8 +34,6 @@ const ShowClusters = () => {
 
   const clusters = useSelector(selectAllClusters);
   const isLoading = useSelector(selectClustersLoading);
-
-  // Fetch clusters on mount if not already loaded
   useEffect(() => {
     if ((!clusters || clusters.length === 0) && token) {
       dispatch(fetchClustersThunk(token));
@@ -57,7 +55,6 @@ const ShowClusters = () => {
   try {
     await dispatch(deleteClusterThunk({ token, cluster_id, email: userEmail })).unwrap();
     toast.success("Cluster deleted", { transition: Slide });
-    // Refetch clusters to update the state
     await dispatch(fetchClustersThunk(token)).unwrap();
   } catch (err) {
     toast.error("Failed to delete cluster", { transition: Slide });

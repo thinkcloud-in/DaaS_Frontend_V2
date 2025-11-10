@@ -205,7 +205,7 @@ function App() {
       {/* remove true and replace it with "token" and uncomment useEffect for keycloak initialization */}
       {token ? (
         <GrafanaToolbarContextProvider>
-          <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}>
+          {/* <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}> */}
             {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
               <BrowserRouter>
                 <ToastContainer />
@@ -636,7 +636,7 @@ function App() {
                 </Suspense>
               </BrowserRouter>
             {/* </RBACProvider> */}
-          </PoolContextProvider>
+          {/* </PoolContextProvider> */}
         </GrafanaToolbarContextProvider>
       ) : (
         LoadingSpinner()
