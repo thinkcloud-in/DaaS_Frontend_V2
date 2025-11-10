@@ -1,8 +1,6 @@
 import axiosInstance from "./AxiosInstance";
 import { getEnv } from "utils/getEnv";
-
 const backendUrl = getEnv("BACKEND_URL");
-// Proxmox: Get Monitoring (Edit Page)
 export const fetchEditInfluxdbDetails = async (token, clusterId) => {
 
   const res = await axiosInstance.get(
@@ -14,8 +12,6 @@ export const fetchEditInfluxdbDetails = async (token, clusterId) => {
   );
   return res.data?.data?.influxdb_metric_server;
 };
-
-// Create Cluster
 export const createCluster = async (token, payload) => {
   const res = await axiosInstance.post(
     `${backendUrl}/v1/create_cluster`,
@@ -24,8 +20,6 @@ export const createCluster = async (token, payload) => {
   );
   return res.data;
 };
-
-// Get All Clusters
 export const fetchClusters = async (token) => {
   const res = await axiosInstance.get(
     `${backendUrl}/v1/clusters`,
@@ -33,8 +27,6 @@ export const fetchClusters = async (token) => {
   );
   return res.data?.data || [];
 };
-
-// Get Cluster By ID
 export const fetchClusterById = async (token, clusterId) => {
   const res = await axiosInstance.get(
     `${backendUrl}/v1/cluster/${clusterId}`,
@@ -42,8 +34,6 @@ export const fetchClusterById = async (token, clusterId) => {
   );
   return res.data?.data;
 };
-
-// Update Cluster
 export const updateCluster = async (token, clusterId, payload) => {
   const res = await axiosInstance.put(
     `${backendUrl}/v1/update_cluster/${clusterId}`,
@@ -52,20 +42,18 @@ export const updateCluster = async (token, clusterId, payload) => {
   );
   return res.data;
 };
-
-// Delete Cluster
 export const deleteCluster = async (token, clusterId, userEmail) => {
+  console.log("Deleting cluster with ID:", token, "for user:", userEmail);
   const res = await axiosInstance.delete(
     `${backendUrl}/v1/delete_cluster/${clusterId}`,
     {
       headers: { Authorization: `Bearer ${token}` },
       data: { email: userEmail }
+
     }
   );
   return res.data;
 };
-
-// Proxmox: Get/Set Monitoring (InfluxDB)
 export const fetchInfluxdbDetails = async (token, clusterId) => {
   const res = await axiosInstance.get(
     `${backendUrl}/v1/proxmox/get_influxdb_metric_server`,
