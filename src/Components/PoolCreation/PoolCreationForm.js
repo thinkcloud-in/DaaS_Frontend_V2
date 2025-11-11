@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+// import axiosInstance from "./AxiosInstance";
+import { getEnv } from "utils/getEnv";
 import "./css/PoolCreationForm.css";
 // service calls are routed through redux thunks (PoolsThunks)
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +17,7 @@ import {
   fetchTemplates,
   fetchVmwareDCs,
   fetchVmwareFolders,
+  fetchSwitches,
 } from "../../redux/features/Pools/PoolsThunks";
 import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
 import {
@@ -28,6 +32,9 @@ import {
   selectCreationVmwareDCs,
   selectCreationVmwareFolders,
   selectPoolSaveLoading,
+  selectCreationSwitches,
+  selectPoolsLoading
+  
 } from "../../redux/features/Pools/PoolsSelectors";
 import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
 import VNCsettings from "./VNCsettings";
@@ -40,27 +47,41 @@ import { Loader2 } from "lucide-react";
 import Select from "react-select";
 const poolType = ["Automated", "Manual"];
 
+
 const PoolCreationForm = (props) => {
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
+  const [selectedSwitch, setSelectedSwitch] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const isLoading = useSelector(selectPoolSaveLoading);
   const [rename, setRename] = useState("");
-  const token = useSelector(selectAuthToken);
-  const tokenParsed = useSelector(selectAuthTokenParsed);
   const clusters = useSelector(selectAllClusters) || [];
-  let userEmail = tokenParsed?.preferred_username || tokenParsed?.email || "";
   const poolDetails = useSelector(selectPoolCreationDetails) || {};
   const dispatch = useDispatch();
-  const selectedCluster =
-    (poolDetails?.cluster_id &&
-      clusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) ||
-    null;
+
   const nodes = useSelector(selectCreationNodes) || [];
   const templates = useSelector(selectCreationTemplates) || [];
   const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
   const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
   const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
-  const [error, setError] = useState(null);
+  const switches = useSelector(selectCreationSwitches) || [];
+  // const switchList = useSelector(selectCreationSwitches) || [];
+  const ispoolloading = useSelector(selectPoolsLoading);
+
+
+  const backendUrl = getEnv('BACKEND_URL');
+
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username;
+
+  const selectedCluster =
+    (poolDetails?.cluster_id &&
+      clusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) ||
+    null;
+
    useEffect(() => {
      if ((!clusters || clusters.length === 0) && token) {
        dispatch(fetchClustersThunk(token));
@@ -89,11 +110,21 @@ const PoolCreationForm = (props) => {
     const cluster = clusters.find((c) => String(c.id) === clusterId);
     try {
       setError(null);
-      // fetch nodes and templates via thunks
+
+      if (cluster?.type === "Hyper-V") {
+        await Promise.all([
+          // dispatch(fetchTemplates({ token, clusterId })).unwrap(),
+          dispatch(fetchSwitches({ token, clusterId })).unwrap(),
+        ]);
+      } 
+
+      if (cluster?.type === "Proxmox") {
       await Promise.all([
         dispatch(fetchClusterNodes({ token, clusterId })).unwrap(),
         dispatch(fetchTemplates({ token, clusterId })).unwrap(),
       ]);
+      }
+
       if (cluster?.type === "VMware") {
         await Promise.all([
           dispatch(fetchVmwareDCs({ token, clusterId })).unwrap(),
@@ -233,6 +264,35 @@ const PoolCreationForm = (props) => {
     label: node.name,
     value: node.name,
   }));
+
+//  useEffect(() => {
+//   if (selectedCluster && selectedCluster.type === "Hyper-V") {
+//     dispatch(fetchSwitches({ token, clusterId: selectedCluster.id }));
+//   }
+// }, [selectedCluster, dispatch, token]);
+
+const isHyperVCluster = selectedCluster && selectedCluster.type === "Hyper-V";
+
+
+  //   useEffect(() => {
+  //   const fetchSwitches = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await axios.get(`${backendUrl}/v1/hyper_v/get_switches`);
+  //       if (response.data?.status === "OK" && Array.isArray(response.data.data)) {
+  //         setSwitchList(response.data.data);
+  //       } else {
+  //         console.warn("Unexpected response format:", response.data);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching switches:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchSwitches();
+  // }, []);
 
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto  bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
@@ -457,14 +517,207 @@ const PoolCreationForm = (props) => {
                           options={nodeOptions}
                           className="basic-multi-select text-xs"
                           classNamePrefix="select"
-                          placeholder="Select Nodes"
-                          isDisabled={nodes.length === 0}
+                          placeholder={isHyperVCluster ? "Not applicable for Hyper-V" : "Select Nodes"}
+                          isDisabled={isHyperVCluster || nodes.length === 0}
                           noOptionsMessage={() => "No nodes available"}
+                          styles={{
+                            control: (base) => ({
+                              ...base,
+                              cursor: isHyperVCluster ? 'not-allowed' : 'default',
+                              backgroundColor: isHyperVCluster ? '#f3f4f6' : base.backgroundColor,
+                            }),
+                          }}
                         />
                       </div>
                     </div>
                   </div>
-                  <div className="tr">
+
+                  {/* Template (Proxmox) or Hyper-V custom fields */}
+                  {isHyperVCluster ? (
+                    <>
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Parent Disk Path
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <input
+                              type="text"
+                              name="hyperv_parent_disk_path"
+                              value={poolDetails.hyperv_parent_disk_path || ""}
+                              onChange={handleOnChange}
+                              placeholder="Enter parent disk path"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Generation
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <select
+                              name="hyperv_generation"
+                              value={poolDetails.hyperv_generation || ""}
+                              onChange={handleOnChange}
+                              className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
+                            >
+                              <option value="">Select Generation</option>
+                              <option value="Gen1">Gen1</option>
+                              <option value="Gen2">Gen2</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Memory (MB)
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <input
+                              type="number"
+                              min={512}
+                              step={256}
+                              name="hyperv_memory_mb"
+                              value={poolDetails.hyperv_memory_mb || ""}
+                              onChange={handleOnChange}
+                              placeholder="Enter memory size (MB)"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Switch
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <select
+                              name="hyperv_switch"
+                              value={poolDetails.hyperv_switch || ""}
+                              onChange={handleOnChange}
+                              className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
+                            >
+                            {ispoolloading ? (
+                              <option>Loading switches...</option>
+                            ) : switches && switches.length > 0 ? (
+                              <>
+                                <option value="">Select Switch</option>
+                                {switches.map((sw, index) => (
+                                  <option key={index} value={sw.Name}>
+                                    {sw.Name}
+                                  </option>
+                                ))}
+                              </>
+                            ) : (
+                              <option>No switches available</option>
+                            )}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+
+                      {/* Switches Dropdown */}
+
+
+                      {/* <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900">
+                            Switch
+                          </label>
+                        </div>
+                        <div className="td">
+                          <select
+                            className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            value={selectedSwitch}
+                            onChange={(e) => setSelectedSwitch(e.target.value)}
+                            disabled={loading || switchList.length === 0}
+                          >
+                            {loading ? (
+                              <option>Loading switches...</option>
+                            ) : switchList.length > 0 ? (
+                              <>
+                                <option value="">Select a Switch</option>
+                                {switchList.map((sw, index) => (
+                                  <option key={index} value={sw.Name}>
+                                    {`${sw.Name} (${sw.NetAdapterInterfaceDescription})`}
+                                  </option>
+                                ))}
+                              </>
+                            ) : (
+                              <option>No switches available</option>
+                            )}
+                          </select>
+                        </div>
+                      </div>
+        */}
+                      {/* <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Switches
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <select
+                              className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
+                              value={selectedSwitch}
+                              onChange={(e) => setSelectedSwitch(e.target.value)}
+                            >
+                              <option value="">Select Switch</option>
+                              <option value="ExternalSwitch">ExternalSwitch</option>
+                              <option value="InternalSwitch">InternalSwitch</option>
+                              <option value="PrivateSwitch">PrivateSwitch</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div> */}
+                    </>
+                  ) : (
+                    <div className="tr">
+                      <div className="th">
+                        <label className="block text-sm font-medium leading-6 text-gray-900">
+                          Template
+                        </label>
+                      </div>
+                      <div className="td">
+                        <div className="mt-2  border-0">
+                          <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                            <select
+                              name="pool_template_vm_id"
+                              onChange={handleTemplateChange}
+                              value={poolDetails.pool_template_vm_id || ""}
+                              className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                            >
+                              <option value="">Select Template</option>
+                              {templates.map((template) => (
+                                <option key={template.vmid} value={template.vmid}>
+                                  {template.vmid} ({template.name})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* <div className="tr">
                     <div className="th">
                       <label className="block text-sm font-medium leading-6 text-gray-900">
                         Template
@@ -489,7 +742,7 @@ const PoolCreationForm = (props) => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="tr">
                     <div className="th">
                       <label className="block text-sm font-medium leading-6 text-gray-900 border-0">

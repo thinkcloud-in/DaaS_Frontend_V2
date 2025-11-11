@@ -24,6 +24,7 @@ import {
   fetchVmwareFolders,
   fetchPoolById,
   updateMachine,
+  fetchSwitches,
 } from "./PoolsThunks";
 import { initialPoolDetails } from "./poolDefaults";
 
@@ -56,6 +57,7 @@ const initialState = {
   creationVmwareFolders: [],
   poolCreationError: null,
   currentPoolDetails: {},
+  creationSwitches: [],
 };
 
 const poolsSlice = createSlice({
@@ -492,6 +494,18 @@ const poolsSlice = createSlice({
       })
       .addCase(fetchVmwareFolders.rejected, (state) => {
         state.creationVmwareFolders = [];
+      })
+  
+      .addCase(fetchSwitches.pending, (state) => {
+        state.poolsLoading = true;
+      })
+      .addCase(fetchSwitches.fulfilled, (state, action) => {
+        state.poolsLoading = false;
+        state.creationSwitches = action.payload || [];
+      })
+      .addCase(fetchSwitches.rejected, (state) => {
+        state.poolsLoading = false;
+        state.creationSwitches = [];
       });
   },
 });

@@ -1,12 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchPools as fetchPoolsService } from "Services/ContextService";
 import {
-  createPool as createPoolService,
-  updatePoolService,
-  deletePoolService,
-} from "Services/PoolService";
-import { createMachineService } from "Services/PoolService";
-import {
   fetchPoolMachinesService,
   fetchAssignedUsersService,
   fetchMachineDetailsService,
@@ -14,10 +8,15 @@ import {
   deleteAssignedUserService,
   deleteVMService,
   listGuacamoleUsersService,
+  createMachineService,
+  createPool as createPoolService,
+  updatePoolService,
+  deletePoolService,
+  rebootVMService, shutdownVMService, startVMService, stopVMService, rebuildVMService,
+  getIpPoolNames, getClusterNodes, getTemplates, getVmwareDCs, getVmwareFolders,
+  getPoolByIdService, updateMachineService,
+  getSwitches,
 } from "Services/PoolService";
-import { rebootVMService, shutdownVMService, startVMService, stopVMService, rebuildVMService } from "Services/PoolService";
-import { getIpPoolNames, getClusterNodes, getTemplates, getVmwareDCs, getVmwareFolders } from "Services/PoolService";
-import { getPoolByIdService, updateMachineService } from "Services/PoolService";
 
 export const fetchPoolById = createAsyncThunk(
   "pools/fetchPoolById",
@@ -321,3 +320,27 @@ export const fetchVmwareFolders = createAsyncThunk(
     }
   }
 );
+
+export const fetchSwitches = createAsyncThunk(
+  "pools/fetchSwitches",
+  async ({ token, clusterId }, { rejectWithValue }) => {
+    try {
+      const data = await getSwitches(token, clusterId);
+      // getSwitches now handles the array conversion internally
+      return data;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch switches");
+    }
+  }
+);
+// export const fetchSwitches = createAsyncThunk(
+//   "pools/fetchSwitches",
+//   async ({ token, clusterId }, { rejectWithValue }) => {
+//     try {
+//       const data = await getSwitches(token, clusterId);
+//       return Array.isArray(data) ? data : [];
+//     } catch (err) {
+//       return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch switches");
+//     }
+//   }
+// );

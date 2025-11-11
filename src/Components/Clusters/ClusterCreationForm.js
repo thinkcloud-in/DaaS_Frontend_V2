@@ -32,7 +32,7 @@ const ClusterCreationForm = () => {
   const [isDisabled, setIsDisabled] = useState(false);
   const checkboxRef = useRef(null);
 
-  let clusterType = ["VMware", "Proxmox"];
+  let clusterType = ["VMware", "Proxmox", "Hyper-V"];
   const [clusterDetails, setClusterDetails] = useState({
     type: "",
     name: "",
@@ -42,6 +42,14 @@ const ClusterCreationForm = () => {
     password: "",
     tls: false,
   });
+
+  
+  // ✅ New Hyper-V specific state
+  const [hyperVNodeType, setHyperVNodeType] = useState({
+    singleNode: false,
+    multiNode: false,
+  });
+
   const [createdClusterId, setCreatedClusterId] = useState(null);
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
   const [monitoringData, setMonitoringData] = useState(null);
@@ -65,6 +73,14 @@ const ClusterCreationForm = () => {
 
  const handleOnClick = async () => {
   let payload = { ...clusterDetails, email: userEmail };
+    if (clusterDetails.type === "Hyper-V") {
+      payload.nodeType = hyperVNodeType.singleNode
+        ? "Standalone"
+        : hyperVNodeType.multiNode
+        ? "Multi Node"
+        : null;
+    }
+
   if (!Array.isArray(payload.ip)) payload.ip = [payload.ip];
   try {
     const res = await dispatch(
@@ -178,6 +194,20 @@ const ClusterCreationForm = () => {
       toast.error("Migration failed to start");
     } finally {
       setMigrateLoading(false);
+    }
+  };
+
+  const handleHyperVNodeSelection = (type) => {
+    if (type === "standalone") {
+      setHyperVNodeType({
+        singleNode: true,
+        multiNode: false,
+      });
+    } else {
+      setHyperVNodeType({
+        singleNode: false,
+        multiNode: true,
+      });
     }
   };
 
@@ -328,6 +358,35 @@ const ClusterCreationForm = () => {
                     </div>
                   </div>
                 )}
+
+                {clusterDetails.type === "Hyper-V" && (
+                  <div className="tr">
+                    <div className="th">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                        Hyper-V IP / FQDN
+                      </label>
+                    </div>
+                    <div className="td">
+                      <div className="mt-2 border-0">
+                        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset">
+                          <input
+                            type="text"
+                            name="ip"
+                            disabled={isDisabled}
+                            onChange={handleOnChange}
+                            value={clusterDetails.ip[0] || ""}
+                            className={classNames(
+                              isDisabled
+                                ? "bg-gray-200 border-slate-300 w-300"
+                                : "bg-white bg-transparent",
+                              "block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                            )}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="tr">
                   <div className="th">
                     <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
@@ -417,17 +476,49 @@ const ClusterCreationForm = () => {
                     </div>
                   </div>
                 </div>
+
+                {clusterDetails.type === "Hyper-V" && (
+                  <div className="tr">
+                    <div className="th">
+                      <label className="block text-sm mt-5 font-medium leading-6 text-gray-900 border-0">
+                        Node Type
+                      </label>
+                    </div>
+                    <div className="td">
+                      <div className="mt-2 flex items-center gap-6">
+                        <label className="flex items-center gap-2 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={hyperVNodeType.standalone}
+                            onChange={() => handleHyperVNodeSelection("standalone")}
+                            disabled={hyperVNodeType.multiNode}
+                          />
+                          <span>Standalone</span>
+                        </label>
+                        <label className="flex items-center gap-2 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={hyperVNodeType.multiNode}
+                            onChange={() => handleHyperVNodeSelection("multi")}
+                            disabled={hyperVNodeType.singleNode}
+                          />
+                          <span>Multi Node</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="tr">
                   <div className="th">
                     <label
                       htmlFor="username"
-                      className="block text-sm font-medium leading-6 text-gray-900 border-0"
+                      className="block text-sm mt-5 font-medium leading-6 text-gray-900 border-0"
                     >
                       Insecure Skip Verify
                     </label>
                   </div>
                   <div className="td">
-                    <div className="mt-2 border-0">
+                    <div className="mt-5 border-0">
                       <label className="switch">
                         <input
                           type="checkbox"
