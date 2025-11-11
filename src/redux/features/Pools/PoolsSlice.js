@@ -135,8 +135,6 @@ const poolsSlice = createSlice({
         state.availablePools = [];
         state.isPoolAvailable = false;
       })
-    // fetchPoolById
-    builder
       .addCase(fetchPoolById.pending, (state) => {
         // nothing
       })
@@ -145,10 +143,7 @@ const poolsSlice = createSlice({
       })
       .addCase(fetchPoolById.rejected, (state) => {
         state.currentPoolDetails = {};
-      });
-
-    // updateMachine
-    builder
+      })
       .addCase(updateMachine.pending, (state) => {
         state.poolSaveLoading = true;
         state.error = null;
@@ -228,9 +223,7 @@ const poolsSlice = createSlice({
       .addCase(deletePool.rejected, (state, action) => {
         state.poolDeleteLoading = false;
         state.error = action.payload || action.error?.message;
-      });
-      // createMachine (add machine to pool and possibly update pools list)
-      builder
+      })
         .addCase(createMachine.pending, (state) => {
           state.poolSaveLoading = true;
           state.error = null;
@@ -246,9 +239,7 @@ const poolsSlice = createSlice({
         .addCase(createMachine.rejected, (state, action) => {
           state.poolSaveLoading = false;
           state.error = action.payload || action.error?.message;
-        });
-    // fetchPoolMachines
-    builder
+        })
       .addCase(fetchPoolMachines.pending, (state) => {
         state.machinesLoading = true;
       })
@@ -262,7 +253,6 @@ const poolsSlice = createSlice({
         state.vmAvailable = [];
       })
 
-      // fetchAssignedUsers
       .addCase(fetchAssignedUsers.pending, (state) => {
         state.usersLoading = true;
       })
@@ -348,9 +338,7 @@ const poolsSlice = createSlice({
       })
       .addCase(deleteVM.rejected, (state) => {
         state.deletingMachine = null;
-      });
-      // power actions: reboot/start/stop/shutdown/rebuild
-    builder
+      })
       .addCase(rebootVM.pending, (state) => {
         state.powerActionLoading = "reboot";
         state.lastPowerActionResult = null;
@@ -445,9 +433,7 @@ const poolsSlice = createSlice({
       .addCase(rebuildVM.rejected, (state, action) => {
         state.powerActionLoading = null;
         state.lastPowerActionResult = action.payload || action.error?.message;
-      });
-    // ip pool names
-    builder
+      })
       .addCase(fetchIpPoolNames.pending, (state) => {
         // nothing
       })
@@ -457,8 +443,6 @@ const poolsSlice = createSlice({
       .addCase(fetchIpPoolNames.rejected, (state) => {
         state.creationIpPoolNames = [];
       })
-
-      // cluster nodes
       .addCase(fetchClusterNodes.pending, (state) => {
         // nothing
       })
@@ -468,8 +452,6 @@ const poolsSlice = createSlice({
       .addCase(fetchClusterNodes.rejected, (state) => {
         state.creationNodes = [];
       })
-
-      // templates
       .addCase(fetchTemplates.pending, (state) => {
         // nothing
       })
@@ -479,16 +461,12 @@ const poolsSlice = createSlice({
       .addCase(fetchTemplates.rejected, (state) => {
         state.creationTemplates = [];
       })
-
-      // vmware dcs
       .addCase(fetchVmwareDCs.fulfilled, (state, action) => {
         state.creationVmwareDCs = action.payload || [];
       })
       .addCase(fetchVmwareDCs.rejected, (state) => {
         state.creationVmwareDCs = [];
       })
-
-      // vmware folders
       .addCase(fetchVmwareFolders.fulfilled, (state, action) => {
         state.creationVmwareFolders = action.payload || [];
       })

@@ -65,8 +65,6 @@ const templateSlice = createSlice({
       })
       .addCase(updateReport.fulfilled, (state, action) => {
         state.isSubmitting = false;
-        // on successful update we don't have a canonical payload to update
-        // reports list client-side. Caller may choose to re-fetch if desired.
       })
       .addCase(updateReport.rejected, (state, action) => {
         state.isSubmitting = false;

@@ -18,7 +18,10 @@ import {
   selectMonitoring,
 } from "../../redux/features/Clusters/ClustersSelectors";
 import "./css/ClusterCreationForm.css";
-import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
 
 // Skeleton loader
 function classNames(...classes) {
@@ -54,45 +57,48 @@ const EditCluster = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id: clusterId } = useParams();
-
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
   const userEmail = tokenParsed?.preferred_username;
-
-  // Redux state
   const loading = useSelector(selectClustersLoading);
   const cluster = useSelector(selectClusterDetails) || {};
   const monitoring = useSelector(selectMonitoring);
-
-  // Local edit state
   const [formCluster, setFormCluster] = useState(cluster);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Monitoring
   const [monitoringChecked, setMonitoringChecked] = useState(false);
   const [showMonitoringConfirm, setShowMonitoringConfirm] = useState(false);
+  const [hyperVNodeType, setHyperVNodeType] = useState({
+    singleNode: false,
+    multiNode: false,
+  });
 
-  // On mount: fetch cluster details and fill form
   useEffect(() => {
     dispatch(fetchClusterByIdThunk({ token, clusterId }));
   }, [token, clusterId, dispatch]);
-
-  // On cluster detail update, set local form state
   useEffect(() => {
     setFormCluster(cluster);
+    if (cluster?.type === "Hyper-V") {
+      setHyperVNodeType({
+        singleNode: cluster.node_type === "Single Node",
+        multiNode: cluster.node_type === "Multi Node",
+      });
+    }
+
     if (cluster?.type === "Proxmox") {
       dispatch(fetchEditInfluxdbDetailsThunk({ token, clusterId }));
     }
-    // Set to checked if there is monitoring data in Redux
+
     setMonitoringChecked(
-      !!(monitoring &&
+      !!(
+        monitoring &&
         monitoring.monitoringData &&
-        (monitoring.monitoringData.monitoring || monitoring.monitoringData.organization))
+        (monitoring.monitoringData.monitoring ||
+          monitoring.monitoringData.organization)
+      )
     );
   }, [cluster, token, clusterId, dispatch]);
 
-  // When user checks or unchecks the monitoring box
   const handleMonitoringCheckbox = async (e) => {
     if (formCluster.type !== "Proxmox") return;
     const checked = e.target.checked;
@@ -111,8 +117,6 @@ const EditCluster = () => {
       setShowMonitoringConfirm(false);
     }
   };
-
-  // Handle monitoring confirmation dialog
   const handleMonitoringConfirm = async (confirm) => {
     if (formCluster.type !== "Proxmox") return;
     setShowMonitoringConfirm(false);
@@ -132,28 +136,32 @@ const EditCluster = () => {
       setMonitoringChecked(false);
     }
   };
-
-  // Handle form input change
   let handleOnChange = (e) => {
     setFormCluster({ ...formCluster, [e.target.name]: e.target.value });
   };
   let handleChange = (e) => {
     setFormCluster({ ...formCluster, [e.target.name]: e.target.checked });
   };
-
-  // Save/submit
   let handleOnClick = async () => {
     setIsLoading(true);
     try {
-      // If removing monitoring in Proxmox, delete influxdb integration
       if (formCluster.type === "Proxmox" && !monitoringChecked) {
         await dispatch(deleteInfluxdbThunk({ token, clusterId }));
       }
-      const payload = {
+      let payload = {
         ...formCluster,
         email: userEmail,
         ip: Array.isArray(formCluster.ip) ? formCluster.ip : [formCluster.ip],
       };
+
+      if (formCluster.type === "Hyper-V") {
+        payload.node_type = hyperVNodeType.singleNode
+          ? "Single Node"
+          : hyperVNodeType.multiNode
+          ? "Multi Node"
+          : null;
+      }
+
       await dispatch(updateClusterThunk({ token, clusterId, payload }));
       toast.success("Cluster updated successfully", { transition: Slide });
       navigate("/clusters");
@@ -335,7 +343,6 @@ const EditCluster = () => {
                   </div>
                 </div>
               )}
-              {/* End cluster type specific */}
               <div className="tr">
                 <div className="th">
                   <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
@@ -396,13 +403,86 @@ const EditCluster = () => {
                       onClick={() => setShowPassword((prev) => !prev)}
                       className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 hover:text-gray-700 focus:outline-none"
                       tabIndex={-1}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
                 </div>
               </div>
+              {/* {formCluster.type === "Hyper-V" && (
+                <div className="tr mt-4 mb-4">
+                  <div className="th">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      Node Type
+                    </label>
+                  </div>
+                  <div className="td">
+                    <div className="mt-2 flex items-center gap-6">
+                      <label className="flex items-center gap-2 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={hyperVNodeType.singleNode}
+                          value={formCluster.node_type}
+                          onChange={() =>
+                            setHyperVNodeType({
+                              singleNode: true,
+                              multiNode: false,
+                            })
+                          }
+                        />
+                        <span>Standalone</span>
+                      </label>
+                      <label className="flex items-center gap-2 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={hyperVNodeType.multiNode}
+                          value={formCluster.node_type}
+                          onChange={() =>
+                            setHyperVNodeType({
+                              singleNode: false,
+                              multiNode: true,
+                            })
+                          }
+                        />
+                        <span>Multi Node</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )} */}
+              {formCluster.type === "Hyper-V" && (
+                <div className="tr mt-4 mb-4">
+                  <div className="th">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      Node Type
+                    </label>
+                  </div>
+                  <div className="td">
+                    <div className="mt-2 flex items-center gap-6">
+                      <label className="flex items-center gap-2 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={formCluster.node_type === "Single Node"}
+                          disabled
+                        />
+                        <span>Standalone</span>
+                      </label>
+                      <label className="flex items-center gap-2 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={formCluster.node_type === "Multi Node"}
+                          disabled
+                        />
+                        <span>Multi Node</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="tr">
                 <div className="th">
                   <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
@@ -602,8 +682,3 @@ const EditCluster = () => {
 };
 
 export default EditCluster;
-
-
-
-
-
