@@ -31,7 +31,7 @@ const ClusterCreationForm = () => {
  
   const [isDisabled, setIsDisabled] = useState(false);
   const checkboxRef = useRef(null);
- 
+
   let clusterType = ["VMware", "Proxmox", "Hyper-V"];
   const [clusterDetails, setClusterDetails] = useState({
     type: "",
@@ -42,13 +42,9 @@ const ClusterCreationForm = () => {
     password: "",
     tls: false,
   });
- 
-
   const [hyperVNodeType, setHyperVNodeType] = useState({
     singleNode: false,
     multiNode: false,
-  });
- 
   const [createdClusterId, setCreatedClusterId] = useState(null);
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
   const [monitoringData, setMonitoringData] = useState(null);
@@ -73,13 +69,14 @@ const ClusterCreationForm = () => {
  const handleOnClick = async () => {
   let payload = { ...clusterDetails, email: userEmail };
     if (clusterDetails.type === "Hyper-V") {
+
       payload.node_type = hyperVNodeType.singleNode
         ? "Single Node"
         : hyperVNodeType.multiNode
         ? "Multi Node"
         : null;
     }
- 
+
   if (!Array.isArray(payload.ip)) payload.ip = [payload.ip];
   try {
     const res = await dispatch(
@@ -208,7 +205,7 @@ const ClusterCreationForm = () => {
       });
     }
   };
- 
+
   const Goback = () => {
     navigate("/clusters");
   };
@@ -356,6 +353,7 @@ const ClusterCreationForm = () => {
                     </div>
                   </div>
                 )}
+
                   {clusterDetails.type === "Hyper-V" && (
                   <div className="tr">
                     <div className="th">
@@ -365,7 +363,7 @@ const ClusterCreationForm = () => {
                     </div>
                     <div className="td">
                       <div className="mt-2 border-0">
-                        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset    ">
+                        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset">
                           <input
                             type="text"
                             name="ip"
@@ -490,7 +488,6 @@ const ClusterCreationForm = () => {
                             value={clusterDetails.node_type}
                             onChange={() => handleHyperVNodeSelection("single")}
                             disabled={hyperVNodeType.node_type}
-
                           />
                           <span>Standalone</span>
                         </label>

@@ -1,28 +1,24 @@
 import axiosInstance from "./AxiosInstance";
 import { getEnv } from "utils/getEnv";
 const backendUrl = getEnv('BACKEND_URL');
-// Create machine
 export const createMachineService = async (token, requestData) => {
 	return axiosInstance.post(`${backendUrl}/v1/create_machine`, requestData, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 };
 
-// Update machine
 export const updateMachineService = async (token, machineIdentifier, requestData) => {
 	return axiosInstance.put(`${backendUrl}/v1/update_machine/${machineIdentifier}`, requestData, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 };
 
-// Get pool by id
 export const getPoolByIdService = async (token, poolId) => {
 	return axiosInstance.get(`${backendUrl}/v1/pool/${poolId}`, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 };
 
-// Update pool
 export const updatePoolService = async (token, poolId, requestData) => {
 	return axiosInstance.put(`${backendUrl}/v1/update_pool/${poolId}`, requestData, {
 		headers: {
@@ -32,7 +28,6 @@ export const updatePoolService = async (token, poolId, requestData) => {
 	});
 };
 
-// Fetch assigned users for a machine
 export const fetchAssignedUsersService = async (token, machineId) => {
 	const response = await axiosInstance.get(`${backendUrl}/v1/machine/users/${machineId}`, {
 		headers: { Authorization: `Bearer ${token}` },
@@ -40,15 +35,12 @@ export const fetchAssignedUsersService = async (token, machineId) => {
 	return response.data?.data || [];
 };
 
-// Fetch machine details
 export const fetchMachineDetailsService = async (token, vm_id) => {
 	const response = await axiosInstance.get(`${backendUrl}/v1/proxmox/proxmox_vm_info/${vm_id}`, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 	return response.data?.data;
 };
-
-// Delete assigned user from machine
 export const deleteAssignedUserService = async (token, machineIdentifier, user) => {
 	return axiosInstance.delete(
 		`${backendUrl}/v1/delete_user_from_machine/${machineIdentifier}/${user}`,
@@ -58,7 +50,6 @@ export const deleteAssignedUserService = async (token, machineIdentifier, user) 
 	);
 };
 
-// Add user to machine
 export const addUserToMachineService = async (token, machineIdentifier, usr) => {
 	return axiosInstance.post(
 		`${backendUrl}/v1/add_user_to_machine/${machineIdentifier}/${usr}`,
@@ -69,7 +60,6 @@ export const addUserToMachineService = async (token, machineIdentifier, usr) => 
 	);
 };
 
-// Delete pool
 export const deletePoolService = async (token, poolId, userEmail) => {
 	return axiosInstance.request({
 		method: "DELETE",
@@ -82,7 +72,6 @@ export const deletePoolService = async (token, poolId, userEmail) => {
 	});
 };
 
-// Delete VM
 export const deleteVMService = async (token, mach, userEmail) => {
 	return axiosInstance.request({
 		method: "DELETE",
@@ -95,14 +84,13 @@ export const deleteVMService = async (token, mach, userEmail) => {
 	});
 };
 
-// List guacamole users
+
 export const listGuacamoleUsersService = async (token) => {
 	return axiosInstance.get(`${backendUrl}/v1/guacamole/list_users`, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 };
 
-// Reboot VM
 export const rebootVMService = async (token, userEmail, vmid, poolId) => {
 	return axiosInstance.post(
 		`${backendUrl}/v1/proxmox/reboot_vm`,
@@ -114,7 +102,6 @@ export const rebootVMService = async (token, userEmail, vmid, poolId) => {
 	);
 };
 
-// Shutdown VM
 export const shutdownVMService = async (token, userEmail, vmid, poolId) => {
 	return axiosInstance.post(
 		`${backendUrl}/v1/proxmox/shutdown_vm`,
@@ -126,7 +113,6 @@ export const shutdownVMService = async (token, userEmail, vmid, poolId) => {
 	);
 };
 
-// Start VM
 export const startVMService = async (token, userEmail, vmid, poolId) => {
 	return axiosInstance.post(
 		`${backendUrl}/v1/proxmox/start_vm`,
@@ -138,7 +124,6 @@ export const startVMService = async (token, userEmail, vmid, poolId) => {
 	);
 };
 
-// Stop VM
 export const stopVMService = async (token, userEmail, vmid, poolId) => {
 	return axiosInstance.post(
 		`${backendUrl}/v1/proxmox/stop_vm`,
@@ -150,7 +135,6 @@ export const stopVMService = async (token, userEmail, vmid, poolId) => {
 	);
 };
 
-// Rebuild VM
 export const rebuildVMService = async (token, userEmail, vmid, poolId) => {
 	const response = await axiosInstance.post(
 		`${backendUrl}/v1/proxmox/vm_rebuild`,
@@ -163,7 +147,6 @@ export const rebuildVMService = async (token, userEmail, vmid, poolId) => {
 	return response.data;
 };
 
-// Fetch pool machines
 export const fetchPoolMachinesService = async (token, poolId) => {
 	const response = await axiosInstance.get(
 		`${backendUrl}/v1/pool/machines/${poolId}`,
@@ -226,4 +209,26 @@ export const createPool = async (token, requestData) => {
 		headers: { Authorization: `Bearer ${token}` },
 	});
 	return response;
+};
+
+export const getSwitches = async (token, clusterId) => {
+	const response = await axiosInstance.get(`${backendUrl}/v1/hyper_v/get_switches`, {
+		headers: { Authorization: `Bearer ${token}` },
+		params: { cluster_id: clusterId }
+	});
+	
+	const data = response.data?.data;
+	
+	// Handle both single object and array responses
+	if (!data) {
+		return [];
+	}
+	
+	// If it's already an array, return it
+	if (Array.isArray(data)) {
+		return data;
+	}
+	
+	// If it's a single object, wrap it in an array
+	return [data];
 };
