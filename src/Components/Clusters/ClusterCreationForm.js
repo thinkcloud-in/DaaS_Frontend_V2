@@ -29,7 +29,7 @@ const ClusterCreationForm = () => {
   const isLoading = useSelector(selectClustersLoading);
   const monitoringLoading = useSelector(state => state.clusters.monitoring.monitoringLoading);
  
-  const [isDisabled, setIsDisabled] = useState(false);
+  const [isDisabled] = useState(false);
   const checkboxRef = useRef(null);
 
   let clusterType = ["VMware", "Proxmox", "Hyper-V"];
@@ -46,7 +46,6 @@ const ClusterCreationForm = () => {
     singleNode: false,
     multiNode: false,
   });
-  
   const [createdClusterId, setCreatedClusterId] = useState(null);
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
   const [monitoringData, setMonitoringData] = useState(null);
@@ -741,7 +740,6 @@ const ClusterCreationForm = () => {
                             style={{
                               border: "1px solid #d1d5db",
                               borderRadius: "3px",
-                              border: "none",
                             }}
                           />
                         ) : (
@@ -749,7 +747,6 @@ const ClusterCreationForm = () => {
                             style={{
                               border: "1px solid #d1d5db",
                               borderRadius: "3px",
-                              border: "none",
                             }}
                           />
                         )}

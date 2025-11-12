@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { getEnv } from "utils/getEnv";
 import "./css/PoolCreationForm.css";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -48,9 +47,11 @@ const PoolCreationForm = () => {
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
   const [error, setError] = useState(null);
-
   const isLoading = useSelector(selectPoolSaveLoading);
-  const clusters = useSelector(selectAllClusters) || [];
+  const [rename, setRename] = useState("");
+  const clustersRaw = useSelector(selectAllClusters);
+  const clusters = useMemo(() => clustersRaw || [], [clustersRaw]);
+
   const poolDetails = useSelector(selectPoolCreationDetails) || {};
   const dispatch = useDispatch();
 
@@ -61,9 +62,6 @@ const PoolCreationForm = () => {
   const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
   const switches = useSelector(selectCreationSwitches) || [];
   const ispoolloading = useSelector(selectPoolsLoading);
-
-  const backendUrl = getEnv("BACKEND_URL");
-
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
   const userEmail = tokenParsed?.preferred_username;
@@ -73,6 +71,7 @@ const PoolCreationForm = () => {
     (poolDetails?.cluster_id &&
       clusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) ||
     null;
+
 
   const isHyperVCluster = selectedCluster && selectedCluster.type === "Hyper-V";
   const isProxmoxCluster =
@@ -295,6 +294,11 @@ const PoolCreationForm = () => {
             <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
               Create New Pool
             </h2>
+            {error && (
+              <div className="text-red-600 mt-2" role="alert">
+                {error}
+              </div>
+            )}
 
             <div className="text-left table-auto ml-5">
               {/* Pool Type */}
