@@ -14,11 +14,11 @@ const ShowPools = () => {
   const availablePools = useSelector(selectAvailablePools);
   const isPoolAvailable = useSelector(selectIsPoolAvailable);
 
-  useEffect(() => {
-    if (token) {
-      dispatch(fetchPools(token));
-    }
-  }, [token, dispatch]);
+  // useEffect(() => {
+  //   if (token) {
+  //     dispatch(fetchPools(token));
+  //   }
+  // }, [token, dispatch]);
   const [selectedPools, setSelectedPools] = useState([]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
