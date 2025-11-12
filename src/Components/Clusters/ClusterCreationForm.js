@@ -45,6 +45,8 @@ const ClusterCreationForm = () => {
   const [hyperVNodeType, setHyperVNodeType] = useState({
     singleNode: false,
     multiNode: false,
+  });
+  
   const [createdClusterId, setCreatedClusterId] = useState(null);
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
   const [monitoringData, setMonitoringData] = useState(null);
