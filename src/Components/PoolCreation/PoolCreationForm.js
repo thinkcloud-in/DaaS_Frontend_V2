@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-// import axiosInstance from "./AxiosInstance";
-import { getEnv } from "utils/getEnv";
+// getEnv removed from here — env access should be used where network calls are implemented
 import "./css/PoolCreationForm.css";
-// service calls are routed through redux thunks (PoolsThunks)
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectAuthToken,
@@ -51,13 +48,12 @@ const poolType = ["Automated", "Manual"];
 const PoolCreationForm = (props) => {
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
-  const [selectedSwitch, setSelectedSwitch] = useState("");
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const isLoading = useSelector(selectPoolSaveLoading);
   const [rename, setRename] = useState("");
-  const clusters = useSelector(selectAllClusters) || [];
+  const clustersRaw = useSelector(selectAllClusters);
+  const clusters = useMemo(() => clustersRaw || [], [clustersRaw]);
   const poolDetails = useSelector(selectPoolCreationDetails) || {};
   const dispatch = useDispatch();
 
@@ -71,7 +67,7 @@ const PoolCreationForm = (props) => {
   const ispoolloading = useSelector(selectPoolsLoading);
 
 
-  const backendUrl = getEnv('BACKEND_URL');
+  // backendUrl removed (not used here). Use env getter where network calls are implemented.
 
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
@@ -86,7 +82,7 @@ const PoolCreationForm = (props) => {
      if ((!clusters || clusters.length === 0) && token) {
        dispatch(fetchClustersThunk(token));
      }
-   }, [dispatch, token]);
+   }, [dispatch, token, clusters]);
   let navigate = useNavigate();
   useEffect(() => {
     if (poolDetails.pool_type === "Automated") {
@@ -101,7 +97,7 @@ const PoolCreationForm = (props) => {
       setPoolCreationDetails({
         cluster_id: clusterId,
         pool_selected_nodes: [],
-        pool_template_vm_id: "",
+        pool_template_vm_id: null,
         pool_vmware_dc: "",
         pool_vmware_folder: "",
       })
@@ -323,6 +319,11 @@ const isHyperVCluster = selectedCluster && selectedCluster.type === "Hyper-V";
             <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
               Create New Pool
             </h2>
+            {error && (
+              <div className="text-red-600 mt-2" role="alert">
+                {error}
+              </div>
+            )}
             <div className="text-left table-auto ml-5">
               <div className="tr">
                 <div className="th">

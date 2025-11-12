@@ -15,7 +15,6 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-// token will be read from redux auth slice
 import { useDispatch, useSelector } from 'react-redux';
 import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
 import {
@@ -84,7 +83,6 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [role, setRole] = useState("");
-  // local components state for UI selection; initialized from redux roleComponents
   const [components, setComponents] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
@@ -104,12 +102,10 @@ const UserManagement = () => {
   const token = useSelector(selectAuthToken);
 
   useEffect(() => {
-    // initial load
     dispatch(fetchUsers({ token }));
     dispatch(fetchRoles({ token }));
   }, [dispatch, token]);
 
-  // keep local components in sync with redux roleComponents
   useEffect(() => {
     setComponents(roleComponents || []);
   }, [roleComponents]);
@@ -138,13 +134,9 @@ const UserManagement = () => {
   };
 
   const handleUserClick = async (username) => {
-    // Avoid dispatching inside the functional state updater (causes render-phase side-effects).
-    // Let the effect that listens to `selectedUser` handle the permission fetch/clear.
     const newSelected = selectedUser === username ? null : username;
     setSelectedUser(newSelected);
   };
-
-  // dispatches thunk to load components for a role
   const loadRoleComponents = async (selectedRole) => {
     dispatch(fetchRoleComponents({ token, role: selectedRole }));
   };
@@ -205,7 +197,6 @@ const UserManagement = () => {
       const res = await dispatch(deleteRole({ token, role: roleToDelete })).unwrap();
       if (res?.status === 200 || res?.status === 204) {
         showSuccess('Role deleted successfully!');
-        // roles will be updated by reducer
       } else {
         showError('Failed to delete role');
       }
@@ -235,9 +226,6 @@ const UserManagement = () => {
       showError(err || 'Failed to save role and components');
     }
   };
-
-  // getUserPermission handled via redux thunk
-
   const handleRoleAssignment = async () => {
     if (!selectedRole) {
       showError("Please select a role");
