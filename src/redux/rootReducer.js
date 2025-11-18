@@ -17,6 +17,7 @@ import agentTaskManagerReducer from './features/AgentTaskManager/TaskManagerSlic
 import activeSessionsReducer from './features/ActiveSessions/ActiveSessionsSlice';
 import recordingsReducer from './features/Recordings/RecordingsSlice';
 import clustersReducer from './features/Clusters/ClustersSlice';
+import namespaceReducer from './features/Namespace/NamespaceSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
   activeSessions: activeSessionsReducer,
   recordings: recordingsReducer,
   clusters: clustersReducer,
+  namespace: namespaceReducer,
   
 });
 

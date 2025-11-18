@@ -48,7 +48,6 @@ const PoolCreationForm = () => {
   const [selectedProtocol, setSelectedProtocol] = useState("");
   const [error, setError] = useState(null);
   const isLoading = useSelector(selectPoolSaveLoading);
-  const [rename, setRename] = useState("");
   const clustersRaw = useSelector(selectAllClusters);
   const clusters = useMemo(() => clustersRaw || [], [clustersRaw]);
 
@@ -335,7 +334,6 @@ const PoolCreationForm = () => {
             )}
 
             <div className="text-left table-auto ml-5">
-              {/* Pool Type */}
               <div className="tr">
                 <div className="th">
                   <label className="block text-sm font-medium leading-6 text-gray-900 border-0">

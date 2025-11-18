@@ -1,34 +1,20 @@
-import React, { useState, useContext, useEffect } from "react";
-import { PoolContext } from "../../Context/PoolContext";
+import React, { useEffect } from "react";
 import ShowRetentionDetails from "./ShowRetentionDetails";
-import axiosInstance from "Services/AxiosInstance";
-import { getEnv } from "utils/getEnv";
 import { useNavigate } from "react-router-dom";
-
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { fetchNamespaces } from "../../redux/features/Namespace/NamespaceThunks";
+import { selectAllNamespaces, selectNamespaceLoading } from "../../redux/features/Namespace/NamespaceSelectors";
 const RetentionPeriod = () => {
   const navigate = useNavigate();
-  const [namespaces, setNamespaces] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const backendUrl = getEnv('BACKEND_URL');
+  const dispatch = useDispatch();
+  const token = useSelector(selectAuthToken);
+  const namespaces = useSelector(selectAllNamespaces);
+  const loading = useSelector(selectNamespaceLoading);
 
   useEffect(() => {
-    fetchNamespaces();
-  }, []);
-
-  const fetchNamespaces = async () => {
-    try {
-      const response = await axiosInstance.get(`${backendUrl}/v1/namespace/get_namespaces`);
-      
-      setNamespaces(response?.data || null);
-    } catch (err) {
-      setError('Failed to load namespaces');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const pc = useContext(PoolContext);
+    if (token) dispatch(fetchNamespaces(token));
+  }, [dispatch, token]);
 
   const Goback = () => {
     navigate("/");
@@ -50,8 +36,13 @@ const RetentionPeriod = () => {
 
         {loading ? (
           <p className="text-center">Loading...</p>
-        ) : namespaces ? (
-          <ShowRetentionDetails namespaces={namespaces} />
+        ) : Array.isArray(namespaces) && namespaces.length > 0 ? (
+          // render details for the first namespace or map as needed
+          <div>
+            {namespaces.map((ns) => (
+              <ShowRetentionDetails key={ns.namespaceName || ns.name} namespaces={ns} />
+            ))}
+          </div>
         ) : (
           <p className="text-center text-gray-500">No namespace data available.</p>
         )}

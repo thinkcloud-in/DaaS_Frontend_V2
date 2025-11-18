@@ -14,6 +14,7 @@ export default function AddMachinePopover(props) {
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
   let userEmail = tokenParsed.preferred_username;
+  
 
   let setVmAvailable = props.setVmAvailable;
   let securityMode = [
