@@ -101,10 +101,9 @@ const PoolCreationForm = () => {
   let templateVmId = {};
   if (cluster?.type === "Hyper-V") {
     templateVmId = {
-      vmid: poolDetails.pool_template_vm_id?.vmid || "",
       generation: poolDetails.pool_template_vm_id?.generation || "",
+      memory_mb: poolDetails.pool_template_vm_id?.memory_mb || "",
       parent_disk_path: poolDetails.pool_template_vm_id?.parent_disk_path || "",
-      memory: poolDetails.pool_template_vm_id?.memory || "",
       switch: poolDetails.pool_template_vm_id?.switch || ""
     };
   }
