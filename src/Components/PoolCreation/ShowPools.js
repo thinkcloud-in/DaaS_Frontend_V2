@@ -1,8 +1,7 @@
 import { updatePoolStatus } from "../../Services/PoolService";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
-import { useDispatch, useSelector } from "react-redux";
-import { fetchPools } from "../../redux/features/Pools/PoolsThunks";
+import { useSelector } from "react-redux";
 import { selectAvailablePools, selectIsPoolAvailable } from "../../redux/features/Pools/PoolsSelectors";
 import "./css/ShowPools.css";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 const ShowPools = () => {
   const navigate = useNavigate();
   const token = useSelector(selectAuthToken);
-  const dispatch = useDispatch();
   const availablePools = useSelector(selectAvailablePools);
   const isPoolAvailable = useSelector(selectIsPoolAvailable);
 
@@ -45,7 +43,6 @@ const ShowPools = () => {
 
   return (
     <div className="w-[98%] min-h-[75vh] m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
-      {/* Header */}
       <div className="flex justify-between items-center mb-4">
          <div
           onClick={Goback}

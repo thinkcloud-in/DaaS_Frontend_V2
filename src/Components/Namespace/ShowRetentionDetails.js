@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from 'Services/AxiosInstance';
 import { toast } from 'react-toastify';
-import { PoolContext } from '../../Context/PoolContext';
-import { getEnv } from 'utils/getEnv';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import { updateNamespaceRetention } from '../../redux/features/Namespace/NamespaceThunks';
 
 const ShowRetentionDetails = ({ namespaces }) => {
   const navigate = useNavigate();
@@ -13,8 +13,10 @@ const ShowRetentionDetails = ({ namespaces }) => {
   const [retentionDays, setRetentionDays] = useState(namespaces.retentionPeriod || '');
   const [statusMessage, setStatusMessage] = useState('');
 
-  const pc = useContext(PoolContext);
-  const userEmail = pc?.tokenParsed?.preferred_username || '';
+  const dispatch = useDispatch();
+  const token = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userEmail = tokenParsed?.preferred_username || '';
 
   const handleUpdateRetention = async () => {
     setIsSubmitting(true);
@@ -25,23 +27,22 @@ const ShowRetentionDetails = ({ namespaces }) => {
       return;
     }
 
-    const backendUrl = getEnv('BACKEND_URL');
-
     try {
-      const response = await axiosInstance.put(`${backendUrl}/v1/namespace/update-retention`, {
-        namespace,
-        retention_days: parseInt(retentionDays),
-        email: userEmail,
-      });
+      const result = await dispatch(
+        updateNamespaceRetention({
+          token,
+          namespace,
+          retention_days: parseInt(retentionDays, 10),
+          email: userEmail,
+        })
+      ).unwrap();
 
-      const { message, newRetentionPeriod } = response.data;
-
-      toast.success(message || 'Retention updated!');
-      setRetentionDays(newRetentionPeriod);  
+      const newRetention = result?.newRetentionPeriod || result?.data?.newRetentionPeriod || result?.newRetentionPeriod;
+      toast.success(result?.message || 'Retention updated!');
+      if (newRetention) setRetentionDays(newRetention);
       setStatusMessage('');
     } catch (error) {
-      
-      toast.error('Failed to update retention.');
+      toast.error(error?.message || 'Failed to update retention.');
     } finally {
       setIsSubmitting(false);
     }
