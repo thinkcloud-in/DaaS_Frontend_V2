@@ -4,9 +4,10 @@ import { ChevronDown } from "lucide-react";
 import TimeRangeSelector from "./TimeRangeSelector";
 import AutoRefresh from "./AutoRefresh";
 import axios from "axios";
-import { PoolContext } from "../../Context/PoolContext";
+import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
 import { GrafanaToolbarContext } from "../../Context/GrafanaToolbarContext";
 import { getEnv } from "utils/getEnv";
+import { useSelector } from "react-redux";
  
 const Overview = () => {
   const backendUrl = getEnv('BACKEND_URL');
@@ -14,9 +15,8 @@ const Overview = () => {
   const DASHBOARD_GRAFANA_URL = getEnv('GRAFANA_URL')
 
   const gc = useContext(GrafanaToolbarContext);
-  const pc = useContext(PoolContext);
-  const token = pc.token;
- 
+
+  const token = useSelector(selectAuthToken);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [templatingVariables, setTemplatingVariables] = useState([]);

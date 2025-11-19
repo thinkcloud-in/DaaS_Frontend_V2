@@ -4,7 +4,7 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
-import { PoolContext } from "../../../Context/PoolContext";
+
  
 let ProxmoxNodes = () => {
   let gc = useContext(GrafanaToolbarContext);
