@@ -100,10 +100,12 @@ const PoolCreationForm = () => {
 
   let templateVmId = {};
   if (cluster?.type === "Hyper-V") {
+    let genStr = poolDetails.pool_template_vm_id?.generation || "";
+    let generation = genStr === "Gen2" ? 2 : genStr === "Gen1" ? 1 : "";
     templateVmId = {
-      generation: poolDetails.pool_template_vm_id?.generation || "",
-      memory_mb: poolDetails.pool_template_vm_id?.memory_mb || "",
-      parent_disk_path: poolDetails.pool_template_vm_id?.parent_disk_path || "",
+      generation,
+      memory: poolDetails.pool_template_vm_id?.memory || "",
+      PvhdPath: poolDetails.pool_template_vm_id?.PvhdPath || "",
       switch: poolDetails.pool_template_vm_id?.switch || ""
     };
   }
@@ -151,13 +153,23 @@ const PoolCreationForm = () => {
     const { name, value, type, checked } = e.target;
     let newValue;
     // For Hyper-V template fields, update only pool_template_vm_id
-    if (["hyperv_generation", "hyperv_memory_mb", "hyperv_parent_disk_path", "hyperv_switch", "vmid"].includes(name) && isHyperVCluster) {
+    // ...existing code...
+    if (
+      ["hyperv_generation", "hyperv_memory", "hyperv_PvhdPath", "hyperv_switch", "hyperv_vhdPath", "vmid"].includes(name) &&
+      isHyperVCluster
+    ) {
       const prev = poolDetails.pool_template_vm_id || {};
       let fieldValue;
       let keyName;
-      if (name === "hyperv_memory_mb") {
+      if (name === "hyperv_memory") {
         fieldValue = value ? parseInt(value, 10) : "";
-        keyName = "memory_mb";
+        keyName = "memory";
+      } else if (name === "hyperv_generation") {
+        fieldValue = value === "Gen2" ? 2 : value === "Gen1" ? 1 : "";
+        keyName = "generation";
+      } else if (name === "hyperv_vhdPath") {
+        fieldValue = value;
+        keyName = "vhdPath";
       } else if (name === "vmid") {
         fieldValue = value;
         keyName = "vmid";
@@ -726,17 +738,37 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Parent Disk Path
+                            vhdPath
                           </label>
                         </div>
                         <div className="td">
                           <div className="mt-2 border-0">
                             <input
                               type="text"
-                              name="hyperv_parent_disk_path"
-                              value={poolDetails.pool_template_vm_id?.parent_disk_path || ""}
+                              name="hyperv_vhdPath"
+                              value={poolDetails.pool_template_vm_id?.vhdPath || ""}
                               onChange={handleOnChange}
-                              placeholder="Enter parent disk path"
+                              placeholder="Enter vhdPath"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            PvhdPath
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <input
+                              type="text"
+                              name="hyperv_PvhdPath"
+                              value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
+                              onChange={handleOnChange}
+                              placeholder="Enter PvhdPath"
                               className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                             />
                           </div>
@@ -753,7 +785,13 @@ const PoolCreationForm = () => {
                           <div className="mt-2 border-0">
                             <select
                               name="hyperv_generation"
-                              value={poolDetails.pool_template_vm_id?.generation || ""}
+                              value={
+                                poolDetails.pool_template_vm_id?.generation === 1
+                                  ? "Gen1"
+                                  : poolDetails.pool_template_vm_id?.generation === 2
+                                  ? "Gen2"
+                                  : ""
+                              }
                               onChange={handleOnChange}
                               className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
                             >
@@ -777,8 +815,8 @@ const PoolCreationForm = () => {
                               type="number"
                               min={512}
                               step={256}
-                              name="hyperv_memory_mb"
-                              value={poolDetails.pool_template_vm_id?.memory_mb || ""}
+                              name="hyperv_memory"
+                              value={poolDetails.pool_template_vm_id?.memory || ""}
                               onChange={handleOnChange}
                               placeholder="Enter memory size (MB)"
                               className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
