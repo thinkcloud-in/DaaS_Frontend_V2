@@ -4,11 +4,9 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
-import { PoolContext } from "../../../Context/PoolContext";
  
 let ProxmoxVMs = () => {
   let gc = useContext(GrafanaToolbarContext);
-  let pc = useContext(PoolContext);
  
   // Update these if you want to make variables dynamic
   const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;

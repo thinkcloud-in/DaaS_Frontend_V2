@@ -3,11 +3,10 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
-import { PoolContext } from "../../../Context/PoolContext";
+
  
 let ProxmoxOverview = () => {
   let gc = useContext(GrafanaToolbarContext);
-  let pc = useContext(PoolContext);
  
   // Values from your URL, can be made dynamic if required
   const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
