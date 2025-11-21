@@ -241,8 +241,7 @@ const PoolCreationForm = () => {
     const value = e.target.value;
     dispatch(
       setPoolCreationDetails({
-        // pool_template_vm_id: value ? [{ vmid: parseInt(value, 10) }] : [],
-        pool_template_vm_id: value ? { id: parseInt(value, 10) } : {}
+        pool_template_vm_id: value ? { vmid: parseInt(value, 10) } : {}
       })
     );
   };
