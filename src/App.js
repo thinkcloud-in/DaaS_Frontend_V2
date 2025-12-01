@@ -81,6 +81,9 @@ const TOTP = React.lazy(() => import("./Components/TOTP/TOTP"));
 const ChangePassword = React.lazy(() =>
   import("./Components/Login/ChangePassword")
 );
+const HyperV = React.lazy(() =>
+  import("./Components/Dashboard/HyperV/HyperV")
+);
 
 function App() {
   const [workflowId, setWorkflowId] = useState("");
@@ -293,6 +296,15 @@ function App() {
                           <ProtectedRoute
                             component={IPMIDashboard}
                             componentKey="IpmiDashboard"
+                          />
+                        }
+                      />
+                      <Route
+                        path="/hyperv-monitoring"
+                        element={
+                          <ProtectedRoute
+                            component={HyperV}
+                            componentKey="HyperV"
                           />
                         }
                       />

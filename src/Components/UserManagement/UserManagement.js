@@ -51,6 +51,7 @@ const componentCategories = {
     vCenter: ["Overview", "Hosts", "Data Stores", "VMS"],
     Proxmox: ["PX-Overview", "PX-Nodes", "PX-Storage", "PX-VMs"],
     IPMI: ["IpmiDashboard"],
+    HyperV: ["HyperV"],
   },
   Reports: ["Template", "Horizon Reports", "Vamanit Dass Reports"],
   Schedule: ["Schedule"],

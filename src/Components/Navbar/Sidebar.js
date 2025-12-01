@@ -80,6 +80,7 @@ const getIcon = (name, level = 0, parent = "") => {
       VCenter: faServer,
       Proxmox: faCloud,
       "IPMI Dashboard": faServer,
+      "HyperV": faServer,
     }[name] || faAngleRight;
   }
 
