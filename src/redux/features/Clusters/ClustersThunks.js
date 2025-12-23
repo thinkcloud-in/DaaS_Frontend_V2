@@ -34,7 +34,13 @@ export const createClusterThunk = createAsyncThunk(
       // Assuming res.data.cluster contains created cluster info
       return res.data.cluster;
     } catch (err) {
-      return rejectWithValue(err.message);
+      const message =
+        err.response?.data?.data ||
+        err.response?.data?.msg ||
+        err.message ||
+        "Cluster creation failed";
+
+      return rejectWithValue(message);
     }
   }
 );

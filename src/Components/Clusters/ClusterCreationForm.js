@@ -11,24 +11,27 @@ import {
   addInfluxdbThunk,
   migrateMonitoringDataThunk,
 } from "../../redux/features/Clusters/ClustersThunks";
+import { selectClustersLoading } from "../../redux/features/Clusters/ClustersSelectors";
 import {
-  selectClustersLoading,
-} from "../../redux/features/Clusters/ClustersSelectors";
-import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
- 
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 const ClusterCreationForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
- 
+
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
   const userEmail = tokenParsed?.preferred_username;
   const isLoading = useSelector(selectClustersLoading);
-  const monitoringLoading = useSelector(state => state.clusters.monitoring.monitoringLoading);
- 
+  const monitoringLoading = useSelector(
+    (state) => state.clusters.monitoring.monitoringLoading
+  );
+
   const [isDisabled] = useState(false);
   const checkboxRef = useRef(null);
 
@@ -56,9 +59,8 @@ const ClusterCreationForm = () => {
   const [migrateLoading, setMigrateLoading] = useState(false);
   const [showApiToken, setShowApiToken] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
- 
- 
-  const handleOnChange = e => {
+
+  const handleOnChange = (e) => {
     const { name, value } = e.target;
     if (name === "ip") {
       setClusterDetails({ ...clusterDetails, ip: [value] });
@@ -66,11 +68,10 @@ const ClusterCreationForm = () => {
       setClusterDetails({ ...clusterDetails, [name]: value });
     }
   };
- 
- const handleOnClick = async () => {
-  let payload = { ...clusterDetails, email: userEmail };
-    if (clusterDetails.type === "Hyper-V") {
 
+  const handleOnClick = async () => {
+    let payload = { ...clusterDetails, email: userEmail };
+    if (clusterDetails.type === "Hyper-V") {
       payload.node_type = hyperVNodeType.singleNode
         ? "Single Node"
         : hyperVNodeType.multiNode
@@ -78,35 +79,33 @@ const ClusterCreationForm = () => {
         : null;
     }
 
-  if (!Array.isArray(payload.ip)) payload.ip = [payload.ip];
-  try {
-    const res = await dispatch(
-      createClusterThunk({ token, payload })
-    ).unwrap();
-    if (res.data && res.data.error) {
-      toast.warn(
-        `Cluster created, but: ${res.data.error}`,
-        { transition: Slide }
-      );
-    } else {
-      toast.success("Cluster created!", { transition: Slide });
+    if (!Array.isArray(payload.ip)) payload.ip = [payload.ip];
+    try {
+      const res = await dispatch(
+        createClusterThunk({ token, payload })
+      ).unwrap();
+      if (res.data && res.data.error) {
+        toast.warn(`Cluster created, but: ${res.data.error}`, {
+          transition: Slide,
+        });
+      } else {
+        toast.success("Cluster created!", { transition: Slide });
+      }
 
+      setCreatedClusterId(res.id);
+      setIsClusterCreated(true);
+      if (res.type === "VMware" || res.type === "Hyper-V") {
+        setTimeout(() => navigate("/clusters"), 1000);
+      }
+    } catch (error) {
+      toast.error(error, { transition: Slide });
     }
- 
-    setCreatedClusterId(res.id);
-    setIsClusterCreated(true);
-    if (res.type === "VMware" || res.type === "Hyper-V") {
-      setTimeout(() => navigate("/clusters"), 1000);
-    }
-  } catch {
-    toast.error("Cluster creation failed", { transition: Slide });
-  }
-};
-  const handleChange = e => {
+  };
+  const handleChange = (e) => {
     setClusterDetails({ ...clusterDetails, tls: e.target.checked });
   };
- 
-  const handleMonitoringCheckbox = async e => {
+
+  const handleMonitoringCheckbox = async (e) => {
     const checked = e.target.checked;
     if (checked && createdClusterId) {
       dispatch(
@@ -131,8 +130,8 @@ const ClusterCreationForm = () => {
       setInfluxAlreadyIntegrated(false);
     }
   };
- 
-  const addInfluxdbWrapper = async isCustomIntegration => {
+
+  const addInfluxdbWrapper = async (isCustomIntegration) => {
     try {
       await dispatch(
         addInfluxdbThunk({
@@ -142,7 +141,9 @@ const ClusterCreationForm = () => {
         })
       );
       toast.success("InfluxDB integrated successfully");
-      dispatch(fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }));
+      dispatch(
+        fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId })
+      );
       setTimeout(() => navigate("/clusters"), 2000);
     } catch {
       toast.error("Failed to integrate InfluxDB");
@@ -150,8 +151,8 @@ const ClusterCreationForm = () => {
       setMonitoringData(null);
     }
   };
- 
-  const handleMonitoringConfirm = async confirm => {
+
+  const handleMonitoringConfirm = async (confirm) => {
     setShowMonitoringConfirm(false);
     if (createdClusterId) {
       if (confirm) {
@@ -165,7 +166,7 @@ const ClusterCreationForm = () => {
       setMonitoringData(null);
     }
   };
- 
+
   const handleMigrate = async () => {
     const src_url = `http://${monitoringData.server}:${monitoringData.port}`;
     if (!srcApiToken) {
@@ -192,7 +193,7 @@ const ClusterCreationForm = () => {
       setMigrateLoading(false);
     }
   };
- 
+
   const handleHyperVNodeSelection = (type) => {
     if (type === "single") {
       setHyperVNodeType({
@@ -210,7 +211,7 @@ const ClusterCreationForm = () => {
   const Goback = () => {
     navigate("/clusters");
   };
- 
+
   return (
     <div className="w-[98%] mt-4 min-h-[75vh] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="cluster-creation-form overflow-y-auto rounded-md bg-white custom-scrollbar">
@@ -355,7 +356,7 @@ const ClusterCreationForm = () => {
                   </div>
                 )}
 
-                  {clusterDetails.type === "Hyper-V" && (
+                {clusterDetails.type === "Hyper-V" && (
                   <div className="tr">
                     <div className="th">
                       <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
@@ -472,7 +473,7 @@ const ClusterCreationForm = () => {
                     </div>
                   </div>
                 </div>
- 
+
                 {clusterDetails.type === "Hyper-V" && (
                   <div className="tr mt-4 mb-4">
                     <div className="th">
@@ -779,13 +780,5 @@ const ClusterCreationForm = () => {
     </div>
   );
 };
- 
+
 export default ClusterCreationForm;
- 
- 
- 
- 
- 
- 
- 
- 
