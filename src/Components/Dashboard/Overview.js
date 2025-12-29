@@ -29,7 +29,8 @@ const Overview = () => {
  
   useEffect(() => {
     axios
-      .get(`${GRAFANA_URL}/api/dashboards/uid/vsphereOverview`)
+      // .get(`${GRAFANA_URL}/api/dashboards/uid/vsphereOverview`)
+      .get(`${backendUrl}/grafana/api/dashboards/uid/vsphereOverview`)
       .then((res) => {
         const templatingList = res.data.dashboard.templating.list;
         if (templatingList.length > 0) {
@@ -61,7 +62,7 @@ const Overview = () => {
       let values = [];
       if (variable.name === "inter") {
         const response = await axios.post(
-          `${backendUrl}/v1/api/query`,
+          `${backendUrl}/grafana/v1/api/query`,
           {
             body: {
               from: `${gc.timeStamp.startDate}`,
@@ -87,7 +88,7 @@ const Overview = () => {
         }
       } else {
         const response = await axios.post(
-          `${backendUrl}/v1/api/query`,
+          `${backendUrl}/grafana/v1/api/query`,
           {
             body: {
               from: `${gc.timeStamp.startDate}`,
