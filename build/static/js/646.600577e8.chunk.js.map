@@ -1,0 +1,1 @@
+{"version":3,"file":"static/js/646.600577e8.chunk.js","mappings":"uIAOA,QAPgBA,KAERC,EAAAA,EAAAA,KAAA,OAAAC,SAAK,e","sources":["Components/LandingPage/LandingPage.js"],"sourcesContent":["let LandingPage=()=>{\n    return(\n        <div>\n            Coming soon\n        </div>\n    )\n}\nexport default LandingPage"],"names":["LandingPage","_jsx","children"],"sourceRoot":""}

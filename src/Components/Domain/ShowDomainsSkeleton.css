@@ -1,0 +1,42 @@
+/* Skeleton loader for ShowDomains */
+.skeleton-domain-list {
+  display: flex;
+  gap: 2.5rem;
+  margin: 2rem 0;
+}
+.skeleton-domain-card {
+  width: 18rem;
+  height: 12rem;
+  background: linear-gradient(90deg, #f0f4fa 25%, #e2e8f0 50%, #f0f4fa 75%);
+  border-radius: 0.75rem;
+  animation: skeleton-loading 1.2s infinite linear;
+  box-shadow: 0 2px 8px 0 #1a365d22;
+}
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}
+
+
+.domain_main_page {
+  width: 98%;
+  height: 90vh;
+  min-height: 75vh;
+  background-color: white;
+  margin: auto;
+  padding: 20px;
+  border-radius: 10px;
+  padding-bottom: 100px; 
+  overflow: auto;
+}

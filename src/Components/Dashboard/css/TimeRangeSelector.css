@@ -1,0 +1,28 @@
+.ant-picker-ok button{
+    background-color: #4f46e5!important;
+    color: white!important;
+}
+.ant-space-item{
+    border: 0.5px solid rgb(212, 200, 200);
+    border-radius: 7px;
+    overflow: hidden;
+}
+.ant-picker-input>input::placeholder {
+    color: black!important;
+ }
+ .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner {
+    background-color: #4f46e5 !important;
+    border-top-left-radius: 32px !important;
+    border-bottom-left-radius: 32px !important;
+  }
+  
+  .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+    background-color: #4f46e5 !important;
+    border-top-right-radius: 32px !important ;
+    border-bottom-right-radius: 32px !important;
+  }
+  
+  .ant-picker-cell-in-view.ant-picker-cell-in-range::before {
+    background-color: #716cdf;
+  }
+  

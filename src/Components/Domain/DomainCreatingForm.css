@@ -1,0 +1,88 @@
+
+.domain_create select{
+    width: 60rem;
+}
+.domain_create input[type="text"]{
+    width: 60rem;
+}
+.domain_create input[type="password"]{
+    width: 60rem;
+}
+.domain_create input[type="number"]{
+    width: 60rem;
+}
+
+@media screen and (min-width: 1536px) and (max-width: 1800px) {
+  /* styles */
+.domain_create select{
+    width: 50rem;
+}
+.domain_create input[type="text"]{
+    width: 50rem;
+}
+.domain_create input[type="password"]{
+    width: 50rem;
+}
+.domain_create input[type="number"]{
+    width: 50rem;
+}
+
+}
+@media screen and (min-width: 1200px) and (max-width: 1535px) {
+  /* styles */
+.domain_create select{
+    width: 40rem;
+}
+.domain_create input[type="text"]{
+    width: 40rem;
+}
+.domain_create input[type="password"]{
+    width: 40rem;
+}
+.domain_create input[type="number"]{
+    width: 40rem;
+}
+}
+
+/* Responsive adjustments for smaller screens */
+@media (min-width: 768px) and (max-width: 1200px) {
+.domain_create select{
+    width: 30rem;
+}
+.domain_create input[type="text"]{
+    width: 30rem;
+}
+.domain_create input[type="password"]{
+    width: 30rem;
+}
+.domain_create input[type="number"]{
+    width: 30rem;
+}
+}
+
+@media (max-width: 768px) {
+   .domain_create select{
+    width: 30rem;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.domain_create input[type="text"]{
+    width: 30rem;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.domain_create input[type="password"]{
+    width: 30rem;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.domain_create input[type="number"]{
+    width: 30rem;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+}

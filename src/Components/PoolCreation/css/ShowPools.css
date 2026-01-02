@@ -1,0 +1,52 @@
+.manage_pool{
+    /* font-family: 'Lato', 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif; */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+.show-pools{
+ 
+    /* font-family: 'Lato', 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif; */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+.available_pools{
+ min-height: 70vh;
+}
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 3px; /* Thin scrollbar width */
+  }
+ 
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Light gray track */
+  }
+ 
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #c1c1c1; /* Medium gray thumb */
+    border-radius: 3px;
+  }
+ 
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #888; /* Darker gray on hover */
+  }
+ 
+
+  
+.refresh-button {
+  background: #1a365dd3;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  padding: 0.7%;
+  cursor: pointer;
+  margin-left: auto; 
+  margin-right: 1%;
+
+.icon{
+    font-size: 18px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+}
+
+.icon:hover {
+    transform: rotate(90deg);
+}

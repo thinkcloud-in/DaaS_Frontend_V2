@@ -1,0 +1,81 @@
+.image{
+    width: 80px;
+    height: 80px;
+    text-align: center;
+}
+.image .img {
+    width: 100%;
+    height: 100%;
+}
+.report_divsion table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.report_divsion th{
+    border: 2px solid #00000099;
+    padding: 8px;
+    background-color: white;
+}
+.report_divsion td{
+    border: 2px solid #00000099;
+    padding: 8px;
+    background-color: white;
+}
+.report_divsion th {
+    color: #00000099;
+    font-weight: 500;
+}
+.logo {
+    width: 100px;
+}
+.report_divsion{
+    width: 45%;
+    height: 78%;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content:flex-start ;
+    margin-right: 5rem;
+    
+   
+
+}
+.company_name{
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+}
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-row {
+    height: 26rem;
+    text-align: center;
+    /* vertical-align: top; */
+}
+.info-row-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.generated-by, .date {
+    color: #00000099;
+    font-size: 0.875rem;
+}
+.bold {
+    font-weight: 500;
+}
+.report_divsion h2{
+    color:#1a365d ;
+    text-align: center;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+/* .pdf_template{
+    width: 70%;
+    margin-top: 30px;
+    
+} */

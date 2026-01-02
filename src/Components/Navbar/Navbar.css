@@ -1,0 +1,10 @@
+nav{
+    position: sticky;
+    top: 0px;
+}
+.inner-nav{
+    width: 97%!important;
+}
+.profileicon{
+    font-weight: bold;
+}

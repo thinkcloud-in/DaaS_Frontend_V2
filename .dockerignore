@@ -1,0 +1,14 @@
+# Ignore dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Ignore build output
+build
+
+# Git files
+.git
+.gitignore
+
+# Environment files (optional)
+.env

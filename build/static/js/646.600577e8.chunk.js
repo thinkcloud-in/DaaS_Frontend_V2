@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkdass=self.webpackChunkdass||[]).push([[646],{9646:(s,e,a)=>{a.r(e),a.d(e,{default:()=>n});var d=a(6723);const n=()=>(0,d.jsx)("div",{children:"Coming soon"})}}]);
+//# sourceMappingURL=646.600577e8.chunk.js.map
