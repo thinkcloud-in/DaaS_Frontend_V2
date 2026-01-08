@@ -11,7 +11,10 @@ import {
   selectAllClusters,
   selectClustersLoading,
 } from "../../redux/features/Clusters/ClustersSelectors";
-import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -26,7 +29,7 @@ const columns = [
 
 const SkeletonLoaderRow = () => (
   <tr>
-    {[...Array(columns.length + 1)].map((_, i) => ( 
+    {[...Array(columns.length + 1)].map((_, i) => (
       <td key={i} className="py-3 px-3">
         <div className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
       </td>
@@ -53,33 +56,41 @@ const ShowClusters = () => {
   const [updating, setUpdating] = useState(false);
   const [deletingClusterId, setDeletingClusterId] = useState(null);
 
-  let handleClusterSelection = cluster => {
+  let handleClusterSelection = (cluster) => {
     navigate(`/cluster/edit-cluster/${cluster.id}`);
   };
 
+  let handleDeleteCluster = async (cluster_id) => {
+    if (!window.confirm("Are you sure you want to delete this cluster?"))
+      return;
+    setDeletingClusterId(cluster_id);
 
-let handleDeleteCluster = async (cluster_id) => {
-  if (!window.confirm("Are you sure you want to delete this cluster?")) return;
-  setDeletingClusterId(cluster_id);
-
-  try {
-    await dispatch(deleteClusterThunk({ token, cluster_id, email: userEmail })).unwrap();
-    dispatch(fetchClustersThunk(token)); 
-    toast.success("Cluster deleted", { transition: Slide });
-    await dispatch(fetchClustersThunk(token)).unwrap();
-  } catch (err) {
-    toast.error("Failed to delete cluster", { transition: Slide });
-  } finally {
-    setDeletingClusterId(null);
-  }
-};
-
+    try {
+      await dispatch(
+        deleteClusterThunk({ token, cluster_id, email: userEmail })
+      ).unwrap();
+      dispatch(fetchClustersThunk(token));
+      toast.success("Cluster deleted", { transition: Slide });
+      await dispatch(fetchClustersThunk(token)).unwrap();
+    } catch (err) {
+      toast.error("Failed to delete cluster", { transition: Slide });
+    } finally {
+      setDeletingClusterId(null);
+    }
+  };
 
   const handleUpdateProxmoxNodes = async () => {
     setUpdating(true);
     try {
-      await dispatch(updateProxmoxNodesThunk(token));
-      toast.success("Nodes updated successfully", { transition: Slide });
+      const res = await dispatch(updateProxmoxNodesThunk(token)).unwrap();
+      toast.success("Node Updated Successfully", { transition: Slide });
+      const warnings = res.update?.data;
+
+      if (warnings && typeof warnings === "object") {
+        Object.entries(warnings).forEach(([node, message]) => {
+          toast.warn(`${node}: ${message}`, { transition: Slide });
+        });
+      }
     } catch {
       toast.error("Failed to update nodes");
     } finally {
@@ -91,7 +102,9 @@ let handleDeleteCluster = async (cluster_id) => {
     <div className="w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden ">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Available Clusters</h2>
+        <h2 className="text-lg font-semibold text-gray-700">
+          Available Clusters
+        </h2>
         <div className="flex gap-2 items-center ">
           <button
             onClick={handleUpdateProxmoxNodes}
@@ -137,7 +150,7 @@ let handleDeleteCluster = async (cluster_id) => {
         </div>
       </div>
       {/* Table or Empty State */}
-     <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
+      <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
         <table className="min-w-full bg-white text-sm border-collapse">
           <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
             <tr>
@@ -149,10 +162,12 @@ let handleDeleteCluster = async (cluster_id) => {
                   {col.header}
                 </th>
               ))}
-              <th className="py-2 px-3 text-center whitespace-nowrap">Actions</th>
+              <th className="py-2 px-3 text-center whitespace-nowrap">
+                Actions
+              </th>
             </tr>
           </thead>
-            <tbody>
+          <tbody>
             {isLoading ? (
               [...Array(5)].map((_, index) => <SkeletonLoaderRow key={index} />)
             ) : clusters && clusters.length > 0 ? (
@@ -195,10 +210,14 @@ let handleDeleteCluster = async (cluster_id) => {
                       <i
                         className={classNames(
                           "fa-solid fa-trash cursor-pointer text-lg inline-block",
-                          deletingClusterId ? "opacity-60 cursor-not-allowed" : ""
+                          deletingClusterId
+                            ? "opacity-60 cursor-not-allowed"
+                            : ""
                         )}
                         style={{ color: "#f84545b9" }}
-                        onMouseOver={(e) => (e.currentTarget.style.color = "red")}
+                        onMouseOver={(e) =>
+                          (e.currentTarget.style.color = "red")
+                        }
                         onMouseOut={(e) =>
                           (e.currentTarget.style.color = "#f84545b9")
                         }

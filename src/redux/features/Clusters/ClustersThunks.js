@@ -144,9 +144,16 @@ export const updateProxmoxNodesThunk = createAsyncThunk(
   'clusters/updateProxmoxNodes',
   async (token, { rejectWithValue }) => {
     try {
-      await updateProxmoxNodes(token);
+      // return await updateProxmoxNodes(token);
       // Should probably refetch clusters after updating
-      return await fetchClusters(token);
+      // return await fetchClusters(token);
+      const updateRes = await updateProxmoxNodes(token);
+      const clustersRes = await fetchClusters(token);
+
+      return {
+        update: updateRes,
+        clusters: clustersRes
+      };  
     } catch (err) {
       return rejectWithValue(err.message);
     }

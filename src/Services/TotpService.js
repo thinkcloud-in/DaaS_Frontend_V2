@@ -45,8 +45,8 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
         headers: { Authorization: `Bearer ${token}` }
       }
     );
-    
-    if (response.statusText === "OK") {
+
+    if (response.status === 200) {
       toast.success("Success", {
         position: "top-right",
         autoClose: 3000,
