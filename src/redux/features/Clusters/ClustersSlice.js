@@ -187,7 +187,8 @@ const clustersSlice = createSlice({
       })
       .addCase(updateProxmoxNodesThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.clusters = action.payload;
+        state.clusters = action.payload.clusters;
+        state.lastUpdateResult = action.payload.update;
       })
       .addCase(updateProxmoxNodesThunk.rejected, (state, action) => {
         state.isLoading = false;
