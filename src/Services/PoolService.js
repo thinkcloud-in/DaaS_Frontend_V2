@@ -208,6 +208,7 @@ export const createPool = async (token, requestData) => {
 	const response = await axiosInstance.post(`${backendUrl}/v1/create_pool`, requestData, {
 		headers: { Authorization: `Bearer ${token}` },
 	});
+	console.log('create_pool---------------------------------------', requestData)
 	return response;
 };
 

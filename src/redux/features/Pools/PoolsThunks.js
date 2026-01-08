@@ -62,7 +62,6 @@ export const createPool = createAsyncThunk(
   async ({ token, requestData }, { rejectWithValue }) => {
     try {
       const res = await createPoolService(token, requestData);
-      // backend returns data with pool and pools
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
