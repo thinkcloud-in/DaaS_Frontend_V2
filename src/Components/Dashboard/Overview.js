@@ -30,7 +30,7 @@ const Overview = () => {
   useEffect(() => {
     axios
       // .get(`${GRAFANA_URL}/api/dashboards/uid/vsphereOverview`)
-      .get(`${backendUrl}/grafana/api/dashboards/uid/vsphereOverview`)
+      .get(`${backendUrl}/v1/grafana/api/dashboards/uid/vsphereOverview`)
       .then((res) => {
         const templatingList = res.data.dashboard.templating.list;
         if (templatingList.length > 0) {
@@ -62,15 +62,15 @@ const Overview = () => {
       let values = [];
       if (variable.name === "inter") {
         const response = await axios.post(
-          `${backendUrl}/grafana/v1/api/query`,
+          `${backendUrl}/v1/grafana/v1/api/query`,
           {
             body: {
               from: `${gc.timeStamp.startDate}`,
               to: `${gc.timeStamp.endDate}`,
               datasourceId: variable.datasourceId,
               query: variable.query,
-              vcenter: vcenterNames.join(','),  // Join multiple vcenters
-              clustername: clusterNames.join(','),  // Join multiple clusters
+              vcenter: vcenterNames.join(','),
+              clustername: clusterNames.join(','),
             },
           },
           {
@@ -88,7 +88,7 @@ const Overview = () => {
         }
       } else {
         const response = await axios.post(
-          `${backendUrl}/grafana/v1/api/query`,
+          `${backendUrl}/v1/grafana/v1/api/query`,
           {
             body: {
               from: `${gc.timeStamp.startDate}`,
