@@ -84,18 +84,18 @@ const ClusterCreationForm = () => {
       const res = await dispatch(
         createClusterThunk({ token, payload })
       ).unwrap();
-      if (res.data && res.data.error) {
-        toast.warn(`Cluster created, but: ${res.data.error}`, {
+      if (res.warning && res.message) {
+        toast.warn(res.message, {
           transition: Slide,
         });
-      } else {
+        setIsClusterCreated(false);
+      } else if (res.cluster) {
         toast.success("Cluster created!", { transition: Slide });
-      }
-
-      setCreatedClusterId(res.id);
-      setIsClusterCreated(true);
-      if (res.type === "VMware" || res.type === "Hyper-V") {
-        setTimeout(() => navigate("/clusters"), 1000);
+        setCreatedClusterId(res.cluster.id);
+        setIsClusterCreated(true);
+        if (res.cluster.type === "VMware" || res.cluster.type === "Hyper-V") {
+          setTimeout(() => navigate("/clusters"), 1000);
+        }
       }
     } catch (error) {
       toast.error(error, { transition: Slide });

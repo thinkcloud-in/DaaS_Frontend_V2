@@ -69,8 +69,8 @@ const Overview = () => {
               to: `${gc.timeStamp.endDate}`,
               datasourceId: variable.datasourceId,
               query: variable.query,
-              vcenter: vcenterNames.join(','),  // Join multiple vcenters
-              clustername: clusterNames.join(','),  // Join multiple clusters
+              vcenter: vcenterNames.join(','),
+              clustername: clusterNames.join(','),
             },
           },
           {

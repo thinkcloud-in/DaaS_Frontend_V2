@@ -1,4 +1,4 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   fetchClusters,
   createCluster,
@@ -11,11 +11,11 @@ import {
   migrateMonitoringData,
   updateProxmoxNodes,
   fetchEditInfluxdbDetails,
-} from 'Services/ClusterService';
+} from "Services/ClusterService";
 
 // Fetch all clusters
 export const fetchClustersThunk = createAsyncThunk(
-  'clusters/fetchAll',
+  "clusters/fetchAll",
   async (token, { rejectWithValue }) => {
     try {
       return await fetchClusters(token);
@@ -27,12 +27,19 @@ export const fetchClustersThunk = createAsyncThunk(
 
 // Create a new cluster
 export const createClusterThunk = createAsyncThunk(
-  'clusters/createCluster',
+  "clusters/createCluster",
   async ({ token, payload }, { rejectWithValue }) => {
     try {
       const res = await createCluster(token, payload);
       // Assuming res.data.cluster contains created cluster info
-      return res.data.cluster;
+      if (typeof res.data === "string") {
+        return { cluster: null, message: res.data, warning: true };
+      }
+
+      // Backend returned a cluster object
+      if (res.data?.cluster) {
+        return { cluster: res.data.cluster, message: res.msg || null, warning: false };
+      }
     } catch (err) {
       const message =
         err.response?.data?.data ||
@@ -47,7 +54,7 @@ export const createClusterThunk = createAsyncThunk(
 
 // Delete a cluster
 export const deleteClusterThunk = createAsyncThunk(
-  'clusters/deleteCluster',
+  "clusters/deleteCluster",
   async ({ token, cluster_id, email }, { rejectWithValue }) => {
     try {
       await deleteCluster(token, cluster_id, email);
@@ -60,7 +67,7 @@ export const deleteClusterThunk = createAsyncThunk(
 
 // Update a cluster
 export const updateClusterThunk = createAsyncThunk(
-  'clusters/updateCluster',
+  "clusters/updateCluster",
   async ({ token, clusterId, payload }, { rejectWithValue }) => {
     try {
       const res = await updateCluster(token, clusterId, payload);
@@ -73,7 +80,7 @@ export const updateClusterThunk = createAsyncThunk(
 
 // Get cluster by id
 export const fetchClusterByIdThunk = createAsyncThunk(
-  'clusters/fetchById',
+  "clusters/fetchById",
   async ({ token, clusterId }, { rejectWithValue }) => {
     try {
       return await fetchClusterById(token, clusterId);
@@ -85,7 +92,7 @@ export const fetchClusterByIdThunk = createAsyncThunk(
 
 // Monitorings related
 export const fetchInfluxdbDetailsThunk = createAsyncThunk(
-  'clusters/fetchInfluxdbDetails',
+  "clusters/fetchInfluxdbDetails",
   async ({ token, clusterId }, { rejectWithValue }) => {
     try {
       return await fetchInfluxdbDetails(token, clusterId);
@@ -96,7 +103,7 @@ export const fetchInfluxdbDetailsThunk = createAsyncThunk(
 );
 
 export const fetchEditInfluxdbDetailsThunk = createAsyncThunk(
-  'clusters/fetchEditInfluxdbDetails',
+  "clusters/fetchEditInfluxdbDetails",
   async ({ token, clusterId }, { rejectWithValue }) => {
     try {
       return await fetchEditInfluxdbDetails(token, clusterId);
@@ -107,7 +114,7 @@ export const fetchEditInfluxdbDetailsThunk = createAsyncThunk(
 );
 
 export const addInfluxdbThunk = createAsyncThunk(
-  'clusters/addInfluxdb',
+  "clusters/addInfluxdb",
   async ({ token, clusterId, isCustomIntegration }, { rejectWithValue }) => {
     try {
       return await addInfluxdb(token, clusterId, isCustomIntegration);
@@ -118,7 +125,7 @@ export const addInfluxdbThunk = createAsyncThunk(
 );
 
 export const deleteInfluxdbThunk = createAsyncThunk(
-  'clusters/deleteInfluxdb',
+  "clusters/deleteInfluxdb",
   async ({ token, clusterId }, { rejectWithValue }) => {
     try {
       return await deleteInfluxdb(token, clusterId);
@@ -129,7 +136,7 @@ export const deleteInfluxdbThunk = createAsyncThunk(
 );
 
 export const migrateMonitoringDataThunk = createAsyncThunk(
-  'clusters/migrateMonitoringData',
+  "clusters/migrateMonitoringData",
   async ({ token, payload }, { rejectWithValue }) => {
     try {
       return await migrateMonitoringData(token, payload);
@@ -141,7 +148,7 @@ export const migrateMonitoringDataThunk = createAsyncThunk(
 
 // Update Proxmox nodes action (refresh)
 export const updateProxmoxNodesThunk = createAsyncThunk(
-  'clusters/updateProxmoxNodes',
+  "clusters/updateProxmoxNodes",
   async (token, { rejectWithValue }) => {
     try {
       // return await updateProxmoxNodes(token);
@@ -152,8 +159,8 @@ export const updateProxmoxNodesThunk = createAsyncThunk(
 
       return {
         update: updateRes,
-        clusters: clustersRes
-      };  
+        clusters: clustersRes,
+      };
     } catch (err) {
       return rejectWithValue(err.message);
     }
