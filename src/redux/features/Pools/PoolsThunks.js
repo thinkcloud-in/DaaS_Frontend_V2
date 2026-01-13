@@ -16,6 +16,7 @@ import {
   getIpPoolNames, getClusterNodes, getTemplates, getVmwareDCs, getVmwareFolders,
   getPoolByIdService, updateMachineService,
   getSwitches,
+  getProxmoxStorages,
 } from "Services/PoolService";
 
 export const fetchPoolById = createAsyncThunk(
@@ -277,6 +278,18 @@ export const fetchClusterNodes = createAsyncThunk(
   async ({ token, clusterId }, { rejectWithValue }) => {
     try {
       const data = await getClusterNodes(token, clusterId);
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch cluster nodes");
+    }
+  }
+);
+
+export const fetchProxmoxStorages  = createAsyncThunk(
+  "proxmox/fetchStorages",
+  async ({ token, clusterId, nodes  }, { rejectWithValue }) => {
+    try {
+      const data = await getProxmoxStorages(token, clusterId, nodes);
       return Array.isArray(data) ? data : [];
     } catch (err) {
       return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch cluster nodes");

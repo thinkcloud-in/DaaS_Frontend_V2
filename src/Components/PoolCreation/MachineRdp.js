@@ -887,7 +887,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_private_key"
               onChange={onChange}
               value={poolDetails.sftp_private_key}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="textarea block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
               rows="4"
             />
           </div>

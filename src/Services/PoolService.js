@@ -180,6 +180,19 @@ export const getClusterNodes = async (token, cluster_id) => {
 	return response.data?.data;
 };
 
+export const getProxmoxStorages = async (token, cluster_id, nodes) => {
+	const response = await axiosInstance.post(`${backendUrl}/v1/get_proxmox_storages`, 
+		{
+          cluster_id: cluster_id,
+          nodes: nodes,
+        },
+		{
+			headers: { Authorization: `Bearer ${token}` }
+		}
+	);
+	return response?.data?.data;
+};
+
 export const getTemplates = async (token, cluster_id) => {
 	const response = await axiosInstance.get(`${backendUrl}/v1/proxmox/get_templates`, {
 		params: { cluster_id },

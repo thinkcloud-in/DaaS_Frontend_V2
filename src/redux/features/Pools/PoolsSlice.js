@@ -25,6 +25,7 @@ import {
   fetchPoolById,
   updateMachine,
   fetchSwitches,
+  fetchProxmoxStorages,
 } from "./PoolsThunks";
 import { initialPoolDetails } from "./poolDefaults";
 
@@ -58,6 +59,9 @@ const initialState = {
   poolCreationError: null,
   currentPoolDetails: {},
   creationSwitches: [],
+  proxmoxStorages: [],
+  proxmoxStoragesLoading: false,
+  proxmoxStoragesError: null,
 };
 
 const poolsSlice = createSlice({
@@ -116,6 +120,11 @@ const poolsSlice = createSlice({
     setPowerActionLoading(state, action) {
       state.powerActionLoading = action.payload || null;
     },
+    clearProxmoxStorages(state) {
+      state.proxmoxStorages = [];
+      state.proxmoxStoragesLoading = false;
+      state.proxmoxStoragesError = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -143,6 +152,18 @@ const poolsSlice = createSlice({
       })
       .addCase(fetchPoolById.rejected, (state) => {
         state.currentPoolDetails = {};
+      })
+      .addCase(fetchProxmoxStorages.pending, (state) => {
+        state.proxmoxStoragesLoading = true;
+        state.proxmoxStoragesError = null;
+      })
+      .addCase(fetchProxmoxStorages.fulfilled, (state, action) => {
+        state.proxmoxStoragesLoading = false;
+        state.proxmoxStorages = action.payload || [];
+      })
+      .addCase(fetchProxmoxStorages.rejected, (state, action) => {
+        state.proxmoxStoragesLoading = false;
+        state.proxmoxStoragesError = action.payload || "Failed to fetch Proxmox storages";
       })
       .addCase(updateMachine.pending, (state) => {
         state.poolSaveLoading = true;
@@ -503,6 +524,7 @@ export const {
   setDeletingMachine,
   setDeletingUser,
   setPowerActionLoading,
+  clearProxmoxStorages
 } = poolsSlice.actions;
 export default poolsSlice.reducer;
 

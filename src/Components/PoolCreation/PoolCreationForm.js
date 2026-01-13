@@ -14,6 +14,7 @@ import {
   fetchVmwareDCs,
   fetchVmwareFolders,
   fetchSwitches,
+  fetchProxmoxStorages,
 } from "../../redux/features/Pools/PoolsThunks";
 import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
 import {
@@ -63,6 +64,7 @@ const PoolCreationForm = () => {
   const ispoolloading = useSelector(selectPoolsLoading);
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
+  const storages = useSelector((state) => state.pools.proxmoxStorages);
   const userEmail = tokenParsed?.preferred_username;
 
   // Selected cluster object, derived from poolDetails.cluster_id
@@ -142,8 +144,7 @@ const PoolCreationForm = () => {
           dispatch(fetchVmwareFolders({ token, clusterId })).unwrap(),
         ]);
       }
-    } catch (err) {
-    }
+    } catch (err) {}
   };
 
   const handleOnChange = (e) => {
@@ -265,12 +266,43 @@ const PoolCreationForm = () => {
   };
 
   const handleNodesChange = (selectedOptions) => {
+    const selectedNodes = (selectedOptions || [])?.map((opt) => opt?.value);
     dispatch(
       setPoolCreationDetails({
-        pool_selected_nodes: (selectedOptions || []).map((opt) => opt.value),
+        pool_selected_nodes: selectedNodes,
       })
     );
   };
+
+  const handleStorageChange = (selectedOption) => {
+    dispatch(
+      setPoolCreationDetails({
+        pool_storage: selectedOption?.value || null,
+      })
+    );
+  };
+
+  useEffect(() => {
+    if (
+      isProxmoxCluster &&
+      poolDetails.cluster_id &&
+      poolDetails.pool_selected_nodes?.length > 0
+    ) {
+      dispatch(
+        fetchProxmoxStorages({
+          token,
+          clusterId: poolDetails.cluster_id,
+          nodes: poolDetails.pool_selected_nodes,
+        })
+      );
+    }
+  }, [
+    isProxmoxCluster,
+    poolDetails.cluster_id,
+    poolDetails.pool_selected_nodes,
+    token,
+    dispatch,
+  ]);
 
   const handleTemplateChange = (e) => {
     // Always set as array for backend JSON compatibility
@@ -353,6 +385,12 @@ const PoolCreationForm = () => {
     label: node.name,
     value: node.name,
   }));
+
+  const selectedStorageOption =
+    storages
+      ?.map((s) => ({ label: s.storage, value: s.storage }))
+      ?.find((opt) => opt.value === poolDetails?.pool_storage) ||
+    null;
 
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
@@ -707,6 +745,32 @@ const PoolCreationForm = () => {
                               classNamePrefix="select"
                               placeholder="Select Nodes"
                               noOptionsMessage={() => "No nodes available"}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900">
+                            Storage
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0">
+                            <Select
+                              name="pool_storage"
+                              value={selectedStorageOption}
+                              onChange={handleStorageChange}
+                              options={storages.map((s) => ({
+                                label: s.storage,
+                                value: s.storage,
+                              }))}
+                              className="basic-single text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select Storage"
+                              isClearable={true}
+                              noOptionsMessage={() => "No storages available"}
                             />
                           </div>
                         </div>

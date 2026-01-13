@@ -163,13 +163,13 @@ const ShowPools = () => {
                       >
                         {item.pool_type}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
                         {item.cluster ? item.cluster : "NA"}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
                         {item.entitled ? item.entitled : 0}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
                         {Array.isArray(item.pool_machines) &&
                         item.pool_machines.length > 0
                           ? `${item.pool_machines.length} machine${

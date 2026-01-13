@@ -1418,7 +1418,7 @@ const RDPsettings = ({ onChange, poolDetails }) => {
                     name="pool_sftp_private_key"
                     onChange={onChange}
                     value={poolDetails.pool_sftp_private_key}
-                    className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                    className="textarea block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
                     rows="4"
                   />
                 </div>

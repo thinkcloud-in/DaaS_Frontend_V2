@@ -19,7 +19,11 @@ import {
   AiOutlineCloseCircle,
 } from "react-icons/ai";
 import AddMachinePopover from "./AddMachinePopover";
-import { PlusIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/solid";
+import {
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import { Box, Skeleton } from "@mui/material";
@@ -28,7 +32,16 @@ import CircularProgress from "@mui/material/CircularProgress";
 import "../Reports/ReportList.css";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAvailablePools } from "../../redux/features/Pools/PoolsSelectors";
-import { setAvailablePools, setVmAvailable, setAssignedUsers, setSelectedVm, setSelectedVmDetails, setDeletingMachine, setDeletingUser, setPowerActionLoading } from "../../redux/features/Pools/PoolsSlice";
+import {
+  setAvailablePools,
+  setVmAvailable,
+  setAssignedUsers,
+  setSelectedVm,
+  setSelectedVmDetails,
+  setDeletingMachine,
+  setDeletingUser,
+  setPowerActionLoading,
+} from "../../redux/features/Pools/PoolsSlice";
 import {
   selectVmAvailable,
   selectMachinesLoading,
@@ -59,12 +72,16 @@ import {
   fetchPoolById,
   deletePool,
 } from "../../redux/features/Pools/PoolsThunks";
-import { selectAuthToken,selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
 const ManagePool = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   // deletingMachine/deletingUser moved to redux
   const token = useSelector(selectAuthToken);
-  let userEmail = useSelector(selectAuthTokenParsed)?.preferred_username || "Unknown User";
+  let userEmail =
+    useSelector(selectAuthTokenParsed)?.preferred_username || "Unknown User";
   const dispatch = useDispatch();
   const pools = useSelector(selectAvailablePools) || [];
   const vmAvailable = useSelector(selectVmAvailable) || [];
@@ -97,6 +114,7 @@ const ManagePool = (props) => {
     loadPoolById();
   }, [poolId, pools, dispatch, token]);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
   let [selectedVmIdentifier, setSelectedVmIdentifier] = useState();
   const [showEntitlePopup, setShowEntitlePopup] = useState(false);
   const [open, setOpen] = useState(false);
@@ -107,7 +125,7 @@ const ManagePool = (props) => {
   const powerActionLoading = useSelector(selectPowerActionLoading);
   const [selectedTab, setSelectedTab] = useState("users");
   const [selectedRows, setSelectedRows] = useState([]);
-  const [actionDropdown, setActionDropdown] = useState(null); 
+  const [actionDropdown, setActionDropdown] = useState(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const ellipsisRefs = useRef({});
   const entitlePopup = () => {
@@ -129,6 +147,22 @@ const ManagePool = (props) => {
     }
   };
 
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setActionDropdown(null);
+      }
+    };
+
+    if (actionDropdown) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [actionDropdown]);
+
   const editPool = () => {
     navigate(`/pools/edit-pool/${selectedPoolDetails.id}`);
   };
@@ -138,8 +172,7 @@ const ManagePool = (props) => {
     dispatch(setSelectedVm(machineId));
     try {
       await dispatch(fetchAssignedUsers({ token, machineId })).unwrap();
-    } catch (err) {
-    }
+    } catch (err) {}
   };
   useEffect(() => {
     if (!Array.isArray(vmAvailable) || vmAvailable.length === 0) return;
@@ -152,12 +185,15 @@ const ManagePool = (props) => {
   let loadMachineDetails = async (vm_id) => {
     try {
       await dispatch(fetchMachineDetails({ token, vm_id })).unwrap();
-    } catch (err) {
-
-    }
+    } catch (err) {}
   };
 
-  let handleMachineRowClick = (machineIdentifier, machineId, vm_id, pool_type) => {
+  let handleMachineRowClick = (
+    machineIdentifier,
+    machineId,
+    vm_id,
+    pool_type
+  ) => {
     if (selectedVm === machineId) {
       dispatch(setSelectedVm(null));
       setSelectedVmIdentifier(null);
@@ -167,18 +203,25 @@ const ManagePool = (props) => {
     }
     dispatch(setSelectedVm(machineId));
     setSelectedVmIdentifier(machineIdentifier);
-  loadAssignedUsers(machineIdentifier, machineId);
+    loadAssignedUsers(machineIdentifier, machineId);
     if (pool_type === "Automated") {
-  loadMachineDetails(vm_id);
+      loadMachineDetails(vm_id);
     }
   };
 
   let handleDeleteAssignedUser = async (user) => {
     dispatch(setDeletingUser(user));
     try {
-      const res = await dispatch(deleteAssignedUser({ token, machineIdentifier: selectedVmIdentifier, user })).unwrap();
+      const res = await dispatch(
+        deleteAssignedUser({
+          token,
+          machineIdentifier: selectedVmIdentifier,
+          user,
+        })
+      ).unwrap();
       const payload = res || {};
-      if (payload.users_assigned) dispatch(setAssignedUsers(payload.users_assigned));
+      if (payload.users_assigned)
+        dispatch(setAssignedUsers(payload.users_assigned));
       if (payload.pools) dispatch(setAvailablePools(payload.pools));
       toast.success(payload.msg || "User removed", {
         position: "top-right",
@@ -212,9 +255,10 @@ const ManagePool = (props) => {
     const fetchVMs = async () => {
       if (!selectedPoolDetails.id) return;
       try {
-        await dispatch(fetchPoolMachines({ token, poolId: selectedPoolDetails.id })).unwrap();
-      } catch (err) {
-      }
+        await dispatch(
+          fetchPoolMachines({ token, poolId: selectedPoolDetails.id })
+        ).unwrap();
+      } catch (err) {}
     };
     fetchVMs();
   }, [selectedPoolDetails.id, token, dispatch]);
@@ -234,9 +278,16 @@ const ManagePool = (props) => {
 
   let entitleUser = async (usr) => {
     try {
-      const res = await dispatch(addUserToMachine({ token, machineIdentifier: selectedVmIdentifier, user: usr })).unwrap();
+      const res = await dispatch(
+        addUserToMachine({
+          token,
+          machineIdentifier: selectedVmIdentifier,
+          user: usr,
+        })
+      ).unwrap();
       const payload = res || {};
-      if (payload.users_assigned) dispatch(setAssignedUsers(payload.users_assigned));
+      if (payload.users_assigned)
+        dispatch(setAssignedUsers(payload.users_assigned));
       if (payload.pools) dispatch(setAvailablePools(payload.pools));
       toast.success(payload.msg || "User entitled", {
         position: "top-right",
@@ -268,11 +319,13 @@ const ManagePool = (props) => {
     if (!window.confirm("Are you sure you want to delete this pool?")) {
       return;
     }
-  setIsLoading(true);
-  // use the top-level selector-derived userEmail
+    setIsLoading(true);
+    // use the top-level selector-derived userEmail
     try {
       // dispatch the imported thunk named `deletePool`
-      const res = await dispatch(deletePool({ token, poolId: selectedPoolDetails.id, userEmail })).unwrap();
+      const res = await dispatch(
+        deletePool({ token, poolId: selectedPoolDetails.id, userEmail })
+      ).unwrap();
       const payload = res || {};
       if (payload.pools) {
         dispatch(setAvailablePools(payload.pools));
@@ -307,10 +360,12 @@ const ManagePool = (props) => {
       "Are you sure you want to delete this machine?"
     );
     if (!confirmed) return;
-  dispatch(setDeletingMachine(mach));
-  // reuse outer scope userEmail (derived from selector at component top)
+    dispatch(setDeletingMachine(mach));
+    // reuse outer scope userEmail (derived from selector at component top)
     try {
-      const res = await dispatch(deleteVM({ token, machineIdentifier: mach, userEmail })).unwrap();
+      const res = await dispatch(
+        deleteVM({ token, machineIdentifier: mach, userEmail })
+      ).unwrap();
       const payload = res || {};
       if (payload.machines) dispatch(setVmAvailable(payload.machines));
       if (payload.pools) dispatch(setAvailablePools(payload.pools));
@@ -359,7 +414,9 @@ const ManagePool = (props) => {
   const refreshMachines = async () => {
     if (!selectedPoolDetails.id) return;
     try {
-      const res = await dispatch(fetchPoolMachines({ token, poolId: selectedPoolDetails.id })).unwrap();
+      const res = await dispatch(
+        fetchPoolMachines({ token, poolId: selectedPoolDetails.id })
+      ).unwrap();
       if (res?.machines) dispatch(setVmAvailable(res.machines));
     } catch (err) {
       dispatch(setVmAvailable([]));
@@ -381,13 +438,16 @@ const ManagePool = (props) => {
   const isLoadingMachine =
     selectedPoolDetails?.pool_type === "Automated" &&
     selectedVmObj &&
-    (vmDetailsMap[selectedVmObj.vm_id] === undefined || vmDetailsMap[selectedVmObj.vm_id] === null);
+    (vmDetailsMap[selectedVmObj.vm_id] === undefined ||
+      vmDetailsMap[selectedVmObj.vm_id] === null);
 
   const handleReboot = async () => {
     if (!selectedVm) return;
     dispatch(setPowerActionLoading("reboot"));
     try {
-      await dispatch(rebootVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })).unwrap();
+      await dispatch(
+        rebootVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+      ).unwrap();
       toast.success("VM reboot triggered");
       refreshMachines();
     } catch (err) {
@@ -401,7 +461,9 @@ const ManagePool = (props) => {
     if (!selectedVm) return;
     dispatch(setPowerActionLoading("shutdown"));
     try {
-      await dispatch(shutdownVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })).unwrap();
+      await dispatch(
+        shutdownVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+      ).unwrap();
       toast.success("VM shutdown triggered");
       refreshMachines();
     } catch (err) {
@@ -415,7 +477,9 @@ const ManagePool = (props) => {
     if (!selectedVm) return;
     dispatch(setPowerActionLoading("start"));
     try {
-      await dispatch(startVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })).unwrap();
+      await dispatch(
+        startVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+      ).unwrap();
       toast.success("VM started successfully");
       refreshMachines();
     } catch (err) {
@@ -429,7 +493,9 @@ const ManagePool = (props) => {
     if (!selectedVm) return;
     dispatch(setPowerActionLoading("stop"));
     try {
-      await dispatch(stopVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })).unwrap();
+      await dispatch(
+        stopVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+      ).unwrap();
       toast.success("VM stopped successfully");
       refreshMachines();
     } catch (err) {
@@ -449,7 +515,9 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("rebuild-" + item.identifier));
 
     try {
-      const res = await dispatch(rebuildVM({ token, userEmail, vm_id: item.vm_id, poolId })).unwrap();
+      const res = await dispatch(
+        rebuildVM({ token, userEmail, vm_id: item.vm_id, poolId })
+      ).unwrap();
       const data = res || {};
       if (data.error || (data.status && data.status === "error")) {
         toast.error(data.msg || "Failed to rebuild VM");
@@ -463,7 +531,6 @@ const ManagePool = (props) => {
       dispatch(setPowerActionLoading(null));
     }
   };
-
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -967,6 +1034,8 @@ const ManagePool = (props) => {
                             {actionDropdown === item.identifier &&
                               createPortal(
                                 <div
+                                  ref={dropdownRef}
+                                  onClick={(e) => e.stopPropagation()}
                                   style={{
                                     position: "absolute",
                                     top: dropdownPos.top,
@@ -1044,8 +1113,8 @@ const ManagePool = (props) => {
                                           `/pools/${poolId}/vm/${item.vm_id}/task-manager`,
                                           {
                                             state: {
-                                              os_type: item.os_type, 
-                                              vm_name: item.name, 
+                                              os_type: item.os_type,
+                                              vm_name: item.name,
                                             },
                                           }
                                         );
