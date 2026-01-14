@@ -7,7 +7,7 @@ const KeycloakConfig=new Keycloak({
     url: `${KEYCLOAK_URL}`,
     realm: 'guacamole',
     clientId: "react-client"
-    // clientId: "lucky-client"
+    // clientId: "lucky"
 })
 
 export default KeycloakConfig
