@@ -65,19 +65,17 @@ let ProxmoxNodes = () => {
   let gc = useContext(GrafanaToolbarContext);
  
   // These values are from your URL and can be made dynamic if required
-  const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
-  const bucket = "proxmox-metrics";
+  // const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
+  // const bucket = "proxmox-metrics";
   const server = "All";
  
   const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
-  const dashboardUid = "sys-ops-id"; // Proxmox SysOps dashboard UID
-  const dashboardName = "proxmox-ve-dashboard"; // Proxmox SysOps dashboard name
+  const dashboardUid = "proxmox-overview"; // Proxmox SysOps dashboard UID
+  const dashboardName = "Proxmox Overview"; // Proxmox SysOps dashboard name
  
   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +
     `&refresh=10s` +
-    `&var-dsProxmox=${dsProxmox}` +
-    `&var-Bucket=${bucket}` +
     `&var-server=${server}` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
