@@ -253,7 +253,6 @@ function App() {
                           <ProtectedRoute component={VMs} componentKey="VMS" />
                         }
                       />
-
                       <Route
                         path="/proxmox/px-overview"
                         element={

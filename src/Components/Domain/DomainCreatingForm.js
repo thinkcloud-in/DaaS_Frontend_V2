@@ -79,7 +79,7 @@ export default function DomainCreationForm() {
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
       const payload = await dispatch(createDomainThunk({ token, ad })).unwrap();
-      if (payload?.code == 200) {
+      if ([200, 201, 204].includes(payload?.code)) {
         toast.success(payload.msg, {
           position: "top-right",
           autoClose: 3000,
@@ -245,7 +245,7 @@ export default function DomainCreationForm() {
     dispatch(testLdapConnectionThunk({ backendUrl, token, ad }))
       .unwrap()
       .then((payload) => {
-        if (payload?.code === 200) {
+        if ([200, 201, 204].includes(payload?.code)){
           toast.success(payload.msg, {
             position: 'top-right',
             autoClose: 5000,
@@ -291,7 +291,7 @@ export default function DomainCreationForm() {
     dispatch(testLdapAuthenticationThunk({ backendUrl, token, ad }))
       .unwrap()
       .then((payload) => {
-        if (payload?.code === 200) {
+        if ([200, 201, 204].includes(payload?.code)){
           toast.success(payload.msg, {
             position: 'top-right',
             autoClose: 5000,

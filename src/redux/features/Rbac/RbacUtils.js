@@ -2,12 +2,12 @@
 export const baseNavigation = [
   {
     name: "Dashboard",
-    href: "/dashboard", // <-- should match your route
+    href: "/dashboard",
     componentKey: "Dashboard",
     submenus: [
       {
         name: "VCenter",
-        href: "/vcenter", // <-- should match your route
+        href: "/vcenter",
         componentKey: "vCenter",
         submenus: [
           { name: "Overview", href: "/vcenter/overview", componentKey: "Overview" },
@@ -21,6 +21,7 @@ export const baseNavigation = [
         href: "/proxmox",
         componentKey: "Proxmox",
         submenus: [
+          { name: "PX-Hosts", href: "/proxmox/px-hosts", componentKey: "PX-Hosts" },
           { name: "PX-Overview", href: "/proxmox/px-overview", componentKey: "PX-Overview" },
           { name: "PX-Nodes", href: "/proxmox/px-nodes", componentKey: "PX-Nodes" },
           { name: "PX-Storage", href: "/proxmox/px-storage", componentKey: "PX-Storage" },
@@ -69,7 +70,8 @@ export const baseNavigation = [
       { name: "SSL", href: "/ssl", componentKey: "SSL" },
       { name: "SMTP", href: "/SmtpConfig", componentKey: "SMTP" },
       { name: "RBAC", href: "/user_management", componentKey: "RBAC" },
-      // { name: "Retention Period", href: "/retention-period", componentKey: "Retention Period" },
+      { name: "Retention Period", href: "/retention-period", componentKey: "Retention Period" },
+    
     ],
   },
 ];

@@ -1,3 +1,59 @@
+// import '../css/Dashboard.css'
+// import { useContext } from "react";
+// import TimeRangeSelector from "../TimeRangeSelector";
+// import AutoRefresh from "../AutoRefresh";
+// import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+
+ 
+// let ProxmoxOverview = () => {
+//   let gc = useContext(GrafanaToolbarContext);
+ 
+//   // Values from your URL, can be made dynamic if required
+//   const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
+//   const bucket = "proxmox-metrics";
+//   const server = "All";
+ 
+//   const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
+//   // const dashboardUid = "IfgdXjtnk"; // Dashboard UID
+//   const dashboardUid = "IfgdXjtns";
+//   // const dashboardName = "proxmox-ve-cluster-flux"; // Dashboard slug/name
+//   const dashboardName = "proxmox-host";
+ 
+//   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
+//     `?orgId=1` +
+//     `&refresh=30s` +
+//     `&var-dsProxmox=${dsProxmox}` +
+//     `&var-Bucket=${bucket}` +
+//     `&var-server=${server}` +
+//     `&from=${gc.timeStamp.startDate}` +
+//     `&to=${gc.timeStamp.endDate}` +
+//     `&theme=light` +
+//     `&disableLazyLoad=true` +
+//     `&kiosk`;
+
+//   return (
+//     <div className='w-full'>
+//       <div className="nav-toolbar h-auto flex flex-wrap">
+//         <TimeRangeSelector />
+//         <AutoRefresh />
+//       </div>
+//       <iframe
+//         title='proxmox-cluster-flux-overview'
+//         src={iframeSrc}
+//         width="100%"
+//         height="900"
+//         style={{ border: "1px solid #ccc", borderRadius: "8px" }}
+//       ></iframe>
+//     </div>
+//   );
+// };
+ 
+// export default ProxmoxOverview;
+ 
+
+ 
+
+import React from "react";
 import '../css/Dashboard.css'
 import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
@@ -5,21 +61,21 @@ import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
 
  
-let ProxmoxOverview = () => {
+let ProxmoxNodes = () => {
   let gc = useContext(GrafanaToolbarContext);
  
-  // Values from your URL, can be made dynamic if required
+  // These values are from your URL and can be made dynamic if required
   const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
   const bucket = "proxmox-metrics";
   const server = "All";
  
   const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
-  const dashboardUid = "IfgdXjtnk"; // Dashboard UID
-  const dashboardName = "proxmox-ve-cluster-flux"; // Dashboard slug/name
+  const dashboardUid = "sys-ops-id"; // Proxmox SysOps dashboard UID
+  const dashboardName = "proxmox-ve-dashboard"; // Proxmox SysOps dashboard name
  
   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +
-    `&refresh=30s` +
+    `&refresh=10s` +
     `&var-dsProxmox=${dsProxmox}` +
     `&var-Bucket=${bucket}` +
     `&var-server=${server}` +
@@ -28,7 +84,7 @@ let ProxmoxOverview = () => {
     `&theme=light` +
     `&disableLazyLoad=true` +
     `&kiosk`;
- const iframeurl="http://172.16.0.103:3001/d/IfgdXjtnk/proxmox-ve-cluster-flux?orgId=1&refresh=10s&var-dsProxmox=c802160b-16ac-4d18-a08e-5440de62cc88&var-Bucket=proxmox-metrics&var-server=All&from=1758606543765&to=1758606843765"
+ 
   return (
     <div className='w-full'>
       <div className="nav-toolbar h-auto flex flex-wrap">
@@ -36,7 +92,7 @@ let ProxmoxOverview = () => {
         <AutoRefresh />
       </div>
       <iframe
-        title='proxmox-cluster-flux-overview'
+        title='proxmox-sysops-overview'
         src={iframeSrc}
         width="100%"
         height="900"
@@ -46,5 +102,5 @@ let ProxmoxOverview = () => {
   );
 };
  
-export default ProxmoxOverview;
+export default ProxmoxNodes;
  
