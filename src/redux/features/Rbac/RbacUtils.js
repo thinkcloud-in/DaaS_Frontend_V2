@@ -70,6 +70,7 @@ export const baseNavigation = [
       { name: "SSL", href: "/ssl", componentKey: "SSL" },
       { name: "SMTP", href: "/SmtpConfig", componentKey: "SMTP" },
       { name: "RBAC", href: "/user_management", componentKey: "RBAC" },
+      { name: "Retention Period", href: "/retention-period", componentKey: "Retention Period" },
     
     ],
   },
