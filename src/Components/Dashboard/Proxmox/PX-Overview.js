@@ -53,12 +53,14 @@
 
  
 
-import React from "react";
+import React,{useEffect} from "react";
 import '../css/Dashboard.css'
 import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
  
 let ProxmoxNodes = () => {
@@ -72,6 +74,13 @@ let ProxmoxNodes = () => {
   const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
   const dashboardUid = "proxmox-overview"; // Proxmox SysOps dashboard UID
   const dashboardName = "Proxmox Overview"; // Proxmox SysOps dashboard name
+   useEffect(() => {
+    if (!grafanaUrl) {
+      toast.error("Grafana URL is undefined ");
+    } else {
+      toast.success(`Grafana URL: ${grafanaUrl}`);
+    }
+  }, [grafanaUrl]);
  
   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +
@@ -85,17 +94,24 @@ let ProxmoxNodes = () => {
  
   return (
     <div className='w-full'>
+        <ToastContainer
+        position="top-right"
+        autoClose={6000}
+        // hideProgressBar
+      />
       <div className="nav-toolbar h-auto flex flex-wrap">
         <TimeRangeSelector />
         <AutoRefresh />
       </div>
-      <iframe
-        title='proxmox-sysops-overview'
-        src={iframeSrc}
-        width="100%"
-        height="900"
-        style={{ border: "1px solid #ccc", borderRadius: "8px" }}
-      ></iframe>
+      {grafanaUrl && (
+        <iframe
+          title='proxmox-sysops-overview'
+          src={iframeSrc}
+          width="100%"
+          height="900"
+          style={{ border: "1px solid #ccc", borderRadius: "8px" }}
+        />
+      )}
     </div>
   );
 };
