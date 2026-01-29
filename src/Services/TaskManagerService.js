@@ -10,7 +10,7 @@ export const fetchVmDetails = async (vmId) => {
 };
 
 export const fetchBackgroundProcesses = async (config, hostForApi, osType) => {
-  const res = await axiosInstance.get(`${agentBackendUrl}/api/influxdb/fetch-background-processes`, {
+  const res = await axiosInstance.get(`${agentBackendUrl}/agent/influxdb/fetch-background-processes`, {
     params: {
       bucket: config.bucket,
       range_start: "-1m",
@@ -22,7 +22,7 @@ export const fetchBackgroundProcesses = async (config, hostForApi, osType) => {
 };
 
 export const fetchHostStats = async (config, hostForApi, osType) => {
-  const res = await axiosInstance.get(`${agentBackendUrl}/api/influxdb/fetch-host-stats`, {
+  const res = await axiosInstance.get(`${agentBackendUrl}/agent/influxdb/fetch-host-stats`, {
     params: {
       bucket: config.bucket,
       host: hostForApi,
