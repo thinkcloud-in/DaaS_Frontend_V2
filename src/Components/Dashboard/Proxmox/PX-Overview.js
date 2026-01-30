@@ -72,11 +72,14 @@ let ProxmoxNodes = () => {
   const server = "All";
  
   const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
+  const grafanaURL2 = process.env.REACT_APP_GRAFANA_URL_2;
+  console.log('----------------grafanaURL2:', grafanaURL2);
+  console.log('----------------grafanaUrl:', grafanaUrl);
   const dashboardUid = "proxmox-overview"; // Proxmox SysOps dashboard UID
   const dashboardName = "Proxmox Overview"; // Proxmox SysOps dashboard name
    useEffect(() => {
     if (!grafanaUrl) {
-      toast.error("Grafana URL is undefined ");
+      toast.error(`Grafana URL is undefined: ${grafanaUrl}`);
     } else {
       toast.success(`Grafana URL: ${grafanaUrl}`);
     }
