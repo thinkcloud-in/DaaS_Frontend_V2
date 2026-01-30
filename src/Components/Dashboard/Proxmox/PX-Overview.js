@@ -72,7 +72,6 @@ let ProxmoxNodes = () => {
   const server = "All";
 
   const grafanaUrl = getEnv('GRAFANA_URL');
-  console.log('----------------grafanaURL2:', grafanaURL2);
   console.log('----------------grafanaUrl:', grafanaUrl);
   const dashboardUid = "proxmox-overview"; // Proxmox SysOps dashboard UID
   const dashboardName = "Proxmox Overview"; // Proxmox SysOps dashboard name
