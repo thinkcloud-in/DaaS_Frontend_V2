@@ -61,7 +61,7 @@ import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getEnv } from './utils/getEnv';
+import { getEnv } from 'utils/getEnv';
  
 let ProxmoxNodes = () => {
   let gc = useContext(GrafanaToolbarContext);
