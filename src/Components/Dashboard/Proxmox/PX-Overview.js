@@ -61,7 +61,7 @@ import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { getEnv } from './utils/getEnv';
  
 let ProxmoxNodes = () => {
   let gc = useContext(GrafanaToolbarContext);
@@ -70,16 +70,15 @@ let ProxmoxNodes = () => {
   // const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
   // const bucket = "proxmox-metrics";
   const server = "All";
- 
-  const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
-  const grafanaURL2 = process.env.REACT_APP_GRAFANA_URL_2;
+
+  const grafanaUrl = getEnv('GRAFANA_URL');
   console.log('----------------grafanaURL2:', grafanaURL2);
   console.log('----------------grafanaUrl:', grafanaUrl);
   const dashboardUid = "proxmox-overview"; // Proxmox SysOps dashboard UID
   const dashboardName = "Proxmox Overview"; // Proxmox SysOps dashboard name
    useEffect(() => {
     if (!grafanaUrl) {
-      toast.error(`Grafana URL is undefined: ${grafanaUrl}`);
+      toast.error(`Grafana URL is: ${grafanaUrl}`);
     } else {
       toast.success(`Grafana URL: ${grafanaUrl}`);
     }
