@@ -181,10 +181,12 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(addRole({ token, role })).unwrap();
-      if (res?.status === 200) {
+      if ([200, 201].includes(res?.data?.code)) {
         showSuccess(res.data?.msg || 'Role created');
         dispatch(fetchRoles({ token }));
         setRole('');
+      } else if (res?.data?.code === 400) {
+        showError(res?.data?.msg || 'Role already exists');
       } else {
         showError(res?.data?.msg || 'Failed to add role');
       }

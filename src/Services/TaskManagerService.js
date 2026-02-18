@@ -2,7 +2,7 @@ import axiosInstance from "Services/AxiosInstance";
 import { getEnv } from "utils/getEnv";
 
 const backendUrl = getEnv("BACKEND_URL");
-const agentBackendUrl = process.env.REACT_APP_AGENT_BACKEND_URL;
+const agentBackendUrl = getEnv("AGENT_BACKEND_URL");
 
 export const fetchVmDetails = async (vmId) => {
   const res = await axiosInstance.get(`${backendUrl}/v1/proxmox/proxmox_vm_info/${vmId}`);
@@ -26,7 +26,7 @@ export const fetchHostStats = async (config, hostForApi, osType) => {
     params: {
       bucket: config.bucket,
       host: hostForApi,
-      range_start: "-5m",
+      range_start: "-1m",
       os_type: osType
     }
   });

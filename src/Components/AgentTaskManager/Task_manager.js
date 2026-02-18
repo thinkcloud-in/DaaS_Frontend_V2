@@ -279,6 +279,7 @@ const TaskManagerPage = () => {
                           `&var-host=${encodeURIComponent(hostForGrafana)}` +
                           `&from=now-1h&to=now&theme=light&disableLazyLoad=true&kiosk`
                         }
+                        
                         width="100%"
                         height="800"
                         style={{ border: "1px solid #ccc", borderRadius: "8px" }}
