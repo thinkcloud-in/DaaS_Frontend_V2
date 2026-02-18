@@ -4,12 +4,12 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { getEnv } from "utils/getEnv";
  
 let ProxmoxVMs = () => {
   let gc = useContext(GrafanaToolbarContext);
  
-  // Update these if you want to make variables dynamic
-  const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
+  const grafanaUrl = getEnv("GRAFANA_URL");
   const dashboardUid = "e0b353ea-7df0-43b5-8f57-c0dcf5776022";
   const dashboardName = "vms";
  

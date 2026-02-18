@@ -3,7 +3,7 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
-
+import { getEnv } from "utils/getEnv";
  
 let ProxmoxHost= () => {
   let gc = useContext(GrafanaToolbarContext);
@@ -13,7 +13,7 @@ let ProxmoxHost= () => {
   const bucket = "proxmox-metrics";
   const server = "All";
  
-  const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
+  const grafanaUrl = getEnv("GRAFANA_URL");
   // const dashboardUid = "IfgdXjtnk"; // Dashboard UID
   const dashboardUid = "IfgdXjtns";
   // const dashboardName = "proxmox-ve-cluster-flux"; // Dashboard slug/name

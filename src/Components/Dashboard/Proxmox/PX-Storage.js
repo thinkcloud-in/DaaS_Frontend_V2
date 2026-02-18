@@ -3,6 +3,7 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { getEnv } from "utils/getEnv";
  
 let ProxmoxStorage = () => {
   let gc = useContext(GrafanaToolbarContext);
@@ -12,7 +13,7 @@ let ProxmoxStorage = () => {
   const bucket = "proxmox-metrics";
   const server = "prox2";
  
-  const grafanaUrl = process.env.REACT_APP_GRAFANA_URL;
+  const grafanaUrl = getEnv("GRAFANA_URL");
   const dashboardUid = "IfgdXjtnk1"; // Dashboard UID for Proxmox 7 with InfluxDB2
   const dashboardName = "proxmox-2024"; // Dashboard name/slug
  
