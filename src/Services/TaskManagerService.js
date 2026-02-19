@@ -35,7 +35,7 @@ export const fetchHostStats = async (config, hostForApi, osType) => {
 
 export const killProcesses = async (processHost, hostIp, pids, osType) => {
   return axiosInstance.post(
-    `${agentBackendUrl}/api/TaskManager/kill_process`,
+    `${agentBackendUrl}/agent/TaskManager/kill_process`,
     {
       host: processHost,
       IP: hostIp,
