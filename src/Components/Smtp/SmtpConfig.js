@@ -91,7 +91,6 @@ export default function SMTP() {
   const [openDialog, setOpenDialog] = useState(false);
   const [sendmail, setSendmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [firstLoad, setFirstLoad] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -102,27 +101,24 @@ export default function SMTP() {
   }, [dispatch, token, location.key]);
 
 useEffect(() => {
-  if (!loading && firstLoad) {
-    if (smtpConfig) {
-      setData({
-        serverIP: smtpConfig.serverIP || "",
-        serverPort: smtpConfig.serverPort || "",
-        userName: smtpConfig.userName || "",
-        password: "",
-        email: smtpConfig.email || "",
-        connOption: smtpConfig.connOption || "",
-        userAuthentication: smtpConfig.userAuthentication || "false",
-        smtpStatus: smtpConfig.smtpStatus || false,
-        receiverMail: smtpConfig.receiverMail || "",
-      });
-      setIsEnabled(!!smtpConfig.smtpStatus);
-      setExistingConfig(true);
-    } else {
-      setExistingConfig(false);
-    }
-    setFirstLoad(false);
+  if (!loading && smtpConfig) {
+    setData((prev) => ({
+      serverIP: smtpConfig.serverIP || "",
+      serverPort: smtpConfig.serverPort || "",
+      userName: smtpConfig.userName || "",
+      password: prev.password || "",
+      email: smtpConfig.email || "",
+      connOption: smtpConfig.connOption || "",
+      userAuthentication: smtpConfig.userAuthentication || "false",
+      smtpStatus: smtpConfig.smtpStatus || false,
+      receiverMail: smtpConfig.receiverMail || "",
+    }));
+    setIsEnabled(!!smtpConfig.smtpStatus);
+    setExistingConfig(true);
+  } else if (!loading && !smtpConfig) {
+    setExistingConfig(false);
   }
-}, [smtpConfig, loading, firstLoad]);
+}, [smtpConfig, loading]);
 
   useEffect(() => {
     if (error) {
