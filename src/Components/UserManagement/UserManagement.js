@@ -174,6 +174,35 @@ const UserManagement = () => {
     });
   };
 
+  const getVisibleComponents = () => {
+    if (!selectedCategory) return flattenAllComponents();
+    const categoryData = componentCategories[selectedCategory];
+    if (Array.isArray(categoryData)) return categoryData;
+    if (selectedSubCategory) return categoryData[selectedSubCategory] || [];
+    return [];
+  };
+
+  const handleToggleAll = () => {
+    const visible = getVisibleComponents();
+    if (visible.length === 0 || !role) return;
+
+    const areAllSelected = visible.every((comp) => components.includes(comp));
+
+    if (areAllSelected) {
+      setComponents((prev) => prev.filter((comp) => !visible.includes(comp)));
+    } else {
+      setComponents((prev) => {
+        const newComponents = [...prev];
+        visible.forEach((comp) => {
+          if (!newComponents.includes(comp)) {
+            newComponents.push(comp);
+          }
+        });
+        return newComponents;
+      });
+    }
+  };
+
   const handleAddRole = async () => {
     if (!role.trim()) {
       showError("Please enter a role name");
@@ -274,27 +303,54 @@ const UserManagement = () => {
     }
   };
   const renderComponentsPanel = () => {
+    const visible = getVisibleComponents();
+    const isListMode = !(!selectedCategory === false && !selectedSubCategory && typeof componentCategories[selectedCategory] === "object" && !Array.isArray(componentCategories[selectedCategory]));
+    
+    // Determine if we should show the "Select All" checkbox
+    // True if we are showing a list of components (not subcategory buttons)
+    const showSelectAll = visible.length > 0;
+    const areAllVisibleSelected = showSelectAll && visible.every(c => components.includes(c));
+
     if (!selectedCategory) {
-      const allComponents = flattenAllComponents();
-      return allComponents.map((component, idx) => (
-        <div
-          key={idx}
-          className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
-        >
-          <input
-            type="checkbox"
-            id={`component-${idx}`}
-            checked={components.includes(component)}
-            onChange={() => handleComponentChange(component)}
-            className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
-            disabled={!role}
-          />
-          <label htmlFor={`component-${idx}`} className="select-none mt-1">
-            {component}
-          </label>
-        </div>
-      ));
+      return (
+        <>
+          {showSelectAll && (
+            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
+              <input
+                type="checkbox"
+                id="select-all-components"
+                checked={areAllVisibleSelected}
+                onChange={handleToggleAll}
+                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
+                disabled={!role}
+              />
+              <label htmlFor="select-all-components" className="font-semibold text-[#1a365d] cursor-pointer">
+                Select All ({visible.length})
+              </label>
+            </div>
+          )}
+          {visible.map((component, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+            >
+              <input
+                type="checkbox"
+                id={`component-${idx}`}
+                checked={components.includes(component)}
+                onChange={() => handleComponentChange(component)}
+                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+                disabled={!role}
+              />
+              <label htmlFor={`component-${idx}`} className="select-none mt-1 cursor-pointer">
+                {component}
+              </label>
+            </div>
+          ))}
+        </>
+      );
     }
+    
     if (
       typeof componentCategories[selectedCategory] === "object" &&
       !Array.isArray(componentCategories[selectedCategory])
@@ -307,9 +363,9 @@ const UserManagement = () => {
                 <button
                   key={subcat}
                   onClick={() => handleSubCategorySelect(subcat)}
-                  className={`px-3 py-1 rounded-md text-sm ${
+                  className={`px-3 py-1 rounded-md text-sm transition-all duration-200 ${
                     selectedSubCategory === subcat
-                      ? "bg-[#1a365d]/80 text-[#f5f5f5]"
+                      ? "bg-[#1a365d] text-white shadow-md shadow-[#1a365d]/20"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -320,52 +376,90 @@ const UserManagement = () => {
           </div>
         );
       }
-      const subComponents =
-        componentCategories[selectedCategory][selectedSubCategory] || [];
-      return subComponents.map((component, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
-          >
-            <input
-              type="checkbox"
-              id={`component-${selectedSubCategory}-${idx}`}
-              checked={components.includes(component)}
-              onChange={() => handleComponentChange(component)}
-              className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
-              disabled={!role}
-            />
-            <label
-              htmlFor={`component-${selectedSubCategory}-${idx}`}
-              className="select-none mt-1"
+      
+      return (
+        <>
+          {showSelectAll && (
+            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
+              <input
+                type="checkbox"
+                id="select-all-subcomponents"
+                checked={areAllVisibleSelected}
+                onChange={handleToggleAll}
+                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
+                disabled={!role}
+              />
+              <label htmlFor="select-all-subcomponents" className="font-semibold text-[#1a365d] cursor-pointer">
+                Select All in {selectedSubCategory} ({visible.length})
+              </label>
+            </div>
+          )}
+          {visible.map((component, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
             >
-              {component}
-            </label>
-          </div>
-        ))
+              <input
+                type="checkbox"
+                id={`component-${selectedSubCategory}-${idx}`}
+                checked={components.includes(component)}
+                onChange={() => handleComponentChange(component)}
+                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+                disabled={!role}
+              />
+              <label
+                htmlFor={`component-${selectedSubCategory}-${idx}`}
+                className="select-none mt-1 cursor-pointer"
+              >
+                {component}
+              </label>
+            </div>
+          ))}
+        </>
+      );
     }
+    
     if (Array.isArray(componentCategories[selectedCategory])) {
-      return componentCategories[selectedCategory].map((component, idx) => (
-        <div
-          key={idx}
-          className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
-        >
-          <input
-            type="checkbox"
-            id={`component-${selectedCategory}-${idx}`}
-            checked={components.includes(component)}
-            onChange={() => handleComponentChange(component)}
-            className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
-            disabled={!role}
-          />
-          <label
-            htmlFor={`component-${selectedCategory}-${idx}`}
-            className="select-none mt-1"
-          >
-            {component}
-          </label>
-        </div>
-      ));
+      return (
+        <>
+          {showSelectAll && (
+            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
+              <input
+                type="checkbox"
+                id="select-all-catcomponents"
+                checked={areAllVisibleSelected}
+                onChange={handleToggleAll}
+                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
+                disabled={!role}
+              />
+              <label htmlFor="select-all-catcomponents" className="font-semibold text-[#1a365d] cursor-pointer">
+                Select All in {selectedCategory} ({visible.length})
+              </label>
+            </div>
+          )}
+          {visible.map((component, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+            >
+              <input
+                type="checkbox"
+                id={`component-${selectedCategory}-${idx}`}
+                checked={components.includes(component)}
+                onChange={() => handleComponentChange(component)}
+                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+                disabled={!role}
+              />
+              <label
+                htmlFor={`component-${selectedCategory}-${idx}`}
+                className="select-none mt-1 cursor-pointer"
+              >
+                {component}
+              </label>
+            </div>
+          ))}
+        </>
+      );
     }
     return null;
   };
