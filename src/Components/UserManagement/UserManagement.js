@@ -210,14 +210,20 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(addRole({ token, role })).unwrap();
-      if ([200, 201].includes(res?.data?.code)) {
-        showSuccess(res.data?.msg || 'Role created');
+      const code = res?.data?.code;
+      // In this API, 'msg' is often generic while 'data' contains the specific error detail
+      const message = res?.data?.data && typeof res?.data?.data === 'string' 
+        ? res.data.data 
+        : (res?.data?.msg || 'Failed to add role');
+
+      if ([20, 200, 201].includes(code)) {
+        showSuccess(res?.data?.msg || 'Role created successfully');
         dispatch(fetchRoles({ token }));
         setRole('');
-      } else if (res?.data?.code === 400) {
-        showError(res?.data?.msg || 'Role already exists');
+      } else if (code === 400) {
+        showError(message || 'Role already exists');
       } else {
-        showError(res?.data?.msg || 'Failed to add role');
+        showError(message || 'Failed to add role');
       }
     } catch (err) {
       showError(err || 'Failed to add role');
