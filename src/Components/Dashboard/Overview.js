@@ -348,8 +348,8 @@ const Overview = () => {
   };
  
   return (
-    <div className="w-full">
-      <div className="nav-toolbar h-auto flex flex-wrap text-gray-700 border-b border-gray-200 rounded-lg p-4">
+    <div className="w-full h-full flex flex-col overflow-auto md:overflow-hidden">
+      <div className="nav-toolbar h-auto flex flex-wrap items-center gap-2 text-gray-700 border-b border-gray-200 rounded-lg p-2 md:p-4">
         <TimeRangeSelector />
         <AutoRefresh />
       </div>
@@ -360,11 +360,11 @@ const Overview = () => {
         ) : error ? (
           <div className="text-red-500">Error: {error}</div>
         ) : (
-          <div className="flex flex-wrap items-center">
+          <div className="flex flex-wrap items-center gap-2">
             {templatingVariables.map((variable, index) => (
               <div
                 key={`var-${index}`}
-                className="relative inline-block mr-2 mb-4"
+                className="relative inline-block mb-2"
               >
                 {renderDropdown(variable)}
               </div>

@@ -213,12 +213,12 @@ const ClusterCreationForm = () => {
   };
 
   return (
-    <div className="w-[98%] mt-4 min-h-[75vh] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
-      <div className="cluster-creation-form overflow-y-auto rounded-md bg-white custom-scrollbar">
-        <div className="flex justify-start ml-0 mt-5">
+    <div className="w-full md:w-[98%] mt-4 min-h-[75vh] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
+      <div className="cluster-creation-form flex-1 overflow-auto rounded-md bg-white custom-scrollbar p-2 md:p-4">
+        <div className="flex justify-start mb-6">
           <div
             onClick={Goback}
-            className="ml-12 bg-[#1a365dcc] text-[#f5f5f5] hover:bg-[#1a365d] hover:text-white px-2 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
+            className="bg-[#1a365dcc] text-[#f5f5f5] hover:bg-[#1a365d] hover:text-white px-2 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -238,7 +238,7 @@ const ClusterCreationForm = () => {
         </div>
         <div className="cluster-creation-form w-full">
           <div className="space-y-5 m-2">
-            <div className="bg-white mx-10 p-3 w-3/4">
+            <div className="bg-white p-3 w-full max-w-4xl mx-auto">
               <h2 className="font-bold leading-7 text-[#1a365d]">
                 Create Cluster
               </h2>
@@ -536,7 +536,7 @@ const ClusterCreationForm = () => {
             </div>
           </div>
           {!isClusterCreated && (
-            <div className="buttons ml-10 mt-5 pl-5 flex items-start justify-start">
+            <div className="buttons mt-5 pl-5 flex items-start justify-start">
               <button
                 onClick={handleOnClick}
                 disabled={isDisabled || isLoading}
@@ -557,7 +557,7 @@ const ClusterCreationForm = () => {
           )}
         </div>
         {createdClusterId && clusterDetails.type === "Proxmox" && (
-          <div className="monitoring-section mt-0 mx-10 p-3 relative">
+          <div className="monitoring-section mt-4 p-3 relative bg-gray-50 rounded-lg">
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -605,7 +605,7 @@ const ClusterCreationForm = () => {
                 <h3 className="text-lg font-semibold text-indigo-800 mb-1 pb-1">
                   InfluxDB Metric Server
                 </h3>
-                <div className="monitoring-table-form w-[60%]">
+                <div className="monitoring-table-form w-full max-w-4xl">
                   <div className="tr flex items-center mb-2 ">
                     <div className="th w-16 flex-shrink-0">
                       <label className="block mt-2 flex items-start text-sm font-medium text-gray-900 border-0">

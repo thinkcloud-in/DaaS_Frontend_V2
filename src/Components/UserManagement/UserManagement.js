@@ -322,8 +322,7 @@ const UserManagement = () => {
       }
       const subComponents =
         componentCategories[selectedCategory][selectedSubCategory] || [];
-      return subComponents.length > 0 ? (
-        subComponents.map((component, idx) => (
+      return subComponents.map((component, idx) => (
           <div
             key={idx}
             className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
@@ -344,11 +343,6 @@ const UserManagement = () => {
             </label>
           </div>
         ))
-      ) : (
-        <div className="text-gray-500 p-2">
-          No components for this subcategory.
-        </div>
-      );
     }
     if (Array.isArray(componentCategories[selectedCategory])) {
       return componentCategories[selectedCategory].map((component, idx) => (
@@ -377,7 +371,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="w-[98%] h-[90vh]  min-h-[75vh] mt-4 m-auto p-3 bg-white rounded-lg shadow-lg flex flex-col overflow-hidden">
+    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] mt-4 m-auto p-2 md:p-3 bg-white rounded-lg shadow-lg flex flex-col overflow-auto md:overflow-hidden">
       <div className="bg-white flex-1 p-4  overflow-y-auto rounded-md custom-scrollbar">
         <div className="flex justify-between items-center mb-6 w-full ">
           <div className="relative border-b mb-6 w-full">
@@ -407,7 +401,7 @@ const UserManagement = () => {
         </div>
         {activeTab === "roles" && (
           <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-4 w-3/4">
+            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-3/4">
               <input
                 type="text"
                 placeholder="Enter role..."
@@ -431,9 +425,9 @@ const UserManagement = () => {
                 )}
               </button>
             </div>
-            <div className="flex ">
+            <div className="flex flex-col md:flex-row gap-4">
               <div className="flex flex-col gap-4 flex-1">
-                <div className="overflow-hidden border rounded-md p-4 shadow-inner bg-white w-4/6">
+                <div className="overflow-hidden border rounded-md p-4 shadow-inner bg-white w-full md:w-4/6">
                   <div className="mb-2">
                     <label className="block font-medium text-gray-700">
                       Roles
@@ -484,7 +478,7 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <div className="border rounded-md p-4 space-y-2 shadow-inner bg-white w-5/6">
+                <div className="border rounded-md p-4 space-y-2 shadow-inner bg-white w-full md:w-5/6">
                   <div className="mb-2">
                     <label className="block font-medium text-gray-700">
                       Components
@@ -550,7 +544,7 @@ const UserManagement = () => {
           </div>
         )}
         {activeTab === "users" && (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="text-left">
               <div className="relative">
                 <input

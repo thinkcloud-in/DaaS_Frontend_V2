@@ -594,7 +594,7 @@ const ManagePool = (props) => {
     }
   };
   return (
-    <div className="w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
+    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 flex flex-col overflow-hidden">
       <div className="flex justify-between items-center mb-4">
         <div
           onClick={Goback}
@@ -755,8 +755,8 @@ const ManagePool = (props) => {
         </div>
       </div>
 
-      <div className="flex gap-4 flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar border border-gray-100">
+      <div className="flex flex-col md:flex-row gap-4 flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar border border-gray-100">
           {machinesLoading ? (
             <Box sx={{ width: "100%", mt: 2 }}>
               <div className={styles["table-responsive"]}>

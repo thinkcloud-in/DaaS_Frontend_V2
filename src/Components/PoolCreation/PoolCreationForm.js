@@ -393,7 +393,7 @@ const PoolCreationForm = () => {
     null;
 
   return (
-    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="pool_creation w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden mt-4">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
