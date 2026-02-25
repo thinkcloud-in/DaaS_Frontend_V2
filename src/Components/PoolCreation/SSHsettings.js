@@ -81,16 +81,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    name="pool_max_connections_per_user"  onChange={onChange}
-                    value={poolDetails.pool_max_connections_per_user}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                name="pool_max_connections_per_user"
+                onChange={onChange}
+                value={poolDetails.pool_max_connections_per_user}
+                placeholder="Maximum connections per user"
+              />
             </div>
           </div>
         </div>
