@@ -79,7 +79,6 @@ const UserManagement = () => {
   const isComponentsLoading = useSelector(selectComponentsLoading);
   const userRolesLoading = useSelector(selectUserRolesLoading);
   const actionsLoading = useSelector(selectActionsLoading);
-
   const [activeTab, setActiveTab] = useState("roles");
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -233,13 +232,17 @@ const UserManagement = () => {
   const handleDelete = async (roleToDelete) => {
     try {
       const res = await dispatch(deleteRole({ token, role: roleToDelete })).unwrap();
-      if (res?.status === 200 || res?.status === 204) {
-        showSuccess('Role deleted successfully!');
+      const code = res?.data?.code || res?.status;
+      const message = res?.data?.msg || res?.data?.data;
+
+      if ([200, 204].includes(code)) {
+        showSuccess(message || 'Role deleted successfully!');
       } else {
-        showError('Failed to delete role');
+        showError(message || 'Failed to delete role');
       }
     } catch (err) {
-      showError('Failed to delete role');
+      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to delete role');
+      showError(errorMsg);
     }
   };
 
@@ -250,18 +253,22 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(submitRoleComponents({ token, role, components })).unwrap();
-      if (res?.status === 200) {
-        showSuccess('Role and components saved successfully');
+      const code = res?.data?.code || res?.status;
+      const message = res?.data?.msg || res?.data?.data;
+
+      if (code === 200) {
+        showSuccess(message || 'Role and components saved successfully');
         dispatch(fetchRoles({ token }));
         setComponents([]);
         setRole('');
         setSelectedCategory(null);
         setSelectedSubCategory(null);
       } else {
-        showError('Failed to save role and components');
+        showError(message || 'Failed to save role and components');
       }
     } catch (err) {
-      showError(err || 'Failed to save role and components');
+      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to save role and components');
+      showError(errorMsg);
     }
   };
   const handleRoleAssignment = async () => {
@@ -275,15 +282,19 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(assignUserRole({ token, username: selectedUser, role: selectedRole })).unwrap();
-      if (res?.data?.code === 200) {
-        showSuccess(res?.data?.msg || 'Role assigned successfully');
+      const code = res?.data?.code || res?.status;
+      const message = res?.data?.msg || res?.data?.data;
+
+      if (code === 200) {
+        showSuccess(message || 'Role assigned successfully');
         setShowRoleDialog(false);
         setSelectedRole('');
       } else {
-        showError('Failed to assign role');
+        showError(message || 'Failed to assign role');
       }
     } catch (err) {
-      showError(err || 'Failed to assign role');
+      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to assign role');
+      showError(errorMsg);
     }
   };
 
@@ -298,14 +309,18 @@ const UserManagement = () => {
   const removeRoleFromUser = async (username, roleToRemove) => {
     try {
       const res = await dispatch(removeRoleFromUserThunk({ token, username, role: roleToRemove })).unwrap();
-      if (res?.status === 200 || res?.status === 204) {
-        showSuccess('Role removed successfully');
+      const code = res?.data?.code || res?.status;
+      const message = res?.data?.msg || res?.data?.data;
+
+      if ([200, 204].includes(code)) {
+        showSuccess(message || 'Role removed successfully');
         dispatch(getUserPermission({ token, username }));
       } else {
-        showError('Failed to remove role');
+        showError(message || 'Failed to remove role');
       }
     } catch (err) {
-      showError('Failed to remove role');
+      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to remove role');
+      showError(errorMsg);
     }
   };
   const renderComponentsPanel = () => {

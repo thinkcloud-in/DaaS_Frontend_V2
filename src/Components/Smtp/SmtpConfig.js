@@ -200,6 +200,8 @@ export default function SMTP() {
         }
       })
       .catch((err) => {
+        const message = typeof err === 'string' ? err : (err?.msg || err?.message || "Failed to send test email.");
+        toast.error(message);
       })
       .finally(() => {
         setSendmail(false);

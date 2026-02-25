@@ -44,19 +44,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex items-center justify-start gap-3">
-                  <input
-                    type="number"
-                    name="pool_port"
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    placeholder="Port"
-                    value={poolDetails.pool_port}
-                    onChange={onChange}
-                  />
-                
-                </div>
-              </div>
+              <input
+                type="number"
+                name="pool_port"
+                placeholder="Port"
+                value={poolDetails.pool_port}
+                onChange={onChange}
+              />
             </div>
           </div></div></div>
       <div className="divide-slate-500 my-6 mt-7">
@@ -71,16 +65,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    name="pool_max_connections"  onChange={onChange}
-                    value={poolDetails.pool_max_connections}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                name="pool_max_connections"
+                onChange={onChange}
+                value={poolDetails.pool_max_connections}
+                placeholder="Maximum number of connections"
+              />
             </div>
           </div>
           <div className="tr">
@@ -116,17 +107,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder="Load Balance"
-                    name="pool_load_balance_info"  onChange={onChange}
-                    value={poolDetails.pool_load_balance_info}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Load Balance"
+                name="pool_load_balance_info"
+                onChange={onChange}
+                value={poolDetails.pool_load_balance_info}
+              />
             </div>
           </div>
         </div>
@@ -162,17 +149,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    placeholder="Port"
-                    name="pool_guacd_port"  onChange={onChange}
-                    value={poolDetails.pool_guacd_port}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                placeholder="Port"
+                name="pool_guacd_port"
+                onChange={onChange}
+                value={poolDetails.pool_guacd_port}
+              />
             </div>
           </div>
           <div className="tr">
@@ -182,22 +165,18 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2 border-0">
-                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <select
-                    name="pool_guacd_encryption"  onChange={onChange}
-                    value={poolDetails.pool_guacd_encryption}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  >
-                    <option value="" disabled selected>
-                      Select encryption type
-                    </option>
-                    <option value="none">None</option>
-                    <option value="ssl">SSL</option>
-                    <option value="tls">TLS</option>
-                  </select>
-                </div>
-              </div>
+              <select
+                name="pool_guacd_encryption"
+                onChange={onChange}
+                value={poolDetails.pool_guacd_encryption}
+              >
+                <option value="" disabled>
+                  Select encryption type
+                </option>
+                <option value="none">None</option>
+                <option value="ssl">SSL</option>
+                <option value="tls">TLS</option>
+              </select>
             </div>
           </div>
         </div>
@@ -214,17 +193,15 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex items-center justify-start gap-3">
-                  <input
-                    type="text"
-                    name="pool_username"  onChange={onChange}
-                    value={poolDetails.pool_username}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    placeholder="Username"
-                  />
-                  <div>(username)</div>
-                </div>
+              <div className="flex items-center justify-start gap-3">
+                <input
+                  type="text"
+                  name="pool_username"
+                  onChange={onChange}
+                  value={poolDetails.pool_username}
+                  placeholder="Username"
+                />
+                <div className="whitespace-nowrap">(username)</div>
               </div>
             </div>
           </div>
@@ -235,17 +212,15 @@ const SSHsettings = ({onChange,poolDetails}) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex items-center justify-start gap-3">
-                  <input
-                    type="password"
-                    name="pool_password"  onChange={onChange}
-                    value={poolDetails.pool_password}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    placeholder="Password"
-                  />
-                  <div>(password)</div>
-                </div>
+              <div className="flex items-center justify-start gap-3">
+                <input
+                  type="password"
+                  name="pool_password"
+                  onChange={onChange}
+                  value={poolDetails.pool_password}
+                  placeholder="Password"
+                />
+                <div className="whitespace-nowrap">(password)</div>
               </div>
             </div>
           </div>
