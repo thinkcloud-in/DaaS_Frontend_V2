@@ -305,11 +305,10 @@ const PoolCreationForm = () => {
   ]);
 
   const handleTemplateChange = (e) => {
-    // Always set as array for backend JSON compatibility
     const value = e.target.value;
     dispatch(
       setPoolCreationDetails({
-        pool_template_vm_id: value ? { vmid: parseInt(value, 10) } : {},
+        pool_template_vm_id: value ? parseInt(value, 10) : null,
       })
     );
   };
@@ -667,13 +666,7 @@ const PoolCreationForm = () => {
                           <select
                             name="pool_template_vm_id"
                             onChange={handleTemplateChange}
-                            value={
-                              poolDetails.pool_template_vm_id?.vmid
-                                ? String(
-                                    poolDetails.pool_template_vm_id.vmid
-                                  )
-                                : ""
-                            }
+                            value={poolDetails.pool_template_vm_id || ""}
                           >
                             <option value="">Select Template</option>
                             {templates.map((template) => (
