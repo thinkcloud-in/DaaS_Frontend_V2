@@ -635,25 +635,27 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            isMulti
-                            name="pool_ip_pool_names"
-                            value={ipPoolNames
-                              .filter((name) =>
-                                (
-                                  poolDetails.pool_ip_pool_names || []
-                                ).includes(name)
-                              )
-                              .map((name) => ({ label: name, value: name }))}
-                            onChange={handleIpPoolsChange}
-                            options={ipPoolNames.map((name) => ({
-                              label: name,
-                              value: name,
-                            }))}
-                            className="basic-multi-select"
-                            classNamePrefix="select"
-                            placeholder="Select IP Pools"
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              isMulti
+                              name="pool_ip_pool_names"
+                              value={ipPoolNames
+                                .filter((name) =>
+                                  (
+                                    poolDetails.pool_ip_pool_names || []
+                                  ).includes(name)
+                                )
+                                .map((name) => ({ label: name, value: name }))}
+                              onChange={handleIpPoolsChange}
+                              options={ipPoolNames.map((name) => ({
+                                label: name,
+                                value: name,
+                              }))}
+                              className="basic-multi-select text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select IP Pools"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -788,25 +790,27 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            isMulti
-                            name="pool_ip_pool_names"
-                            value={ipPoolNames
-                              .filter((name) =>
-                                (
-                                  poolDetails.pool_ip_pool_names || []
-                                ).includes(name)
-                              )
-                              .map((name) => ({ label: name, value: name }))}
-                            onChange={handleIpPoolsChange}
-                            options={ipPoolNames.map((name) => ({
-                              label: name,
-                              value: name,
-                            }))}
-                            className="basic-multi-select"
-                            classNamePrefix="select"
-                            placeholder="Select IP Pools"
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              isMulti
+                              name="pool_ip_pool_names"
+                              value={ipPoolNames
+                                .filter((name) =>
+                                  (
+                                    poolDetails.pool_ip_pool_names || []
+                                  ).includes(name)
+                                )
+                                .map((name) => ({ label: name, value: name }))}
+                              onChange={handleIpPoolsChange}
+                              options={ipPoolNames.map((name) => ({
+                                label: name,
+                                value: name,
+                              }))}
+                              className="basic-multi-select text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select IP Pools"
+                            />
+                          </div>
                         </div>
                       </div>
 
