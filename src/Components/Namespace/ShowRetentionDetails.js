@@ -49,45 +49,48 @@ const ShowRetentionDetails = ({ namespaces }) => {
   };
 
   return (
-    <div className="p-6 h-screen">
-      <div className="h-[86vh] flex justify-center">
-        <div className="w-[550px] h-[40vh] bg-white rounded-lg shadow-md p-6 flex flex-col justify-between">
-          <h2 className="text-lg font-semibold text-[#1a365d] mb-8 pl-2 pt-2">
+    <div className="w-full h-auto p-4 md:p-6">
+      <div className="flex justify-center flex-1">
+        <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-between border border-gray-100">
+          <h2 className="text-lg font-semibold text-[#1a365d] mb-6">
             Namespace Details
           </h2>
 
-          <div className="flex flex-col gap-10 w-full max-w-md">
-            <div className="flex flex-row gap-9">
-              <label className="text-[0.9rem] text-gray-700 font-medium">Namespace</label>
+          <div className="flex flex-col gap-6 w-full">
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-9">
+              <label className="text-[0.9rem] text-gray-700 font-medium md:w-32">Namespace</label>
               <input
                 type="text"
                 value={namespace}
                 readOnly
-                className="w-full px-2 py-[6px] border border-gray-200 border-b-2 border-b-gray-500 shadow-sm bg-gray-100 cursor-not-allowed text-gray-600"
+                className="flex-1 px-3 py-2 border border-gray-200 rounded shadow-sm bg-gray-50 cursor-not-allowed text-gray-500 text-sm"
               />
             </div>
 
-            <div className="flex flex-row gap-9">
-              <label className="text-[0.9rem] text-gray-700 font-medium">Retention Period</label>
-              <input
-                type="number"
-                value={retentionDays}
-                min={1}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '') {
-                    setRetentionDays('');
-                    return;
-                  }
-                  const parsed = parseInt(value);
-                  if (!isNaN(parsed) && parsed >= 1) {
-                    setRetentionDays(parsed);
-                  }
-                }}
-                className="w-full px-2 py-[6px] border border-gray-200 border-b-2 border-b-gray-500 shadow-sm focus:outline-none focus:border-b-[#1a365d]/100 focus:ring-0"
-                placeholder="e.g. 7 in days only"
-                required
-              />
+            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-9">
+              <label className="text-[0.9rem] text-gray-700 font-medium md:w-32">Retention Period</label>
+              <div className="flex-1 relative">
+                <input
+                  type="number"
+                  value={retentionDays}
+                  min={1}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setRetentionDays('');
+                      return;
+                    }
+                    const parsed = parseInt(value);
+                    if (!isNaN(parsed) && parsed >= 1) {
+                      setRetentionDays(parsed);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a365d]/50 focus:border-[#1a365d] text-sm"
+                  placeholder="e.g. 7"
+                  required
+                />
+                <span className="absolute right-3 top-2 text-xs text-gray-400">days</span>
+              </div>
             </div>
           </div>
 
@@ -95,7 +98,7 @@ const ShowRetentionDetails = ({ namespaces }) => {
             <button
               onClick={handleUpdateRetention}
               disabled={isSubmitting}
-              className={`px-4 py-2 rounded text-white transition ${
+              className={`px-6 py-2 rounded text-white font-medium transition shadow-sm ${
                 isSubmitting
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-[#1a365d]/80 hover:bg-[#1a365d]'
