@@ -451,7 +451,7 @@ const ManagePool = (props) => {
       toast.success("VM reboot triggered");
       refreshMachines();
     } catch (err) {
-      toast.error("Failed to reboot VM");
+      toast.error(err?.msg || err?.message || "Failed to reboot VM");
     } finally {
       dispatch(setPowerActionLoading(null));
     }
@@ -467,7 +467,7 @@ const ManagePool = (props) => {
       toast.success("VM shutdown triggered");
       refreshMachines();
     } catch (err) {
-      toast.error("Failed to shutdown VM");
+      toast.error(err?.msg || err?.message || "Failed to shutdown VM");
     } finally {
       dispatch(setPowerActionLoading(null));
     }
@@ -483,7 +483,7 @@ const ManagePool = (props) => {
       toast.success("VM started successfully");
       refreshMachines();
     } catch (err) {
-      toast.error("Failed to start VM");
+      toast.error(err?.msg || err?.message || "Failed to start VM");
     } finally {
       dispatch(setPowerActionLoading(null));
     }
@@ -499,7 +499,7 @@ const ManagePool = (props) => {
       toast.success("VM stopped successfully");
       refreshMachines();
     } catch (err) {
-      toast.error("Failed to stop VM");
+      toast.error(err?.msg || err?.message || "Failed to stop VM");
     } finally {
       dispatch(setPowerActionLoading(null));
     }
@@ -520,13 +520,13 @@ const ManagePool = (props) => {
       ).unwrap();
       const data = res || {};
       if (data.error || (data.status && data.status === "error")) {
-        toast.error(data.msg || "Failed to rebuild VM");
-      } else {
+        toast.error(data.msg || data.error || "Failed to rebuild VM");
+    } else {
         toast.success(data.msg || "VM rebuild triggered");
         refreshMachines();
       }
     } catch (err) {
-      toast.error("Failed to rebuild VM");
+      toast.error(err?.msg || err?.message || "Failed to rebuild VM");
     } finally {
       dispatch(setPowerActionLoading(null));
     }
