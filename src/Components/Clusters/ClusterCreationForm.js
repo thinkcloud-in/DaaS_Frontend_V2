@@ -98,8 +98,7 @@ const ClusterCreationForm = () => {
         }
       }
     } catch (error) {
-      const message = typeof error === 'string' ? error : (error?.msg || error?.message || error?.detail || "Failed to create cluster");
-      toast.error(message, { transition: Slide });
+      toast.error(error, { transition: Slide });
     }
   };
   const handleChange = (e) => {
