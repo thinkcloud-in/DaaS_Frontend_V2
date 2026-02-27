@@ -528,13 +528,7 @@ const ManagePool = (props) => {
         data.data?.status === "Failed" ||
         data.data?.code === 500;
       if (isError) {
-        const errMsg =
-          data.vm_status?.error ||
-          data.msg ||
-          data.data?.msg ||
-          data.error ||
-          "Failed to rebuild VM";
-        toast.error(errMsg);
+        toast.error("VM rebuild failed. Please try again.");
       } else {
         toast.success(data.msg || "VM rebuild triggered");
         refreshMachines();
