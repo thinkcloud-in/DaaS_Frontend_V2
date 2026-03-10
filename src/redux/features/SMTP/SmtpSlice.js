@@ -62,7 +62,9 @@ const smtpSlice = createSlice({
       })
       .addCase(updateSmtpStatusThunk.fulfilled, (state, action) => {
         state.statusLoading = false;
-        state.config = { ...state.config, smtpStatus: action.payload.smtpStatus };
+        // Backend returns: { status, code, msg, data: { smtpStatus: bool } }
+        const newStatus = action.payload?.data?.smtpStatus ?? action.payload?.smtpStatus;
+        state.config = { ...state.config, smtpStatus: newStatus };
       })
       .addCase(updateSmtpStatusThunk.rejected, (state, action) => {
         state.statusLoading = false;
