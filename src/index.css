@@ -2,61 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
-
-/* TV & Ultra-wide screen support */
-@media (min-width: 1440px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-@media (min-width: 2560px) {
-  html {
-    font-size: 18px;
-  }
-}
-
-@media (min-width: 3840px) {
-  html {
-    font-size: 20px;
-  }
-}
-
-/* Horizontal scroll for all tables on mobile */
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Custom scrollbar for better visibility on different screens */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
 }

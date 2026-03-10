@@ -101,7 +101,7 @@ const ShowPools = () => {
 
       {/* Table */}
       {isPoolAvailable && (
-        <div className="flex-1 overflow-visible rounded-md bg-white table-container custom-scrollbar">
+        <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
           <table className="min-w-full bg-white text-sm border-collapse">
             <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
               <tr>

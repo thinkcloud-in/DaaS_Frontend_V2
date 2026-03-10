@@ -26,11 +26,11 @@ import {
   faChartPie,
   faUserCog,
   faVideo,
+
 } from "@fortawesome/free-solid-svg-icons";
 import Beta from "../Beta/Beta";
 import Thinkcloud from "../../images/t3.jpg";
 import { useRbac } from "../../redux/features/Rbac/useRbac";
-import { useMediaQuery } from "@mui/material";
 import "./Sidebar.css";
 
 function classNames(...classes) {
@@ -101,28 +101,32 @@ const getIcon = (name, level = 0, parent = "") => {
 
   return faAngleRight;
 };
-
 const Sidebar = ({ tokenParsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isToggled, setIsToggled] = useState(true); 
   const [openSubMenus, setOpenSubMenus] = useState({});
   const [navState, setNavState] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { navigation, loading } = useRbac();
-  
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1200px)");
-
   useEffect(() => {
-    if (isMobile) {
-      setIsToggled(false);
-    } else if (isTablet) {
-      setIsToggled(false); 
-    } else {
-      setIsToggled(true); 
-    }
-  }, [isMobile, isTablet]);
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsMobile(true);
+        setIsToggled(false);
+      } else if (window.innerWidth < 1200) {
+        setIsMobile(false);
+        setIsToggled(false); 
+      } else {
+        setIsMobile(false);
+        setIsToggled(true); 
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     function markCurrent(items) {
@@ -159,7 +163,6 @@ const Sidebar = ({ tokenParsed }) => {
       if (isMobile) setMobileOpen(false); 
     }
   };
-
   const renderMenuItems = (items, level = 0, parent = "") => (
     <ul className={level === 0 ? "" : "pl-4"}>
       {items.map((item) => {
@@ -202,7 +205,6 @@ const Sidebar = ({ tokenParsed }) => {
       })}
     </ul>
   );
-
   const renderCollapsedMenu = (items, level = 0, parent = "", parentPos = {left: '100%', top: 0}) => (
     <ul className="sidebar-popout" style={{...parentPos, position: level === 0 ? undefined : 'absolute'}}>
       {items.map((item) => {
@@ -254,75 +256,67 @@ const Sidebar = ({ tokenParsed }) => {
     </ul>
   );
 
+
   const toggleSlide = () => {
-    if (isTablet || isMobile) return;
+    if (window.innerWidth < 1200) return;
     setIsToggled((prev) => !prev);
   };
 
   const handleMobileSidebar = () => {
     setMobileOpen((prev) => !prev);
   };
-
   if (loading) {
     if (isMobile) {
       return (
-        <div className="mobile-header w-full h-15 bg-[#1a365d] flex items-center justify-between px-4 py-3 shrink-0">
-          <span className="font-bold text-lg text-white">Thinkcloud</span>
-          <button onClick={handleMobileSidebar} className="text-white">
-            <Bars3Icon className="h-7 w-7" />
-          </button>
-        </div>
+        <>
+          <div className="mobile-sidebar-header flex items-center justify-between px-4 py-3 bg-[#1a365d]">
+            <span className="font-bold text-lg text-white">Thinkcloud</span>
+            <button onClick={handleMobileSidebar} className="text-white p-2 rounded-md focus:outline-none">
+              <Bars3Icon className="h-7 w-7" />
+            </button>
+          </div>
+          {mobileOpen && (
+            <div className="sidebar-container fixed top-0 left-0 h-full w-56 z-50 bg-[#1a365d] text-[#afb8c4] transition-all duration-300 shadow-lg">
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="font-bold text-lg">Thinkcloud</span>
+                <button onClick={handleMobileSidebar} className="text-[#afb8c4] p-2 rounded-md focus:outline-none">
+                  <XMarkIcon className="h-7 w-7" />
+                </button>
+              </div>
+              <div className="flex-1 px-4 py-6">
+                {[...Array(7)].map((_, i) => (
+                  <Skeleton key={i} variant="rectangular" width={'90%'} height={32} sx={{ bgcolor: '#f5f5f5e3', borderRadius: 1, my: 1.5 }} />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       );
     }
     return (
       <div className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? 'w-64' : 'w-20'} transition-all duration-300`}>
-        <div className="flex-1 px-4 py-8 space-y-4">
-          <Skeleton variant="rectangular" height={40} className="bg-white/10" />
-          <Skeleton variant="rectangular" height={40} className="bg-white/10" />
-          <Skeleton variant="rectangular" height={40} className="bg-white/10" />
+        <div className="flex items-center justify-between px-4 py-3 bg-[#1a365d] shrink-0">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="rectangular" width={isToggled ? 120 : 40} height={28} sx={{ bgcolor: '#f5f5f5e3', borderRadius: 1 }} />
+          </div>
+          {isToggled && (
+            <Skeleton variant="circular" width={32} height={32} sx={{ bgcolor: '#f5f5f5e3' }} />
+          )}
+        </div>
+        <div className="flex-1 px-4 py-6">
+          {[...Array(7)].map((_, i) => (
+            <Skeleton key={i} variant="rectangular" width={isToggled ? '90%' : 40} height={isToggled ? 32 : 32} sx={{ bgcolor: '#f5f5f5e3', borderRadius: 1, my: 1.5 }} />
+          ))}
+        </div>
+        <div className="shrink-0 px-4 pb-4">
+          <Skeleton variant="rectangular" width={isToggled ? '100%' : 40} height={40} sx={{ bgcolor: '#f5f5f5e3', borderRadius: 2 }} />
         </div>
       </div>
     );
   }
-
-  // Mobile View
-  if (isMobile) {
-    return (
-      <>
-        <div className="mobile-header w-full bg-[#1a365d] flex items-center justify-between px-4 py-3 shrink-0 z-[1001] shadow-md">
-          <span className="font-bold text-lg text-white">Thinkcloud</span>
-          <button onClick={handleMobileSidebar} className="text-white p-1 hover:bg-white/10 rounded transition-colors">
-            {mobileOpen ? <XMarkIcon className="h-7 w-7" /> : <Bars3Icon className="h-7 w-7" />}
-          </button>
-        </div>
-        
-        {mobileOpen && (
-          <div className="fixed inset-0 z-[1000] flex">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleMobileSidebar} />
-            <div className="relative w-64 h-full bg-[#1a365d] text-[#afb8c4] shadow-2xl flex flex-col animate-slide-in">
-              <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
-                <span className="font-bold text-lg">Menu</span>
-                <button onClick={handleMobileSidebar} className="text-[#afb8c4]">
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto sidebar_scrollbar py-4 px-2">
-                {renderMenuItems(navState)}
-              </div>
-              <div className="p-4 border-t border-white/10">
-                <Navbar tokenParsed={tokenParsed} />
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  // Desktop/Tablet View
   return (
-    <div className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? 'w-64' : 'w-20'} transition-all duration-300 shrink-0`}>
-      <div className="flex items-center justify-between px-4 py-3 bg-[#1a365d] shrink-0 border-b border-white/10">
+    <div className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? 'w-64' : 'w-20'} transition-all duration-300`}>
+      <div className="flex items-center justify-between px-4 py-3 bg-[#1a365d] shrink-0">
         <div className="flex items-center gap-2">
           {isToggled ? (
             <span className="font-bold text-lg">Thinkcloud</span>
@@ -342,17 +336,16 @@ const Sidebar = ({ tokenParsed }) => {
             />
           )}
         </div>
-        {!isTablet && isToggled && (
+        {isToggled && (
           <button
             onClick={toggleSlide}
-            className="bg-[#1a365d] text-[#afb8c4] p-2 rounded-md hover:bg-[#153056] focus:outline-none transition-colors"
+            className="bg-[#1a365d] text-[#afb8c4] p-2 rounded-md hover:bg-[#153056] focus:outline-none"
             aria-label="Toggle Sidebar"
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
         )}
       </div>
-      
       {isToggled ? (
         <>
           <div className="flex-1 sidebar_scrollbar">
@@ -360,7 +353,7 @@ const Sidebar = ({ tokenParsed }) => {
               <nav className="flex flex-col gap-2">{renderMenuItems(navState)}</nav>
             </div>
           </div>
-          <div className="shrink-0 p-4 border-t border-white/10">
+          <div className="shrink-0">
             <Navbar tokenParsed={tokenParsed} />
           </div>
         </>
@@ -380,6 +373,7 @@ const Sidebar = ({ tokenParsed }) => {
                     "menu-item rounded-md p-2 flex flex-col items-center cursor-pointer relative"
                   )}
                   title={item.name}
+                  style={{ position: 'relative' }}
                 >
                   <FontAwesomeIcon icon={getIcon(item.name, 0)} size="lg" />
                   {item.beta && <Beta />}
@@ -392,7 +386,7 @@ const Sidebar = ({ tokenParsed }) => {
               );
             })}
           </div>
-          <div className="mt-auto mb-2 flex justify-center w-full p-2 border-t border-white/10">
+          <div className="mt-auto mb-2 flex justify-center w-full">
             <Navbar tokenParsed={tokenParsed} />
           </div>
         </div>

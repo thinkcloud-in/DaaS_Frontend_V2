@@ -91,22 +91,5 @@
 
 .sidebar_scrollbar::-webkit-scrollbar {
   display: none;                
-}
 
-@keyframes slide-in {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
-}
-
-.mobile-header {
-  height: 60px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

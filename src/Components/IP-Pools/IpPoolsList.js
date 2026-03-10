@@ -94,7 +94,7 @@ const IpPoolsList = () => {
   };
 
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="relative mb-4">
         <h2 className="text-lg font-semibold text-center text-gray-700">IP-Pool List</h2>
         <div className="absolute left-0 top-0">
@@ -117,7 +117,7 @@ const IpPoolsList = () => {
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar">
+      <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
         <table className="min-w-full bg-white text-[0.9rem] border-collapse">
           <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
             <tr>

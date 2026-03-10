@@ -99,13 +99,13 @@ const ShowClusters = () => {
   };
 
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 flex flex-col overflow-hidden">
+    <div className="w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden ">
       {/* Header */}
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-700">
           Available Clusters
         </h2>
-        <div className="flex gap-2 items-center flex-wrap">
+        <div className="flex gap-2 items-center ">
           <button
             onClick={handleUpdateProxmoxNodes}
             disabled={updating}
@@ -150,7 +150,7 @@ const ShowClusters = () => {
         </div>
       </div>
       {/* Table or Empty State */}
-      <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar border border-gray-100">
+      <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
         <table className="min-w-full bg-white text-sm border-collapse">
           <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
             <tr>

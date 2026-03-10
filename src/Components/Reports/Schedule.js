@@ -175,22 +175,22 @@ export default function Auto_Mail() {
     navigate(-1);
   };
   return (
-    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] bg-white rounded-lg flex flex-col justify-start text-center m-auto mt-[1.125rem] font-inter overflow-auto md:overflow-hidden p-2 md:p-4 shadow-lg border border-gray-100">
+    <div className="w-[98%] h-[90vh] min-h-[75vh] bg-white rounded-lg flex flex-col justify-between text-center m-auto mt-[1.125rem] font-inter overflow-visible">
       <div className="w-full ">
-        <nav className="flex items-center mb-6 md:mb-12 w-full rounded-md h-[60px] relative border-b-2 border-gray-100">
+        <nav className="flex items-center mb-12 w-full rounded-md h-[60px] mt-auto relative border-b-2 border-[#1a365d5]">
           <div
           onClick={Goback}
-          className="ml-2 bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 cursor-pointer"
+          className="ml-2 bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
         </div>
-          <h2 className="text-[1.5rem] md:text-[1.7rem] font-bold text-[#1a365d] mx-auto">Schedule</h2>
+          <h2 className="text-[1.7rem] font-bold text-[#1a365d] mx-auto">Schedule</h2>
         </nav>
-        <div className="w-full md:w-[60%] lg:w-[45%] xl:w-[35%] bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col items-center m-auto border border-gray-100">
+        <div className="w-[35%] min-h-[60vh] bg-white p-5 rounded-lg shadow-md flex flex-col items-center m-auto overflow-y-auto pr-2 box-border custom-scrollbar overflow-scroll  md:w-[35%] sm:w-[60%] xs:w-[70%]">
           <form onSubmit={handleSubmit} className="flex flex-col w-full h-full">
-            <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex flex-col gap-4 max-h-[70vh]  min-h-[60vh] custom-scrollbar">
               <TextField
                 label="Email Address"
                 variant="outlined"
@@ -212,7 +212,7 @@ export default function Auto_Mail() {
                   "& .MuiInputLabel-root.Mui-focused": { color: "#1a365d" },
                 }}
               />
-              <div className="flex flex-col my-2">
+              <div className="flex flex-col my-4">
                 <select
                   name="report"
                   value={formData.report}
@@ -226,7 +226,7 @@ export default function Auto_Mail() {
                   <option value="Horizon"> Horizon Reports </option>
                 </select>
               </div>
-              <div className="flex flex-col my-2">
+              <div className="flex flex-col my-4">
                 <select
                   id="report"
                   name="reportName"
@@ -262,17 +262,16 @@ export default function Auto_Mail() {
                   "& .MuiInputLabel-root.Mui-focused": { color: "#1a365d" },
                 }}
               />
-              <FormLabel component="legend" className="text-left font-semibold text-[#1a365d] mt-2">
-                Schedule Type
+              <FormLabel component="legend" className="text-left font-semibold text-[#1a365d]">
+                Schedule Type{" "}
               </FormLabel>
               <RadioGroup
                 onChange={handleRadioChange}
                 value={formData.schedule_type}
                 required
-                className="flex flex-row flex-wrap"
                 sx={{
                   color: '#1a365d',
-                  '& .MuiFormControlLabel-label': { color: '#1a365d', fontSize: '0.9rem' },
+                  '& .MuiFormControlLabel-label': { color: '#1a365d' },
                 }}
               >
                 <FormControlLabel
@@ -293,30 +292,30 @@ export default function Auto_Mail() {
               </RadioGroup>
               <div
                 id="container-footer"
-                className="mt-4 p-3 bg-gray-50 rounded text-left border border-gray-100"
                 style={{ display: formData.schedule_type ? "block" : "none" }}
               >
-                <h6 className="text-[13px] text-gray-600">
-                  Date Range From: <span className="font-semibold text-gray-800">{formData.report_start}</span>
+                <h6 className="text-[15px]">
+                  Date Range From <strong> : </strong> {formData.report_start}
                 </h6>
-                <h6 className="text-[13px] text-gray-600">
-                  Date Range To: <span className="font-semibold text-gray-800">{formData.report_end}</span>
+                <h6 className="text-[15px]">
+                  Date Range To <strong> : </strong> {formData.report_end}
                 </h6>
-                <h6 className="text-[13px] text-gray-600">
-                  Reports generated on: <span className="font-semibold text-gray-800">{formData.schedule_date}</span> at <span className="font-semibold text-gray-800">{formData.time}</span>
+                <h6 className="text-[15px]">
+                  Reports generates on <strong> : </strong>{" "}
+                  {formData.schedule_date} <strong> at </strong> {formData.time}
                 </h6>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end mt-4">
               {scheduleSaveLoading ? (
-                <div className="flex items-center gap-2 px-6 py-2 rounded bg-[#1a365d] text-[#f5f5f5] cursor-wait shadow-sm">
-                  <CircularProgress size={16} style={{ color: "#f5f5f5" }} />
-                  <span className="text-sm font-medium">Submitting...</span>
+                <div className="flex items-center gap-2 px-5 py-2 rounded bg-[#1a365d] text-[#f5f5f5] cursor-wait">
+                  <CircularProgress size={18} style={{ color: "#f5f5f5" }} />
+                  <span className="text-lg">Submitting...</span>
                 </div>
               ) : (
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] transition-all font-medium shadow-sm active:scale-95"
+                  className="px-5 py-2 rounded bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] transition-colors font-medium"
                 >
                   Submit
                 </button>

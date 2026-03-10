@@ -52,13 +52,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="number"
-                name="pool_port"
-                placeholder="Pool Port"
-                value={poolDetails.pool_port}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="number"
+                    name="pool_port"
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-b-2 border-gray-400"
+                    placeholder="Pool Port"
+                    value={poolDetails.pool_port}
+                    onChange={onChange}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -73,14 +78,19 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="text"
-                name="pool_username"
-                placeholder="Username"
-                value={poolDetails.pool_username}
-                onChange={onChange}
-              />
-              <div className="whitespace-nowrap">(username)</div>
+              <div className="mt-2  border-0">
+                <div className="flex items-center justify-start gap-3">
+                  <input
+                    type="text"
+                    name="pool_username"
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    placeholder="Username"
+                    value={poolDetails.pool_username}
+                    onChange={onChange}
+                  />
+                  <div>(username)</div>
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -90,14 +100,19 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="password"
-                name="pool_password"
-                value={poolDetails.pool_password}
-                placeholder="Password"
-                onChange={onChange}
-              />
-              <div className="whitespace-nowrap">(password)</div>
+              <div className="mt-2  border-0">
+                <div className="flex items-center justify-start gap-3">
+                  <input
+                    type="password"
+                    name="pool_password"
+                    value={poolDetails.pool_password}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    placeholder="Password"
+                    onChange={onChange}
+                  />
+                  <div>(password)</div>
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -107,20 +122,29 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <select
-                name="pool_security"
-                value={poolDetails.pool_security}
-                onChange={onChange}
-              >
-                <option value="" disabled>
-                  Choose mode
-                </option>
-                {securityMode.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
+              <div className="mt-2 border-0 ">
+                <select
+                  name="pool_security"
+                  value={poolDetails.pool_security}
+                  onChange={onChange}
+                  className="block  cursor-pointer   py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset     sm:text-sm sm:leading-6"
+                >
+                  <option selected value="" disabled>
+                    Choose mode
                   </option>
-                ))}
-              </select>
+                  {securityMode.map((item) => {
+                    return (
+                      <option
+                        key={item}
+                        value={item}
+                        className="capitalize px-1"
+                      >
+                        {item}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -130,13 +154,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="text"
-                name="pool_domain"
-                value={poolDetails.pool_domain}
-                onChange={onChange}
-                placeholder="Domain"
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="text"
+                    name="pool_domain"
+                    value={poolDetails.pool_domain}
+                    onChange={onChange}
+                    className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                    placeholder="Domain"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -193,13 +222,17 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="number"
-                name="pool_max_connections"
-                value={poolDetails.pool_max_connections}
-                onChange={onChange}
-                placeholder="Max Connections"
-              />
+              <div className="mt-2  border-0">
+                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
+                  <input
+                    type="number"
+                    name="pool_max_connections"
+                    value={poolDetails.pool_max_connections}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -209,13 +242,17 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="number"
-                name="pool_max_connections_per_user"
-                value={poolDetails.pool_max_connections_per_user}
-                onChange={onChange}
-                placeholder="Maximum connections per user"
-              />
+              <div className="mt-2  border-0">
+                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="number"
+                    name="pool_max_connections_per_user"
+                    value={poolDetails.pool_max_connections_per_user}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -253,13 +290,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="number"
-                placeholder="Port"
-                name="pool_guacd_port"
-                value={poolDetails.pool_guacd_port}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="number"
+                    placeholder="Port"
+                    name="pool_guacd_port"
+                    value={poolDetails.pool_guacd_port}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -269,18 +311,23 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <select
-                name="pool_guacd_encryption"
-                value={poolDetails.pool_guacd_encryption}
-                onChange={onChange}
-              >
-                <option value="" disabled>
-                  Select encryption type
-                </option>
-                <option value="none">None</option>
-                <option value="ssl">SSL</option>
-                <option value="tls">TLS</option>
-              </select>
+              <div className="mt-2 border-0">
+                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <select
+                    name="pool_guacd_encryption"
+                    value={poolDetails.pool_guacd_encryption}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  >
+                    <option value="" disabled selected>
+                      Select encryption type
+                    </option>
+                    <option value="none">None</option>
+                    <option value="ssl">SSL</option>
+                    <option value="tls">TLS</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -338,13 +385,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="text"
-                placeholder="Gateway Username"
-                name="pool_gateway_username"
-                value={poolDetails.pool_gateway_username}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    name="pool_gateway_username"
+                    value={poolDetails.pool_gateway_username}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -354,13 +406,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="password"
-                placeholder="Gateway Password"
-                name="pool_gateway_password"
-                value={poolDetails.pool_gateway_password}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    name="pool_gateway_password"
+                    value={poolDetails.pool_gateway_password}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -370,13 +427,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="text"
-                placeholder="Gateway Domain"
-                name="pool_gateway_domain"
-                value={poolDetails.pool_gateway_domain}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="text"
+                    placeholder="Geteway Domain"
+                    name="pool_gateway_domain"
+                    value={poolDetails.pool_gateway_domain}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -391,13 +453,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="text"
-                placeholder="Initial program"
-                name="pool_initial_program"
-                value={poolDetails.pool_initial_program}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="text"
+                    placeholder="Initial program"
+                    name="pool_initial_program"
+                    value={poolDetails.pool_initial_program}
+                    onChange={onChange}
+                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">
@@ -407,13 +474,18 @@ const RDPsettings = ({ onChange, poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <input
-                type="text"
-                placeholder="Client Name"
-                name="pool_client_name"
-                value={poolDetails.pool_client_name}
-                onChange={onChange}
-              />
+              <div className="mt-2  border-0">
+                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <input
+                    type="text"
+                    placeholder="Client Name"
+                    name="pool_client_name"
+                    value={poolDetails.pool_client_name}
+                    onChange={onChange}
+                    className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="tr">

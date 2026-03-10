@@ -79,6 +79,7 @@ const UserManagement = () => {
   const isComponentsLoading = useSelector(selectComponentsLoading);
   const userRolesLoading = useSelector(selectUserRolesLoading);
   const actionsLoading = useSelector(selectActionsLoading);
+
   const [activeTab, setActiveTab] = useState("roles");
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -173,35 +174,6 @@ const UserManagement = () => {
     });
   };
 
-  const getVisibleComponents = () => {
-    if (!selectedCategory) return flattenAllComponents();
-    const categoryData = componentCategories[selectedCategory];
-    if (Array.isArray(categoryData)) return categoryData;
-    if (selectedSubCategory) return categoryData[selectedSubCategory] || [];
-    return [];
-  };
-
-  const handleToggleAll = () => {
-    const visible = getVisibleComponents();
-    if (visible.length === 0 || !role) return;
-
-    const areAllSelected = visible.every((comp) => components.includes(comp));
-
-    if (areAllSelected) {
-      setComponents((prev) => prev.filter((comp) => !visible.includes(comp)));
-    } else {
-      setComponents((prev) => {
-        const newComponents = [...prev];
-        visible.forEach((comp) => {
-          if (!newComponents.includes(comp)) {
-            newComponents.push(comp);
-          }
-        });
-        return newComponents;
-      });
-    }
-  };
-
   const handleAddRole = async () => {
     if (!role.trim()) {
       showError("Please enter a role name");
@@ -209,20 +181,14 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(addRole({ token, role })).unwrap();
-      const code = res?.data?.code;
-      // In this API, 'msg' is often generic while 'data' contains the specific error detail
-      const message = res?.data?.data && typeof res?.data?.data === 'string' 
-        ? res.data.data 
-        : (res?.data?.msg || 'Failed to add role');
-
-      if ([20, 200, 201].includes(code)) {
-        showSuccess(res?.data?.msg || 'Role created successfully');
+      if ([200, 201].includes(res?.data?.code)) {
+        showSuccess(res.data?.msg || 'Role created');
         dispatch(fetchRoles({ token }));
         setRole('');
-      } else if (code === 400) {
-        showError(message || 'Role already exists');
+      } else if (res?.data?.code === 400) {
+        showError(res?.data?.msg || 'Role already exists');
       } else {
-        showError(message || 'Failed to add role');
+        showError(res?.data?.msg || 'Failed to add role');
       }
     } catch (err) {
       showError(err || 'Failed to add role');
@@ -232,17 +198,13 @@ const UserManagement = () => {
   const handleDelete = async (roleToDelete) => {
     try {
       const res = await dispatch(deleteRole({ token, role: roleToDelete })).unwrap();
-      const code = res?.data?.code || res?.status;
-      const message = res?.data?.msg || res?.data?.data;
-
-      if ([200, 204].includes(code)) {
-        showSuccess(message || 'Role deleted successfully!');
+      if (res?.status === 200 || res?.status === 204) {
+        showSuccess('Role deleted successfully!');
       } else {
-        showError(message || 'Failed to delete role');
+        showError('Failed to delete role');
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to delete role');
-      showError(errorMsg);
+      showError('Failed to delete role');
     }
   };
 
@@ -253,22 +215,18 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(submitRoleComponents({ token, role, components })).unwrap();
-      const code = res?.data?.code || res?.status;
-      const message = res?.data?.msg || res?.data?.data;
-
-      if (code === 200) {
-        showSuccess(message || 'Role and components saved successfully');
+      if (res?.status === 200) {
+        showSuccess('Role and components saved successfully');
         dispatch(fetchRoles({ token }));
         setComponents([]);
         setRole('');
         setSelectedCategory(null);
         setSelectedSubCategory(null);
       } else {
-        showError(message || 'Failed to save role and components');
+        showError('Failed to save role and components');
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to save role and components');
-      showError(errorMsg);
+      showError(err || 'Failed to save role and components');
     }
   };
   const handleRoleAssignment = async () => {
@@ -282,19 +240,15 @@ const UserManagement = () => {
     }
     try {
       const res = await dispatch(assignUserRole({ token, username: selectedUser, role: selectedRole })).unwrap();
-      const code = res?.data?.code || res?.status;
-      const message = res?.data?.msg || res?.data?.data;
-
-      if (code === 200) {
-        showSuccess(message || 'Role assigned successfully');
+      if (res?.data?.code === 200) {
+        showSuccess(res?.data?.msg || 'Role assigned successfully');
         setShowRoleDialog(false);
         setSelectedRole('');
       } else {
-        showError(message || 'Failed to assign role');
+        showError('Failed to assign role');
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to assign role');
-      showError(errorMsg);
+      showError(err || 'Failed to assign role');
     }
   };
 
@@ -309,69 +263,38 @@ const UserManagement = () => {
   const removeRoleFromUser = async (username, roleToRemove) => {
     try {
       const res = await dispatch(removeRoleFromUserThunk({ token, username, role: roleToRemove })).unwrap();
-      const code = res?.data?.code || res?.status;
-      const message = res?.data?.msg || res?.data?.data;
-
-      if ([200, 204].includes(code)) {
-        showSuccess(message || 'Role removed successfully');
+      if (res?.status === 200 || res?.status === 204) {
+        showSuccess('Role removed successfully');
         dispatch(getUserPermission({ token, username }));
       } else {
-        showError(message || 'Failed to remove role');
+        showError('Failed to remove role');
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to remove role');
-      showError(errorMsg);
+      showError('Failed to remove role');
     }
   };
   const renderComponentsPanel = () => {
-    const visible = getVisibleComponents();
-    const isListMode = !(!selectedCategory === false && !selectedSubCategory && typeof componentCategories[selectedCategory] === "object" && !Array.isArray(componentCategories[selectedCategory]));
-    
-    // Determine if we should show the "Select All" checkbox
-    // True if we are showing a list of components (not subcategory buttons)
-    const showSelectAll = visible.length > 0;
-    const areAllVisibleSelected = showSelectAll && visible.every(c => components.includes(c));
-
     if (!selectedCategory) {
-      return (
-        <>
-          {showSelectAll && (
-            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
-              <input
-                type="checkbox"
-                id="select-all-components"
-                checked={areAllVisibleSelected}
-                onChange={handleToggleAll}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
-                disabled={!role}
-              />
-              <label htmlFor="select-all-components" className="font-semibold text-[#1a365d] cursor-pointer">
-                Select All ({visible.length})
-              </label>
-            </div>
-          )}
-          {visible.map((component, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
-            >
-              <input
-                type="checkbox"
-                id={`component-${idx}`}
-                checked={components.includes(component)}
-                onChange={() => handleComponentChange(component)}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
-                disabled={!role}
-              />
-              <label htmlFor={`component-${idx}`} className="select-none mt-1 cursor-pointer">
-                {component}
-              </label>
-            </div>
-          ))}
-        </>
-      );
+      const allComponents = flattenAllComponents();
+      return allComponents.map((component, idx) => (
+        <div
+          key={idx}
+          className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+        >
+          <input
+            type="checkbox"
+            id={`component-${idx}`}
+            checked={components.includes(component)}
+            onChange={() => handleComponentChange(component)}
+            className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+            disabled={!role}
+          />
+          <label htmlFor={`component-${idx}`} className="select-none mt-1">
+            {component}
+          </label>
+        </div>
+      ));
     }
-    
     if (
       typeof componentCategories[selectedCategory] === "object" &&
       !Array.isArray(componentCategories[selectedCategory])
@@ -384,9 +307,9 @@ const UserManagement = () => {
                 <button
                   key={subcat}
                   onClick={() => handleSubCategorySelect(subcat)}
-                  className={`px-3 py-1 rounded-md text-sm transition-all duration-200 ${
+                  className={`px-3 py-1 rounded-md text-sm ${
                     selectedSubCategory === subcat
-                      ? "bg-[#1a365d] text-white shadow-md shadow-[#1a365d]/20"
+                      ? "bg-[#1a365d]/80 text-[#f5f5f5]"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -397,96 +320,64 @@ const UserManagement = () => {
           </div>
         );
       }
-      
-      return (
-        <>
-          {showSelectAll && (
-            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
-              <input
-                type="checkbox"
-                id="select-all-subcomponents"
-                checked={areAllVisibleSelected}
-                onChange={handleToggleAll}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
-                disabled={!role}
-              />
-              <label htmlFor="select-all-subcomponents" className="font-semibold text-[#1a365d] cursor-pointer">
-                Select All in {selectedSubCategory} ({visible.length})
-              </label>
-            </div>
-          )}
-          {visible.map((component, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+      const subComponents =
+        componentCategories[selectedCategory][selectedSubCategory] || [];
+      return subComponents.length > 0 ? (
+        subComponents.map((component, idx) => (
+          <div
+            key={idx}
+            className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+          >
+            <input
+              type="checkbox"
+              id={`component-${selectedSubCategory}-${idx}`}
+              checked={components.includes(component)}
+              onChange={() => handleComponentChange(component)}
+              className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+              disabled={!role}
+            />
+            <label
+              htmlFor={`component-${selectedSubCategory}-${idx}`}
+              className="select-none mt-1"
             >
-              <input
-                type="checkbox"
-                id={`component-${selectedSubCategory}-${idx}`}
-                checked={components.includes(component)}
-                onChange={() => handleComponentChange(component)}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
-                disabled={!role}
-              />
-              <label
-                htmlFor={`component-${selectedSubCategory}-${idx}`}
-                className="select-none mt-1 cursor-pointer"
-              >
-                {component}
-              </label>
-            </div>
-          ))}
-        </>
+              {component}
+            </label>
+          </div>
+        ))
+      ) : (
+        <div className="text-gray-500 p-2">
+          No components for this subcategory.
+        </div>
       );
     }
-    
     if (Array.isArray(componentCategories[selectedCategory])) {
-      return (
-        <>
-          {showSelectAll && (
-            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
-              <input
-                type="checkbox"
-                id="select-all-catcomponents"
-                checked={areAllVisibleSelected}
-                onChange={handleToggleAll}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
-                disabled={!role}
-              />
-              <label htmlFor="select-all-catcomponents" className="font-semibold text-[#1a365d] cursor-pointer">
-                Select All in {selectedCategory} ({visible.length})
-              </label>
-            </div>
-          )}
-          {visible.map((component, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
-            >
-              <input
-                type="checkbox"
-                id={`component-${selectedCategory}-${idx}`}
-                checked={components.includes(component)}
-                onChange={() => handleComponentChange(component)}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
-                disabled={!role}
-              />
-              <label
-                htmlFor={`component-${selectedCategory}-${idx}`}
-                className="select-none mt-1 cursor-pointer"
-              >
-                {component}
-              </label>
-            </div>
-          ))}
-        </>
-      );
+      return componentCategories[selectedCategory].map((component, idx) => (
+        <div
+          key={idx}
+          className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+        >
+          <input
+            type="checkbox"
+            id={`component-${selectedCategory}-${idx}`}
+            checked={components.includes(component)}
+            onChange={() => handleComponentChange(component)}
+            className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+            disabled={!role}
+          />
+          <label
+            htmlFor={`component-${selectedCategory}-${idx}`}
+            className="select-none mt-1"
+          >
+            {component}
+          </label>
+        </div>
+      ));
     }
     return null;
   };
 
   return (
-    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] mt-4 m-auto p-2 md:p-3 bg-white rounded-lg shadow-lg flex flex-col overflow-auto md:overflow-hidden">
+    <div className="w-[98%] h-[90vh]  min-h-[75vh] mt-4 m-auto p-3 bg-white rounded-lg shadow-lg flex flex-col overflow-hidden">
       <div className="bg-white flex-1 p-4  overflow-y-auto rounded-md custom-scrollbar">
         <div className="flex justify-between items-center mb-6 w-full ">
           <div className="relative border-b mb-6 w-full">
@@ -516,7 +407,7 @@ const UserManagement = () => {
         </div>
         {activeTab === "roles" && (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-3/4">
+            <div className="flex items-center gap-4 w-3/4">
               <input
                 type="text"
                 placeholder="Enter role..."
@@ -540,9 +431,9 @@ const UserManagement = () => {
                 )}
               </button>
             </div>
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex ">
               <div className="flex flex-col gap-4 flex-1">
-                <div className="overflow-hidden border rounded-md p-4 shadow-inner bg-white w-full md:w-4/6">
+                <div className="overflow-hidden border rounded-md p-4 shadow-inner bg-white w-4/6">
                   <div className="mb-2">
                     <label className="block font-medium text-gray-700">
                       Roles
@@ -593,7 +484,7 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <div className="border rounded-md p-4 space-y-2 shadow-inner bg-white w-full md:w-5/6">
+                <div className="border rounded-md p-4 space-y-2 shadow-inner bg-white w-5/6">
                   <div className="mb-2">
                     <label className="block font-medium text-gray-700">
                       Components
@@ -659,7 +550,7 @@ const UserManagement = () => {
           </div>
         )}
         {activeTab === "users" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             <div className="text-left">
               <div className="relative">
                 <input
