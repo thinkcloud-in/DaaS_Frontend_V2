@@ -118,7 +118,7 @@ const PoolCreationForm = () => {
         pool_template_vm_id: templateVmId,
         pool_vmware_dc: "",
         pool_vmware_folder: "",
-      })
+      }),
     );
     if (!clusterId) return;
 
@@ -169,7 +169,7 @@ const PoolCreationForm = () => {
             ...prev,
             os_type: hyperVOS,
           },
-        })
+        }),
       );
       return;
     }
@@ -217,7 +217,7 @@ const PoolCreationForm = () => {
             ...prev,
             [keyName]: fieldValue,
           },
-        })
+        }),
       );
     } else {
       if (type === "checkbox") {
@@ -261,7 +261,7 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_ip_pool_names: (selectedOptions || []).map((opt) => opt.value),
-      })
+      }),
     );
   };
 
@@ -270,7 +270,7 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_selected_nodes: selectedNodes,
-      })
+      }),
     );
   };
 
@@ -278,7 +278,7 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_storage: selectedOption?.value || null,
-      })
+      }),
     );
   };
 
@@ -293,7 +293,7 @@ const PoolCreationForm = () => {
           token,
           clusterId: poolDetails.cluster_id,
           nodes: poolDetails.pool_selected_nodes,
-        })
+        }),
       );
     }
   }, [
@@ -310,18 +310,18 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_template_vm_id: value ? { vmid: parseInt(value, 10) } : {},
-      })
+      }),
     );
   };
 
   const handleNamingPatternChange = (e) => {
     dispatch(
-      setPoolCreationDetails({ pool_naming_pattern: e.target.value.trim() })
+      setPoolCreationDetails({ pool_naming_pattern: e.target.value.trim() }),
     );
   };
   const handleCountChange = (e) => {
     dispatch(
-      setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) })
+      setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) }),
     );
   };
   const handleVmwareDCChange = (e) => {
@@ -350,7 +350,7 @@ const PoolCreationForm = () => {
           progress: undefined,
           theme: "light",
           transition: Slide,
-        }
+        },
       );
       return;
     }
@@ -361,7 +361,7 @@ const PoolCreationForm = () => {
     };
     try {
       const payload = await dispatch(
-        createPool({ token, requestData })
+        createPool({ token, requestData }),
       ).unwrap();
       const msg = payload?.msg || "Pool created";
       toast.success(msg, { position: "top-right", autoClose: 5000 });
@@ -389,8 +389,7 @@ const PoolCreationForm = () => {
   const selectedStorageOption =
     storages
       ?.map((s) => ({ label: s.storage, value: s.storage }))
-      ?.find((opt) => opt.value === poolDetails?.pool_storage) ||
-    null;
+      ?.find((opt) => opt.value === poolDetails?.pool_storage) || null;
 
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
@@ -671,7 +670,7 @@ const PoolCreationForm = () => {
                                 .filter((name) =>
                                   (
                                     poolDetails.pool_ip_pool_names || []
-                                  ).includes(name)
+                                  ).includes(name),
                                 )
                                 .map((name) => ({ label: name, value: name }))}
                               onChange={handleIpPoolsChange}
@@ -702,7 +701,7 @@ const PoolCreationForm = () => {
                                 value={
                                   poolDetails.pool_template_vm_id?.vmid
                                     ? String(
-                                        poolDetails.pool_template_vm_id.vmid
+                                        poolDetails.pool_template_vm_id.vmid,
                                       )
                                     : ""
                                 }
@@ -737,7 +736,7 @@ const PoolCreationForm = () => {
                               value={nodeOptions.filter((opt) =>
                                 (
                                   poolDetails.pool_selected_nodes || []
-                                ).includes(opt.value)
+                                ).includes(opt.value),
                               )}
                               onChange={handleNodesChange}
                               options={nodeOptions}
@@ -816,6 +815,112 @@ const PoolCreationForm = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Join AD Checkbox */}
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Join AD (For Windows Only)
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0 flex items-center h-full">
+                            <input
+                              type="checkbox"
+                              name="join_ad"
+                              className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                              checked={poolDetails.join_ad || false}
+                              onChange={handleOnChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {poolDetails.join_ad && (
+                        <>
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Domain
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_domain"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_domain || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Domain"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Path
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_path"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_path || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="OU=OU11,OU=OU1"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Username <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_username"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_username || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Username"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Password <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="password"
+                                  name="pool_ad_password"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_password || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Password"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
 
@@ -838,7 +943,7 @@ const PoolCreationForm = () => {
                                 .filter((name) =>
                                   (
                                     poolDetails.pool_ip_pool_names || []
-                                  ).includes(name)
+                                  ).includes(name),
                                 )
                                 .map((name) => ({ label: name, value: name }))}
                               onChange={handleIpPoolsChange}
@@ -868,7 +973,7 @@ const PoolCreationForm = () => {
                               value={nodeOptions.filter((opt) =>
                                 (
                                   poolDetails.pool_selected_nodes || []
-                                ).includes(opt.value)
+                                ).includes(opt.value),
                               )}
                               onChange={handleNodesChange}
                               options={nodeOptions}
@@ -969,9 +1074,9 @@ const PoolCreationForm = () => {
                                 1
                                   ? "Gen1"
                                   : poolDetails.pool_template_vm_id
-                                      ?.generation === 2
-                                  ? "Gen2"
-                                  : ""
+                                        ?.generation === 2
+                                    ? "Gen2"
+                                    : ""
                               }
                               onChange={handleOnChange}
                               className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
@@ -1095,7 +1200,7 @@ const PoolCreationForm = () => {
             {selectedProtocol && (
               <CustomTabs
                 tablist={["RDP", "SSH", "VNC"].filter(
-                  (tab) => tab === selectedProtocol
+                  (tab) => tab === selectedProtocol,
                 )}
                 selectedTab={selectedTab}
                 setSelectedTab={setSelectedTab}
