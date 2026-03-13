@@ -118,7 +118,7 @@ const PoolCreationForm = () => {
         pool_template_vm_id: templateVmId,
         pool_vmware_dc: "",
         pool_vmware_folder: "",
-      })
+      }),
     );
     if (!clusterId) return;
 
@@ -169,7 +169,7 @@ const PoolCreationForm = () => {
             ...prev,
             os_type: hyperVOS,
           },
-        })
+        }),
       );
       return;
     }
@@ -217,7 +217,7 @@ const PoolCreationForm = () => {
             ...prev,
             [keyName]: fieldValue,
           },
-        })
+        }),
       );
     } else {
       if (type === "checkbox") {
@@ -261,7 +261,7 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_ip_pool_names: (selectedOptions || []).map((opt) => opt.value),
-      })
+      }),
     );
   };
 
@@ -270,7 +270,7 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_selected_nodes: selectedNodes,
-      })
+      }),
     );
   };
 
@@ -278,7 +278,7 @@ const PoolCreationForm = () => {
     dispatch(
       setPoolCreationDetails({
         pool_storage: selectedOption?.value || null,
-      })
+      }),
     );
   };
 
@@ -293,7 +293,7 @@ const PoolCreationForm = () => {
           token,
           clusterId: poolDetails.cluster_id,
           nodes: poolDetails.pool_selected_nodes,
-        })
+        }),
       );
     }
   }, [
@@ -305,22 +305,23 @@ const PoolCreationForm = () => {
   ]);
 
   const handleTemplateChange = (e) => {
+    // Always set as array for backend JSON compatibility
     const value = e.target.value;
     dispatch(
       setPoolCreationDetails({
-        pool_template_vm_id: value ? parseInt(value, 10) : null,
-      })
+        pool_template_vm_id: value ? { vmid: parseInt(value, 10) } : {},
+      }),
     );
   };
 
   const handleNamingPatternChange = (e) => {
     dispatch(
-      setPoolCreationDetails({ pool_naming_pattern: e.target.value.trim() })
+      setPoolCreationDetails({ pool_naming_pattern: e.target.value.trim() }),
     );
   };
   const handleCountChange = (e) => {
     dispatch(
-      setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) })
+      setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) }),
     );
   };
   const handleVmwareDCChange = (e) => {
@@ -349,7 +350,7 @@ const PoolCreationForm = () => {
           progress: undefined,
           theme: "light",
           transition: Slide,
-        }
+        },
       );
       return;
     }
@@ -360,14 +361,14 @@ const PoolCreationForm = () => {
     };
     try {
       const payload = await dispatch(
-        createPool({ token, requestData })
+        createPool({ token, requestData }),
       ).unwrap();
       const msg = payload?.msg || "Pool created";
       toast.success(msg, { position: "top-right", autoClose: 5000 });
       navigate("/pools");
       dispatch(resetPoolCreation());
     } catch (err) {
-      const message = typeof err === 'string' ? err : (err?.msg || err?.message || err?.detail || "Pool creation failed");
+      const message = err?.msg || err?.message || "Pool creation failed";
       toast.error(message, { position: "top-right", autoClose: 5000 });
       navigate("/pools/pool-creation-form");
     }
@@ -388,11 +389,10 @@ const PoolCreationForm = () => {
   const selectedStorageOption =
     storages
       ?.map((s) => ({ label: s.storage, value: s.storage }))
-      ?.find((opt) => opt.value === poolDetails?.pool_storage) ||
-    null;
+      ?.find((opt) => opt.value === poolDetails?.pool_storage) || null;
 
   return (
-    <div className="pool_creation w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden mt-4">
+    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
@@ -434,23 +434,26 @@ const PoolCreationForm = () => {
                   </label>
                 </div>
                 <div className="td">
-                  <select
-                    onChange={handleOnChange}
-                    value={poolDetails.pool_type || ""}
-                    name="pool_type"
-                    required
-                  >
-                    <option value="">Pool Type</option>
-                    {poolType.map((item) => (
-                      <option
-                        key={item}
-                        value={item}
-                        className="capitalize"
-                      >
-                        {item}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="mt-2 border-0 ">
+                    <select
+                      onChange={handleOnChange}
+                      value={poolDetails.pool_type || ""}
+                      name="pool_type"
+                      required
+                      className="block cursor-pointer py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                    >
+                      <option value="">Pool Type</option>
+                      {poolType.map((item) => (
+                        <option
+                          key={item}
+                          value={item}
+                          className="capitalize px-1"
+                        >
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -466,17 +469,22 @@ const PoolCreationForm = () => {
                     </label>
                   </div>
                   <div className="td">
-                    <select
-                      id="protocol"
-                      name="pool_protocol"
-                      onChange={handleProtocolChange}
-                      value={poolDetails.pool_protocol || ""}
-                    >
-                      <option value="">Select Protocol</option>
-                      <option value="RDP">RDP</option>
-                      <option value="SSH">SSH</option>
-                      <option value="VNC">VNC</option>
-                    </select>
+                    <div className="mt-2 border-0">
+                      <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                        <select
+                          id="protocol"
+                          name="pool_protocol"
+                          onChange={handleProtocolChange}
+                          value={poolDetails.pool_protocol || ""}
+                          className="block flex-1 bg-transparent py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                        >
+                          <option value="">Select Protocol</option>
+                          <option value="RDP">RDP</option>
+                          <option value="SSH">SSH</option>
+                          <option value="VNC">VNC</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -490,17 +498,22 @@ const PoolCreationForm = () => {
                     </label>
                   </div>
                   <div className="td">
-                    <select
-                      onChange={handleClusterSelect}
-                      value={poolDetails.cluster_id || ""}
-                    >
-                      <option value="">Select Cluster</option>
-                      {clusters.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="mt-2 border-0">
+                      <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                        <select
+                          onChange={handleClusterSelect}
+                          value={poolDetails.cluster_id || ""}
+                          className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                        >
+                          <option value="">Select Cluster</option>
+                          {clusters.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
                     {error && <div className="text-red-600 mt-1">{error}</div>}
                   </div>
                 </div>
@@ -515,14 +528,18 @@ const PoolCreationForm = () => {
                     </label>
                   </div>
                   <div className="td">
-                    <input
-                      type="text"
-                      name="pool_name"
-                      value={poolDetails.pool_name || ""}
-                      onChange={handleOnChange}
-                      required
-                      placeholder="Pool Name"
-                    />
+                    <div className="mt-2 border-0">
+                      <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                        <input
+                          type="text"
+                          name="pool_name"
+                          value={poolDetails.pool_name || ""}
+                          onChange={handleOnChange}
+                          required
+                          className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -543,31 +560,36 @@ const PoolCreationForm = () => {
                       </label>
                     </div>
                     <div className="td">
-                      <select
-                        id="pool_os_type"
-                        name="pool_os_type"
-                        onChange={handleOnChange}
-                        value={poolDetails.pool_os_type || ""}
-                      >
-                        <option value="">Select OS</option>
-                        {isHyperVCluster ? (
-                          <>
-                            <option value="Windows 10">Windows 10 </option>
-                            <option value="Windows 11">Windows 11 </option>
-                            <option value="Windows server OS">
-                              Windows (2019/2022/2025){" "}
-                            </option>
-                            <option value="Ubuntu desktop">
-                              Linux (Ubuntu desktop)
-                            </option>
-                          </>
-                        ) : (
-                          <>
-                            <option value="Windows">Windows</option>
-                            <option value="Linux">Linux</option>
-                          </>
-                        )}
-                      </select>
+                      <div className="mt-2 border-0">
+                        <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                          <select
+                            id="pool_os_type"
+                            name="pool_os_type"
+                            onChange={handleOnChange}
+                            value={poolDetails.pool_os_type || ""}
+                            className="block flex-1 bg-transparent py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                          >
+                            <option value="">Select OS</option>
+                            {isHyperVCluster ? (
+                              <>
+                                <option value="Windows 10">Windows 10 </option>
+                                <option value="Windows 11">Windows 11 </option>
+                                <option value="Windows server OS">
+                                  Windows (2019/2022/2025){" "}
+                                </option>
+                                <option value="Ubuntu desktop">
+                                  Linux (Ubuntu desktop)
+                                </option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="Windows">Windows</option>
+                                <option value="Linux">Linux</option>
+                              </>
+                            )}
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -581,18 +603,21 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <select
-                            name="pool_vmware_dc"
-                            value={poolDetails.pool_vmware_dc || ""}
-                            onChange={handleVmwareDCChange}
-                          >
-                            <option value="">Select DC</option>
-                            {vmwareDCs.map((dc) => (
-                              <option key={dc.id || dc.name} value={dc.name}>
-                                {dc.name}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="mt-2 border-0">
+                            <select
+                              name="pool_vmware_dc"
+                              value={poolDetails.pool_vmware_dc || ""}
+                              onChange={handleVmwareDCChange}
+                              className="w-full cursor-pointer py-1.5 text-gray-900 border-2"
+                            >
+                              <option value="">Select DC</option>
+                              {vmwareDCs.map((dc) => (
+                                <option key={dc.id || dc.name} value={dc.name}>
+                                  {dc.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       </div>
 
@@ -603,21 +628,24 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <select
-                            name="pool_vmware_folder"
-                            value={poolDetails.pool_vmware_folder || ""}
-                            onChange={handleVmwareFolderChange}
-                          >
-                            <option value="">Select Folder</option>
-                            {vmwareFolders.map((folder) => (
-                              <option
-                                key={folder.id || folder.name}
-                                value={folder.name}
-                              >
-                                {folder.name}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="mt-2 border-0">
+                            <select
+                              name="pool_vmware_folder"
+                              value={poolDetails.pool_vmware_folder || ""}
+                              onChange={handleVmwareFolderChange}
+                              className="w-full cursor-pointer py-1.5 text-gray-900 border-2"
+                            >
+                              <option value="">Select Folder</option>
+                              {vmwareFolders.map((folder) => (
+                                <option
+                                  key={folder.id || folder.name}
+                                  value={folder.name}
+                                >
+                                  {folder.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       </div>
                     </>
@@ -634,25 +662,27 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            isMulti
-                            name="pool_ip_pool_names"
-                            value={ipPoolNames
-                              .filter((name) =>
-                                (
-                                  poolDetails.pool_ip_pool_names || []
-                                ).includes(name)
-                              )
-                              .map((name) => ({ label: name, value: name }))}
-                            onChange={handleIpPoolsChange}
-                            options={ipPoolNames.map((name) => ({
-                              label: name,
-                              value: name,
-                            }))}
-                            className="basic-multi-select"
-                            classNamePrefix="select"
-                            placeholder="Select IP Pools"
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              isMulti
+                              name="pool_ip_pool_names"
+                              value={ipPoolNames
+                                .filter((name) =>
+                                  (
+                                    poolDetails.pool_ip_pool_names || []
+                                  ).includes(name),
+                                )
+                                .map((name) => ({ label: name, value: name }))}
+                              onChange={handleIpPoolsChange}
+                              options={ipPoolNames.map((name) => ({
+                                label: name,
+                                value: name,
+                              }))}
+                              className="basic-multi-select text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select IP Pools"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -663,21 +693,32 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <select
-                            name="pool_template_vm_id"
-                            onChange={handleTemplateChange}
-                            value={poolDetails.pool_template_vm_id || ""}
-                          >
-                            <option value="">Select Template</option>
-                            {templates.map((template) => (
-                              <option
-                                key={template.vmid}
-                                value={String(template.vmid)}
+                          <div className="mt-2 border-0">
+                            <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                              <select
+                                name="pool_template_vm_id"
+                                onChange={handleTemplateChange}
+                                value={
+                                  poolDetails.pool_template_vm_id?.vmid
+                                    ? String(
+                                        poolDetails.pool_template_vm_id.vmid,
+                                      )
+                                    : ""
+                                }
+                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6"
                               >
-                                {template.vmid} ({template.name})
-                              </option>
-                            ))}
-                          </select>
+                                <option value="">Select Template</option>
+                                {templates.map((template) => (
+                                  <option
+                                    key={template.vmid}
+                                    value={String(template.vmid)}
+                                  >
+                                    {template.vmid} ({template.name})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -688,21 +729,23 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            isMulti
-                            name="pool_selected_nodes"
-                            value={nodeOptions.filter((opt) =>
-                              (
-                                poolDetails.pool_selected_nodes || []
-                              ).includes(opt.value)
-                            )}
-                            onChange={handleNodesChange}
-                            options={nodeOptions}
-                            className="basic-multi-select"
-                            classNamePrefix="select"
-                            placeholder="Select Nodes"
-                            noOptionsMessage={() => "No nodes available"}
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              isMulti
+                              name="pool_selected_nodes"
+                              value={nodeOptions.filter((opt) =>
+                                (
+                                  poolDetails.pool_selected_nodes || []
+                                ).includes(opt.value),
+                              )}
+                              onChange={handleNodesChange}
+                              options={nodeOptions}
+                              className="basic-multi-select text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select Nodes"
+                              noOptionsMessage={() => "No nodes available"}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -713,20 +756,22 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            name="pool_storage"
-                            value={selectedStorageOption}
-                            onChange={handleStorageChange}
-                            options={storages.map((s) => ({
-                              label: s.storage,
-                              value: s.storage,
-                            }))}
-                            className="basic-single"
-                            classNamePrefix="select"
-                            placeholder="Select Storage"
-                            isClearable={true}
-                            noOptionsMessage={() => "No storages available"}
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              name="pool_storage"
+                              value={selectedStorageOption}
+                              onChange={handleStorageChange}
+                              options={storages.map((s) => ({
+                                label: s.storage,
+                                value: s.storage,
+                              }))}
+                              className="basic-single text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select Storage"
+                              isClearable={true}
+                              noOptionsMessage={() => "No storages available"}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -757,16 +802,125 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <input
-                            type="number"
-                            min={1}
-                            name="pool_number_of_vms"
-                            value={poolDetails.pool_number_of_vms || ""}
-                            onChange={handleCountChange}
-                            placeholder="Number of VMs"
-                          />
+                          <div className="mt-2 border-0">
+                            <input
+                              type="number"
+                              min={1}
+                              name="pool_number_of_vms"
+                              className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                              value={poolDetails.pool_number_of_vms || ""}
+                              onChange={handleCountChange}
+                              placeholder="Number of VMs"
+                            />
+                          </div>
                         </div>
                       </div>
+
+                      {/* Join AD Checkbox */}
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Join AD (For Windows Only)
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0 flex items-center h-full">
+                            <input
+                              type="checkbox"
+                              name="join_ad"
+                              className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                              checked={poolDetails.join_ad || false}
+                              onChange={handleOnChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {poolDetails.join_ad && (
+                        <>
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Domain
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_domain"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_domain || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Domain"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Path
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_path"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_path || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="OU=OU11,OU=OU1"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Username <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_username"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_username || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Username"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Password <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="password"
+                                  name="pool_ad_password"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_password || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Password"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
 
@@ -781,25 +935,27 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            isMulti
-                            name="pool_ip_pool_names"
-                            value={ipPoolNames
-                              .filter((name) =>
-                                (
-                                  poolDetails.pool_ip_pool_names || []
-                                ).includes(name)
-                              )
-                              .map((name) => ({ label: name, value: name }))}
-                            onChange={handleIpPoolsChange}
-                            options={ipPoolNames.map((name) => ({
-                              label: name,
-                              value: name,
-                            }))}
-                            className="basic-multi-select"
-                            classNamePrefix="select"
-                            placeholder="Select IP Pools"
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              isMulti
+                              name="pool_ip_pool_names"
+                              value={ipPoolNames
+                                .filter((name) =>
+                                  (
+                                    poolDetails.pool_ip_pool_names || []
+                                  ).includes(name),
+                                )
+                                .map((name) => ({ label: name, value: name }))}
+                              onChange={handleIpPoolsChange}
+                              options={ipPoolNames.map((name) => ({
+                                label: name,
+                                value: name,
+                              }))}
+                              className="basic-multi-select text-xs"
+                              classNamePrefix="select"
+                              placeholder="Select IP Pools"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -810,22 +966,31 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <Select
-                            isMulti
-                            name="pool_selected_nodes"
-                            value={nodeOptions.filter((opt) =>
-                              (
-                                poolDetails.pool_selected_nodes || []
-                              ).includes(opt.value)
-                            )}
-                            onChange={handleNodesChange}
-                            options={nodeOptions}
-                            className="basic-multi-select"
-                            classNamePrefix="select"
-                            placeholder="Not applicable for Hyper-V"
-                            isDisabled={true}
-                            noOptionsMessage={() => "Not applicable"}
-                          />
+                          <div className="mt-2 border-0">
+                            <Select
+                              isMulti
+                              name="pool_selected_nodes"
+                              value={nodeOptions.filter((opt) =>
+                                (
+                                  poolDetails.pool_selected_nodes || []
+                                ).includes(opt.value),
+                              )}
+                              onChange={handleNodesChange}
+                              options={nodeOptions}
+                              className="basic-multi-select text-xs"
+                              classNamePrefix="select"
+                              placeholder="Not applicable for Hyper-V"
+                              isDisabled={true}
+                              noOptionsMessage={() => "Not applicable"}
+                              styles={{
+                                control: (base) => ({
+                                  ...base,
+                                  cursor: "not-allowed",
+                                  backgroundColor: "#f3f4f6",
+                                }),
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -836,15 +1001,18 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <input
-                            type="text"
-                            name="hyperv_vhdPath"
-                            value={
-                              poolDetails.pool_template_vm_id?.vhdPath || ""
-                            }
-                            onChange={handleOnChange}
-                            placeholder="Enter vhdPath"
-                          />
+                          <div className="mt-2 border-0">
+                            <input
+                              type="text"
+                              name="hyperv_vhdPath"
+                              value={
+                                poolDetails.pool_template_vm_id?.vhdPath || ""
+                              }
+                              onChange={handleOnChange}
+                              placeholder="Enter vhdPath"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -855,15 +1023,18 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <input
-                            type="text"
-                            name="hyperv_PvhdPath"
-                            value={
-                              poolDetails.pool_template_vm_id?.PvhdPath || ""
-                            }
-                            onChange={handleOnChange}
-                            placeholder="Enter PvhdPath"
-                          />
+                          <div className="mt-2 border-0">
+                            <input
+                              type="text"
+                              name="hyperv_PvhdPath"
+                              value={
+                                poolDetails.pool_template_vm_id?.PvhdPath || ""
+                              }
+                              onChange={handleOnChange}
+                              placeholder="Enter PvhdPath"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
                         </div>
                       </div>
                       <div className="tr">
@@ -873,15 +1044,18 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <input
-                            type="text"
-                            name="hyperv_HostPassword"
-                            value={
-                              poolDetails.pool_template_vm_id?.password || ""
-                            }
-                            onChange={handleOnChange}
-                            placeholder="Enter Host password"
-                          />
+                          <div className="mt-2 border-0">
+                            <input
+                              type="text"
+                              name="hyperv_HostPassword"
+                              value={
+                                poolDetails.pool_template_vm_id?.password || ""
+                              }
+                              onChange={handleOnChange}
+                              placeholder="Enter Host password"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -892,23 +1066,26 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <select
-                            name="hyperv_generation"
-                            value={
-                              poolDetails.pool_template_vm_id?.generation ===
-                              1
-                                ? "Gen1"
-                                : poolDetails.pool_template_vm_id
-                                    ?.generation === 2
-                                ? "Gen2"
-                                : ""
-                            }
-                            onChange={handleOnChange}
-                          >
-                            <option value="">Select Generation</option>
-                            <option value="Gen1">Gen1</option>
-                            <option value="Gen2">Gen2</option>
-                          </select>
+                          <div className="mt-2 border-0">
+                            <select
+                              name="hyperv_generation"
+                              value={
+                                poolDetails.pool_template_vm_id?.generation ===
+                                1
+                                  ? "Gen1"
+                                  : poolDetails.pool_template_vm_id
+                                        ?.generation === 2
+                                    ? "Gen2"
+                                    : ""
+                              }
+                              onChange={handleOnChange}
+                              className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
+                            >
+                              <option value="">Select Generation</option>
+                              <option value="Gen1">Gen1</option>
+                              <option value="Gen2">Gen2</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
 
@@ -919,18 +1096,21 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <input
-                            type="number"
-                            min={2}
-                            step={1}
-                            max={64}
-                            name="hyperv_memory"
-                            value={
-                              poolDetails.pool_template_vm_id?.memory || ""
-                            }
-                            onChange={handleOnChange}
-                            placeholder="Enter memory size (GB)"
-                          />
+                          <div className="mt-2 border-0">
+                            <input
+                              type="number"
+                              min={2}
+                              step={1}
+                              max={64}
+                              name="hyperv_memory"
+                              value={
+                                poolDetails.pool_template_vm_id?.memory || ""
+                              }
+                              onChange={handleOnChange}
+                              placeholder="Enter memory size (GB)"
+                              className="block w-full bg-white py-1.5 pl-1 text-gray-900 border-2 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -941,28 +1121,31 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <select
-                            name="hyperv_switch"
-                            value={
-                              poolDetails.pool_template_vm_id?.switch || ""
-                            }
-                            onChange={handleOnChange}
-                          >
-                            {ispoolloading ? (
-                              <option>Loading switches...</option>
-                            ) : switches && switches.length > 0 ? (
-                              <>
-                                <option value="">Select Switch</option>
-                                {switches.map((sw, index) => (
-                                  <option key={index} value={sw.Name}>
-                                    {sw.Name}
-                                  </option>
-                                ))}
-                              </>
-                            ) : (
-                              <option>No switches available</option>
-                            )}
-                          </select>
+                          <div className="mt-2 border-0">
+                            <select
+                              name="hyperv_switch"
+                              value={
+                                poolDetails.pool_template_vm_id?.switch || ""
+                              }
+                              onChange={handleOnChange}
+                              className="block w-full cursor-pointer py-1.5 text-gray-900 border-2 bg-white sm:text-sm sm:leading-6"
+                            >
+                              {ispoolloading ? (
+                                <option>Loading switches...</option>
+                              ) : switches && switches.length > 0 ? (
+                                <>
+                                  <option value="">Select Switch</option>
+                                  {switches.map((sw, index) => (
+                                    <option key={index} value={sw.Name}>
+                                      {sw.Name}
+                                    </option>
+                                  ))}
+                                </>
+                              ) : (
+                                <option>No switches available</option>
+                              )}
+                            </select>
+                          </div>
                         </div>
                       </div>
 
@@ -993,14 +1176,17 @@ const PoolCreationForm = () => {
                           </label>
                         </div>
                         <div className="td">
-                          <input
-                            type="number"
-                            min={1}
-                            name="pool_number_of_vms"
-                            value={poolDetails.pool_number_of_vms || ""}
-                            onChange={handleCountChange}
-                            placeholder="Number of VMs"
-                          />
+                          <div className="mt-2 border-0">
+                            <input
+                              type="number"
+                              min={1}
+                              name="pool_number_of_vms"
+                              className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                              value={poolDetails.pool_number_of_vms || ""}
+                              onChange={handleCountChange}
+                              placeholder="Number of VMs"
+                            />
+                          </div>
                         </div>
                       </div>
                     </>
@@ -1014,7 +1200,7 @@ const PoolCreationForm = () => {
             {selectedProtocol && (
               <CustomTabs
                 tablist={["RDP", "SSH", "VNC"].filter(
-                  (tab) => tab === selectedProtocol
+                  (tab) => tab === selectedProtocol,
                 )}
                 selectedTab={selectedTab}
                 setSelectedTab={setSelectedTab}
