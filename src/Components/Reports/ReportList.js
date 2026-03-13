@@ -116,9 +116,9 @@ const ReportList = () => {
   ));
 
   return (
-    <div className="table_container">
-      <div className="report-list">
-        <div className="header-item">
+    <div className="table-container p-2 md:p-4 h-full">
+      <div className="report-list flex flex-col h-full overflow-hidden">
+        <div className="header-item flex flex-wrap justify-between items-center gap-4 mb-4">
           <button className="refresh-button" onClick={handleRefresh} title="Refresh">
             <i className={`fa-solid fa-rotate-right icon${isLoading ? " rotating" : ""}`}></i>
           </button>

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  selectAuthToken,
-  selectAuthTokenParsed,
-} from "../../redux/features/Auth/AuthSelectors";
+import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 import "./css/PoolCreationForm.css";
 import VNCsettings from "./VNCsettings";
 import SSHsettings from "./SSHsettings";
@@ -11,22 +8,8 @@ import RDPsettings from "./RDPsettings";
 import CustomTabs from "../CustomTabs/CustomTabs";
 import { getPoolByIdService } from "../../Services/PoolService";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  updatePool,
-  fetchClusterNodes,
-  fetchTemplates,
-  fetchVmwareDCs,
-  fetchVmwareFolders,
-  fetchIpPoolNames,
-} from "../../redux/features/Pools/PoolsThunks";
-import {
-  selectCreationNodes,
-  selectCreationTemplates,
-  selectCreationIpPoolNames,
-  selectCreationVmwareDCs,
-  selectCreationVmwareFolders,
-  selectPoolSaveLoading,
-} from "../../redux/features/Pools/PoolsSelectors";
+import { updatePool, fetchClusterNodes, fetchTemplates, fetchVmwareDCs, fetchVmwareFolders, fetchIpPoolNames } from "../../redux/features/Pools/PoolsThunks";
+import { selectCreationNodes, selectCreationTemplates, selectCreationIpPoolNames, selectCreationVmwareDCs, selectCreationVmwareFolders, selectPoolSaveLoading } from "../../redux/features/Pools/PoolsSelectors";
 import { Loader2 } from "lucide-react";
 import { Slide, toast } from "react-toastify";
 import SkeletonEditPool from "./SkeletonEditPool";
@@ -55,12 +38,12 @@ const EditPool = (props) => {
   const selectStyles = {
     container: (base) => ({
       ...base,
-      width: "100%",
+      width: "100%", 
     }),
     control: (base, state) => ({
       ...base,
       minHeight: "2.25rem",
-      borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
+      borderColor: state.isFocused ? "#3b82f6" : "#d1d5db", 
       boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
       "&:hover": {
         borderColor: "#3b82f6",
@@ -184,7 +167,9 @@ const EditPool = (props) => {
       ...poolDetails,
       email: userEmail,
     };
-    dispatch(updatePool({ token, poolId: poolDetails.id, requestData }))
+    dispatch(
+      updatePool({ token, poolId: poolDetails.id, requestData })
+    )
       .unwrap()
       .then((payload) => {
         if (payload?.pool) {
@@ -225,26 +210,15 @@ const EditPool = (props) => {
   }));
 
   return (
-    <div className="pool_creation w-[98%] h-[86vh]  m-auto flex-1 mx-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="pool_creation w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden mt-4">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
           className="ml-4 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none  focus:ring-opacity-10"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
         </div>
       </div>
       <div className="pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
@@ -316,37 +290,36 @@ const EditPool = (props) => {
                 )}
                 {poolDetails.pool_type === "Automated" && (
                   <>
-                    <div className="protocol_field mb-4 mt-3">
-                      <div className="tr">
-                        <div className="th">
-                          <label
-                            htmlFor="protocol"
-                            className="block text-sm font-medium leading-6 text-gray-900 border-0"
-                          >
-                            Pool OS Type{" "}
-                            <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
-                              <select
-                                id="protocol"
-                                name="pool_os_type"
-                                onChange={handleOnChange}
-                                value={poolDetails.pool_os_type || ""}
-                                className="block flex-1  bg-transparent py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                              >
-                                <option value="">Select OS</option>
-                                <option value="Windows">Windows</option>
-                                <option value="Linux">Linux</option>
-                                <option value="MacOS">MacOS</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
+                   <div className="protocol_field mb-4 mt-3">
+                <div className="tr">
+                  <div className="th">
+                    <label
+                      htmlFor="protocol"
+                      className="block text-sm font-medium leading-6 text-gray-900 border-0"
+                    >
+                      Pool OS Type <span className="text-red-500 text-xl">*</span>
+                    </label>
+                  </div>
+                  <div className="td">
+                    <div className="mt-2 border-0">
+                      <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+                        <select
+                          id="protocol"
+                          name="pool_os_type"
+                          onChange={handleOnChange}
+                          value={poolDetails.pool_os_type || ""}
+                          className="block flex-1  bg-transparent py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                        >
+                          <option value="">Select OS</option>
+                          <option value="Windows">Windows</option>
+                          <option value="Linux">Linux</option>
+                          <option value="MacOS">MacOS</option>
+                        </select>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
                     <div className="tr w-full">
                       <div className="th w-full">
                         <label className="block text-sm font-medium leading-6 text-gray-900">
@@ -361,8 +334,8 @@ const EditPool = (props) => {
                             value={ipPoolNames
                               .filter((name) =>
                                 (poolDetails.pool_ip_pool_names || []).includes(
-                                  name,
-                                ),
+                                  name
+                                )
                               )
                               .map((name) => ({
                                 label: name,
@@ -401,8 +374,8 @@ const EditPool = (props) => {
                             name="pool_selected_nodes"
                             value={nodeOptions.filter((opt) =>
                               (poolDetails.pool_selected_nodes || []).includes(
-                                opt.value,
-                              ),
+                                opt.value
+                              )
                             )}
                             onChange={handleNodesChange}
                             options={nodeOptions}
@@ -438,11 +411,11 @@ const EditPool = (props) => {
                               const template = templates.find(
                                 (t) =>
                                   String(t.vmid) ===
-                                  String(poolDetails.pool_template_vm_id),
+                                  String(poolDetails.pool_template_vm_id)
                               );
                               return template
                                 ? `${template.vmid} (${template.name})`
-                                : poolDetails.pool_template_vm_id.vmid || "N/A";
+                                : poolDetails.pool_template_vm_id || "N/A";
                             })()}
                             disabled
                           />
@@ -485,117 +458,12 @@ const EditPool = (props) => {
                             value={poolDetails.pool_number_of_vms || ""}
                             onChange={handleCountChange}
                             placeholder="Number of VMs"
+                            
+                            
                           />
                         </div>
                       </div>
                     </div>
-
-                    {/* Join AD Checkbox */}
-                    <div className="tr">
-                      <div className="th">
-                        <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                          Join AD (For Windows Only)
-                        </label>
-                      </div>
-                      <div className="td">
-                        <div className="mt-2 border-0 flex items-center h-full">
-                          <input
-                            type="checkbox"
-                            name="join_ad"
-                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-                            checked={poolDetails.pool_ad_username || false}
-                            onChange={handleOnChange}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {poolDetails.pool_ad_username && (
-                      <>
-                        <div className="tr">
-                          <div className="th">
-                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                              Domain
-                            </label>
-                          </div>
-                          <div className="td">
-                            <div className="mt-2 border-0">
-                              <input
-                                type="text"
-                                name="pool_ad_domain"
-                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_ad_domain || ""}
-                                onChange={handleOnChange}
-                                placeholder="Domain"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="tr">
-                          <div className="th">
-                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                              Path
-                            </label>
-                          </div>
-                          <div className="td">
-                            <div className="mt-2 border-0">
-                              <input
-                                type="text"
-                                name="pool_ad_path"
-                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_ad_path || ""}
-                                onChange={handleOnChange}
-                                placeholder="OU=OU11,OU=OU1"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="tr">
-                          <div className="th">
-                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                              Username <span className="text-red-500">*</span>
-                            </label>
-                          </div>
-                          <div className="td">
-                            <div className="mt-2 border-0">
-                              <input
-                                type="text"
-                                name="pool_ad_username"
-                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_ad_username || ""}
-                                onChange={handleOnChange}
-                                placeholder="Username"
-                                required
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="tr">
-                          <div className="th">
-                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                              Password <span className="text-red-500">*</span>
-                            </label>
-                          </div>
-                          <div className="td">
-                            <div className="mt-2 border-0">
-                              <input
-                                type="password"
-                                name="pool_ad_password"
-                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_ad_password || ""}
-                                onChange={handleOnChange}
-                                placeholder="Password"
-                                required
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
-
                     {poolDetails.cluster_type === "VMware" && (
                       <>
                         <div className="tr">
@@ -661,7 +529,7 @@ const EditPool = (props) => {
             <div className="w-full rounded-md bg-white">
               <CustomTabs
                 tablist={["RDP", "SSH", "VNC"].filter(
-                  (tab) => tab === poolDetails.pool_protocol,
+                  (tab) => tab === poolDetails.pool_protocol
                 )}
                 selectedTab={selectedTab}
                 setSelectedTab={setSelectedTab}
@@ -700,18 +568,14 @@ const EditPool = (props) => {
             disabled={isLoading || poolSaveLoading}
             className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
               ${
-                isLoading || poolSaveLoading
+                (isLoading || poolSaveLoading)
                   ? "bg-[#1a365d] cursor-not-allowed"
                   : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
               }
             `}
           >
-            {(isLoading || poolSaveLoading) && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-            <span>
-              {isLoading || poolSaveLoading ? "Updating..." : "Update"}
-            </span>
+            {(isLoading || poolSaveLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
+            <span>{isLoading || poolSaveLoading ? "Updating..." : "Update"}</span>
           </button>
         </div>
       </div>

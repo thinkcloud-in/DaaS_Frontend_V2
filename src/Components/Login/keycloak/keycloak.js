@@ -1,13 +1,13 @@
-import Keycloak from "keycloak-js";
+import Keycloak from "keycloak-js"
 import { getEnv } from "utils/getEnv";
 
-const KEYCLOAK_URL = getEnv("KEYCLOAK_URL");
+const KEYCLOAK_URL = getEnv('KEYCLOAK_URL');
 
-const KeycloakConfig = new Keycloak({
-  url: `${KEYCLOAK_URL}`,
-  realm: "guacamole",
-  // clientId: "react-client"
-  clientId: "lucky-client",
-});
+const KeycloakConfig=new Keycloak({
+    url: `${KEYCLOAK_URL}`,
+    realm: 'guacamole',
+    clientId: "react-client"
+    // clientId: "lucky"
+})
 
-export default KeycloakConfig;
+export default KeycloakConfig

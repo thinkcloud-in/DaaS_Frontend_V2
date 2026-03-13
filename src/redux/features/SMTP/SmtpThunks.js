@@ -23,7 +23,7 @@ export const saveSmtpConfigThunk = createAsyncThunk(
   async ({ token, data, existingConfig }, { rejectWithValue }) => {
     try {
       const res = await saveSmtpConfig(token, data, existingConfig);
-      return res;
+      return res.data || res;
     } catch (err) {
       return rejectWithValue(err.response?.data?.msg || 'Failed to save SMTP config');
     }

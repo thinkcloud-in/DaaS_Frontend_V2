@@ -44,19 +44,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex items-center justify-start gap-3">
-                  <input
-                    type="number"
-                    name="pool_port"
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    placeholder="Port"
-                    value={poolDetails.pool_port}
-                    onChange={onChange}
-                  />
-                
-                </div>
-              </div>
+              <input
+                type="number"
+                name="pool_port"
+                placeholder="Port"
+                value={poolDetails.pool_port}
+                onChange={onChange}
+              />
             </div>
           </div></div></div>
       <div className="divide-slate-500 my-6 mt-7">
@@ -71,16 +65,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    name="pool_max_connections" onChange={onChange}
-                    value={poolDetails.pool_max_connections}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                name="pool_max_connections"
+                onChange={onChange}
+                value={poolDetails.pool_max_connections}
+                placeholder="Max Connections"
+              />
             </div>
           </div>
           <div className="tr">
@@ -90,16 +81,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    name="pool_max_connections_per_user" onChange={onChange}
-                    value={poolDetails.pool_max_connections_per_user}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                name="pool_max_connections_per_user"
+                onChange={onChange}
+                value={poolDetails.pool_max_connections_per_user}
+                placeholder="Maximum connections per user"
+              />
             </div>
           </div>
         </div>
@@ -116,17 +104,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder="Load Balance"
-                    name="pool_load_balance_info" onChange={onChange}
-                    value={poolDetails.pool_load_balance_info}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Load Balance"
+                name="pool_load_balance_info"
+                onChange={onChange}
+                value={poolDetails.pool_load_balance_info}
+              />
             </div>
           </div>
         </div>
@@ -162,17 +146,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    placeholder="Port"
-                    name="pool_guacd_port" onChange={onChange}
-                    value={poolDetails.pool_guacd_port}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                placeholder="Port"
+                name="pool_guacd_port"
+                onChange={onChange}
+                value={poolDetails.pool_guacd_port}
+              />
             </div>
           </div>
           <div className="tr">
@@ -182,22 +162,18 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2 border-0">
-                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <select
-                    name="pool_guacd_encryption" onChange={onChange}
-                    value={poolDetails.pool_guacd_encryption}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  >
-                    <option value="" disabled selected>
-                      Select encryption type
-                    </option>
-                    <option value="none">None</option>
-                    <option value="ssl">SSL</option>
-                    <option value="tls">TLS</option>
-                  </select>
-                </div>
-              </div>
+              <select
+                name="pool_guacd_encryption"
+                onChange={onChange}
+                value={poolDetails.pool_guacd_encryption}
+              >
+                <option value="" disabled>
+                  Select encryption type
+                </option>
+                <option value="none">None</option>
+                <option value="ssl">SSL</option>
+                <option value="tls">TLS</option>
+              </select>
             </div>
           </div>
         </div>
@@ -214,17 +190,15 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex items-center justify-start gap-3">
-                  <input
-                    type="text"
-                    name="pool_username" onChange={onChange}
-                    value={poolDetails.pool_username}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    placeholder="Username"
-                  />
-                  <div>(username)</div>
-                </div>
+              <div className="flex items-center justify-start gap-3">
+                <input
+                  type="text"
+                  name="pool_username"
+                  onChange={onChange}
+                  value={poolDetails.pool_username}
+                  placeholder="Username"
+                />
+                <div className="whitespace-nowrap">(username)</div>
               </div>
             </div>
           </div>
@@ -235,17 +209,15 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex items-center justify-start gap-3">
-                  <input
-                    type="password"
-                    name="pool_password" onChange={onChange}
-                    value={poolDetails.pool_password}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    placeholder="Password"
-                  />
-                  <div>(password)</div>
-                </div>
+              <div className="flex items-center justify-start gap-3">
+                <input
+                  type="password"
+                  name="pool_password"
+                  onChange={onChange}
+                  value={poolDetails.pool_password}
+                  placeholder="Password"
+                />
+                <div className="whitespace-nowrap">(password)</div>
               </div>
             </div>
           </div>
@@ -300,21 +272,17 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2 border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <select
-                    name="pool_cursor" onChange={onChange}
-                    value={poolDetails.pool_cursor}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  >
-                    <option value="" disabled selected>
-                      Select cursor type
-                    </option>
-                    <option value="local">Local</option>
-                    <option value="remote">Remote</option>
-                  </select>
-                </div>
-              </div>
+              <select
+                name="pool_cursor"
+                onChange={onChange}
+                value={poolDetails.pool_cursor}
+              >
+                <option value="" disabled>
+                  Select cursor type
+                </option>
+                <option value="local">Local</option>
+                <option value="remote">Remote</option>
+              </select>
             </div>
           </div>
           <div className="tr">
@@ -324,21 +292,17 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2 border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <select
-                    name="pool_color_depth" onChange={onChange}
-                    value={poolDetails.pool_color_depth}
-                    className="block flex-1  bg-white py-1.5 pl-1 text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  >
-                    <option value="">Select Color Depth</option>
-                    <option value="8">8-bit</option>
-                    <option value="16">16-bit</option>
-                    <option value="24">24-bit</option>
-                    <option value="32">32-bit</option>
-                  </select>
-                </div>
-              </div>
+              <select
+                name="pool_color_depth"
+                onChange={onChange}
+                value={poolDetails.pool_color_depth}
+              >
+                <option value="">Select Color Depth</option>
+                <option value="8">8-bit</option>
+                <option value="16">16-bit</option>
+                <option value="24">24-bit</option>
+                <option value="32">32-bit</option>
+              </select>
             </div>
           </div>
           {/* <div className="tr">
@@ -459,17 +423,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    placeholder="Destination Port"
-                    name="pool_dest_port" onChange={onChange}
-                    value={poolDetails.pool_dest_port}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                placeholder="Destination Port"
+                name="pool_dest_port"
+                onChange={onChange}
+                value={poolDetails.pool_dest_port}
+              />
             </div>
           </div>
           
@@ -486,17 +446,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder=""
-                    name="pool_recording_path" onChange={onChange}
-                    value={poolDetails.pool_recording_path}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Recording Path"
+                name="pool_recording_path"
+                onChange={onChange}
+                value={poolDetails.pool_recording_path}
+              />
             </div>
           </div>
           <div className="tr">
@@ -506,17 +462,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder=""
-                    name="pool_recording_name" onChange={onChange}
-                    value={poolDetails.pool_recording_name}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Recording Name"
+                name="pool_recording_name"
+                onChange={onChange}
+                value={poolDetails.pool_recording_name}
+              />
             </div>
           </div>
           <div className="tr">
@@ -626,17 +578,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    placeholder="Port"
-                    name="pool_sftp_port" onChange={onChange}
-                    value={poolDetails.pool_sftp_port}
-                    className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                placeholder="SFTP Port"
+                name="pool_sftp_port"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_port}
+              />
             </div>
           </div>
           <div className="tr">
@@ -646,17 +594,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder="User name"
-                    name="pool_sftp_username" onChange={onChange}
-                    value={poolDetails.pool_sftp_username}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="SFTP Username"
+                name="pool_sftp_username"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_username}
+              />
             </div>
           </div>
           <div className="tr">
@@ -666,17 +610,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    name="pool_sftp_password" onChange={onChange}
-                    value={poolDetails.pool_sftp_password}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="password"
+                placeholder="SFTP Password"
+                name="pool_sftp_password"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_password}
+              />
             </div>
           </div>
           <div className="tr">
@@ -686,17 +626,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder="Host Key"
-                    name="pool_sftp_host_key" onChange={onChange}
-                    value={poolDetails.pool_sftp_host_key}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="SFTP Host Key"
+                name="pool_sftp_host_key"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_host_key}
+              />
             </div>
           </div>
           <div className="tr">
@@ -706,16 +642,12 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2 border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <textarea
-                    name="pool_sftp_private_key" onChange={onChange}
-                    value={poolDetails.pool_sftp_private_key}
-                    className="textarea block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                    rows="4"
-                  />
-                </div>
-              </div>
+              <textarea
+                name="pool_sftp_private_key"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_private_key}
+                rows="4"
+              />
             </div>
           </div>
           <div className="tr">
@@ -725,17 +657,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="password"
-                    placeholder="Passphrase"
-                    name="pool_sftp_passphrase" onChange={onChange}
-                    value={poolDetails.pool_sftp_passphrase}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="password"
+                placeholder="Passphrase"
+                name="pool_sftp_passphrase"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_passphrase}
+              />
             </div>
           </div>
           <div className="tr">
@@ -745,17 +673,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder=""
-                    name="pool_sftp_root_directory" onChange={onChange}
-                    value={poolDetails.pool_sftp_root_directory}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="SFTP Root Directory"
+                name="pool_sftp_root_directory"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_root_directory}
+              />
             </div>
           </div>
           <div className="tr">
@@ -765,17 +689,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder=""
-                    name="pool_sftp_directory" onChange={onChange}
-                    value={poolDetails.pool_sftp_directory}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Default upload directory"
+                name="pool_sftp_directory"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_directory}
+              />
             </div>
           </div>
           <div className="tr">
@@ -785,17 +705,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="number"
-                    placeholder=""
-                    name="pool_sftp_server_alive_interval" onChange={onChange}
-                    value={poolDetails.pool_sftp_server_alive_interval}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="number"
+                placeholder="Keepalive interval"
+                name="pool_sftp_server_alive_interval"
+                onChange={onChange}
+                value={poolDetails.pool_sftp_server_alive_interval}
+              />
             </div>
           </div>
           </div></div>
@@ -828,17 +744,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
               </label>
             </div>
             <div className="td">
-              <div className="mt-2  border-0">
-                <div className="flex  ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                  <input
-                    type="text"
-                    placeholder="Audio server name"
-                    name="pool_audio_servername" onChange={onChange}
-                    value={poolDetails.pool_audio_servername}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                  />
-                </div>
-              </div>
+              <input
+                type="text"
+                placeholder="Audio server name"
+                name="pool_audio_servername"
+                onChange={onChange}
+                value={poolDetails.pool_audio_servername}
+              />
             </div>
           </div>
           </div></div>
