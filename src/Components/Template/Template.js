@@ -92,8 +92,8 @@ const Template = ({ tokenParsed }) => {
   };
 
   return (
-    <div className="w-[98%] m-auto p-4 h-[90vh] min-h-[80vh] rounded-md bg-white flex justify-between items-stretch items-center overflow-visible">
-      <div className="space-y-5 m-2 flex-1 template_class w-2/3 ml-10 mt-12">
+    <div className="w-full md:w-[98%] m-auto p-2 md:p-4 h-auto md:h-[90vh] min-h-[80vh] rounded-md bg-white flex flex-col md:flex-row justify-between items-center md:items-stretch overflow-auto md:overflow-hidden gap-4">
+      <div className="space-y-5 m-2 flex-1 template_class w-full md:w-2/3 md:ml-10 mt-6 md:mt-12">
         <Popup
           open={open}
           setOpen={setOpen}
@@ -101,7 +101,7 @@ const Template = ({ tokenParsed }) => {
           text="Are you sure you want to submit?"
           color="yellow"
         />
-        <div className="bg-white p-3 shadow-md text-[#1a365d] rounded-lg shadow-lg border flex-1 pdf_template w-5/6 h-5/6 m-10 overflow-y-auto">
+        <div className="bg-white p-3 shadow-md text-[#1a365d] rounded-lg shadow-lg border flex-1 pdf_template w-full md:w-5/6 h-auto md:h-5/6 m-2 md:m-10 overflow-y-auto">
           <h2 className="font-bold leading-7">PDF Template</h2>
           <div className="text-left table-auto mt-5 space-y-4">
             {isLoading ? (
@@ -247,7 +247,7 @@ const Template = ({ tokenParsed }) => {
           </button>
         </div>
       </div>
-      <div className="report_divsion report-preview bg-white p-6 rounded-lg shadow-lg border felx-1 w-1/2 h-5/6 m-10 overflow-y-auto custom-scrollbar">
+      <div className="report_divsion report-preview bg-white p-4 md:p-6 rounded-lg shadow-lg border flex-1 w-full md:w-1/2 h-auto md:h-5/6 m-2 md:m-10 overflow-y-auto custom-scrollbar">
         <h2>PDF Template Preview</h2>
         <table className="report-table">
           <thead>

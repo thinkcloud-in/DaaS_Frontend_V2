@@ -210,7 +210,7 @@ function App() {
         <GrafanaToolbarContextProvider>
           {/* <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}> */}
             {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
-              <BrowserRouter>
+              <BrowserRouter basename="/admin">
                 <ToastContainer />
                 <Sidebar tokenParsed={tokenParsed} />
                 <Suspense fallback={LoadingSpinner()}>
