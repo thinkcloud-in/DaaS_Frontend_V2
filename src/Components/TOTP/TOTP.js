@@ -76,13 +76,14 @@ const TOTP = () => {
           OTP Verification
         </h1>
         <div className="flex items-center mb-2 sm:mb-4">
-          <label htmlFor="totp" className="mr-2 text-sm font-medium text-gray-900">
+          <label htmlFor="admin-totp" className="mr-2 text-sm font-medium text-gray-900">
             Enable TOTP for Admin
           </label>
           <div className="relative">
             <div className="mt-1 sm:mt-2 border-0">
               <label className="switch">
                 <input
+                  id="admin-totp"
                   type="checkbox"
                   onChange={handleChange}
                   name="admin"
@@ -95,13 +96,14 @@ const TOTP = () => {
           </div>
         </div>
         <div className="flex items-center mb-2 sm:mb-4">
-          <label htmlFor="totp" className="mr-2 text-sm font-medium text-[#1a365d]">
+          <label htmlFor="client-totp" className="mr-2 text-sm font-medium text-[#1a365d]">
             Enable TOTP for Client
           </label>
           <div className="relative">
             <div className="mt-1 sm:mt-2 border-0">
               <label className="switch">
                 <input
+                  id="client-totp"
                   type="checkbox"
                   onChange={handleChange}
                   name="client"
