@@ -17,7 +17,9 @@ const RDPsettings = ({ onChange, poolDetails }) => {
       </h2> */}
 
       <div className=" divide-slate-500 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Network</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+          Network
+        </h3>
         <div className="text-left table-auto ml-3">
             {/* <div className="tr">
             <div className="th">
@@ -64,7 +66,9 @@ const RDPsettings = ({ onChange, poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-500 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Authentication</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+          Authentication
+        </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">

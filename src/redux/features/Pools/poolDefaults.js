@@ -100,4 +100,7 @@ export const initialPoolDetails = {
   pool_selected_nodes: [],
   pool_vmware_dc: "",
   pool_vmware_folder: "",
+  gateway: "",
+  subnet: "",
+  dns: "",
 };

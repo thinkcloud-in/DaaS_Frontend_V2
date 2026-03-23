@@ -1,14 +1,14 @@
-import { BrowserRouter, Route, Routes,useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 import React, { Suspense, useState, useEffect } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { setAuth, clearAuth } from './redux/features/Auth/AuthSlice';
+import { useDispatch, useSelector } from "react-redux";
+import { setAuth, clearAuth } from "./redux/features/Auth/AuthSlice";
 import {
   selectAuthToken,
   selectAuthTokenParsed,
   selectAuthRefreshToken,
   selectIsLoggedIn,
-} from './redux/features/Auth/AuthSelectors';
+} from "./redux/features/Auth/AuthSelectors";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from "./images/loading.png";
@@ -42,20 +42,20 @@ import IPMIDashboard from "Components/Dashboard/IPMIDashboard/Ipmi-Dashboard";
 import Recordings from "Components/Recordings/Recordings";
 import ActiveSessions from "Components/ActiveSessions/ActiveSessions";
 import TaskManagerPage from "Components/AgentTaskManager/Task_manager";
-import { fetchRbac } from './redux/features/Rbac/RbacThunks';
+import { fetchRbac } from "./redux/features/Rbac/RbacThunks";
 //lazy imports
 const Domain = React.lazy(() => import("./Components/Domain/Domain"));
 const VCenter = React.lazy(() => import("./Components/VCenter/VCenter"));
 const Reports = React.lazy(() => import("./Components/Reports/Reports"));
-const VamanitReports = React.lazy(() =>
-  import("./Components/Reports/VamanitReports")
+const VamanitReports = React.lazy(
+  () => import("./Components/Reports/VamanitReports"),
 );
 const Template = React.lazy(() => import("./Components/Template/Template"));
 const Task = React.lazy(() => import("./Components/Tasks/Task"));
 const Pools = React.lazy(() => import("./Components/PoolCreation/Pools"));
 
-const ManagePool = React.lazy(() =>
-  import("./Components/PoolCreation/ManagePool")
+const ManagePool = React.lazy(
+  () => import("./Components/PoolCreation/ManagePool"),
 );
 const IpmiCreation = React.lazy(() => import("./Components/IPMI/IpmiCreation"));
 const EditIpmi = React.lazy(() => import("./Components/IPMI/EditIpmi"));
@@ -63,27 +63,25 @@ const IPMI = React.lazy(() => import("./Components/IPMI/IPMI"));
 const ShowIpmi = React.lazy(() => import("./Components/IPMI/ShowIpmi"));
 
 const Clusters = React.lazy(() => import("./Components/Clusters/Clusters"));
-const ClusterCreationForm = React.lazy(() =>
-  import("./Components/Clusters/ClusterCreationForm")
+const ClusterCreationForm = React.lazy(
+  () => import("./Components/Clusters/ClusterCreationForm"),
 );
-const ShowClusters = React.lazy(() =>
-  import("./Components/Clusters/ShowClusters")
+const ShowClusters = React.lazy(
+  () => import("./Components/Clusters/ShowClusters"),
 );
-const EditCluster = React.lazy(() =>
-  import("./Components/Clusters/EditCluster")
+const EditCluster = React.lazy(
+  () => import("./Components/Clusters/EditCluster"),
 );
 const EditPool = React.lazy(() => import("./Components/PoolCreation/EditPool"));
-const LandingPage = React.lazy(() =>
-  import("./Components/LandingPage/LandingPage")
+const LandingPage = React.lazy(
+  () => import("./Components/LandingPage/LandingPage"),
 );
 const SSL = React.lazy(() => import("./Components/SSL/SSL"));
 const TOTP = React.lazy(() => import("./Components/TOTP/TOTP"));
-const ChangePassword = React.lazy(() =>
-  import("./Components/Login/ChangePassword")
+const ChangePassword = React.lazy(
+  () => import("./Components/Login/ChangePassword"),
 );
-const HyperV = React.lazy(() =>
-  import("./Components/Dashboard/HyperV/HyperV")
-);
+const HyperV = React.lazy(() => import("./Components/Dashboard/HyperV/HyperV"));
 
 function App() {
   const [workflowId, setWorkflowId] = useState("");
@@ -102,35 +100,45 @@ function App() {
       })
       .then((authenticated) => {
         if (authenticated) {
-          dispatch(setAuth({
-            token: keycloakConfig.token,
-            tokenParsed: keycloakConfig.tokenParsed,
-            refreshToken: keycloakConfig.refreshToken,
-            loggedIn: authenticated,
-          }));
+          dispatch(
+            setAuth({
+              token: keycloakConfig.token,
+              tokenParsed: keycloakConfig.tokenParsed,
+              refreshToken: keycloakConfig.refreshToken,
+              loggedIn: authenticated,
+            }),
+          );
           localStorage.setItem("token", JSON.stringify(keycloakConfig.token));
           // Fetch RBAC data after successful authentication
-            dispatch(fetchRbac({
-    token: keycloakConfig.token,
-    username: keycloakConfig.tokenParsed?.preferred_username
-  }));
+          dispatch(
+            fetchRbac({
+              token: keycloakConfig.token,
+              username: keycloakConfig.tokenParsed?.preferred_username,
+            }),
+          );
           keycloakConfig.onTokenExpired = () => {
             keycloakConfig
               .updateToken(30)
               .then((refreshed) => {
                 if (refreshed) {
-                  dispatch(setAuth({
-                    token: keycloakConfig.token,
-                    tokenParsed: keycloakConfig.tokenParsed,
-                    refreshToken: keycloakConfig.refreshToken,
-                    loggedIn: true,
-                  }));
-                  localStorage.setItem("token", JSON.stringify(keycloakConfig.token));
-                  dispatch(fetchRbac({
-            token: keycloakConfig.token,
-            username: keycloakConfig.tokenParsed?.preferred_username
-          }));
-                  
+                  dispatch(
+                    setAuth({
+                      token: keycloakConfig.token,
+                      tokenParsed: keycloakConfig.tokenParsed,
+                      refreshToken: keycloakConfig.refreshToken,
+                      loggedIn: true,
+                    }),
+                  );
+                  localStorage.setItem(
+                    "token",
+                    JSON.stringify(keycloakConfig.token),
+                  );
+                  dispatch(
+                    fetchRbac({
+                      token: keycloakConfig.token,
+                      username: keycloakConfig.tokenParsed?.preferred_username,
+                    }),
+                  );
                 }
               })
               .catch(() => {
@@ -209,444 +217,430 @@ function App() {
       {token ? (
         <GrafanaToolbarContextProvider>
           {/* <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}> */}
-            {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
-              <BrowserRouter basename="/admin">
-                <ToastContainer />
-                <Sidebar tokenParsed={tokenParsed} />
-                <Suspense fallback={LoadingSpinner()}>
-                  <div className="app1">
-                    {/* <Navbar tokenParsed={tokenParsed} /> */}
-                    <Routes>
-                      <Route path="/landingpage" element={<LandingPage />} />
+          {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
+          {/* <BrowserRouter basename="/admin"> */}
+          <BrowserRouter>
+            <ToastContainer />
+            <Sidebar tokenParsed={tokenParsed} />
+            <Suspense fallback={LoadingSpinner()}>
+              <div className="app1">
+                {/* <Navbar tokenParsed={tokenParsed} /> */}
+                <Routes>
+                  <Route path="/landingpage" element={<LandingPage />} />
 
-                      {/* Dashboard Routes */}
-                      <Route
-                        path="/vcenter/overview"
-                        element={
-                          <ProtectedRoute
-                            component={Overview}
-                            componentKey="Overview"
-                          />
-                        }
+                  {/* Dashboard Routes */}
+                  <Route
+                    path="/vcenter/overview"
+                    element={
+                      <ProtectedRoute
+                        component={Overview}
+                        componentKey="Overview"
                       />
-                      <Route
-                        path="/vcenter/hosts"
-                        element={
-                          <ProtectedRoute
-                            component={Hosts}
-                            componentKey="Hosts"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/vcenter/hosts"
+                    element={
+                      <ProtectedRoute component={Hosts} componentKey="Hosts" />
+                    }
+                  />
+                  <Route
+                    path="/vcenter/data-stores"
+                    element={
+                      <ProtectedRoute
+                        component={DataStores}
+                        componentKey="Data Stores"
                       />
-                      <Route
-                        path="/vcenter/data-stores"
-                        element={
-                          <ProtectedRoute
-                            component={DataStores}
-                            componentKey="Data Stores"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/vcenter/vms"
+                    element={
+                      <ProtectedRoute component={VMs} componentKey="VMS" />
+                    }
+                  />
+                  <Route
+                    path="/proxmox/px-overview"
+                    element={
+                      <ProtectedRoute
+                        component={ProxmoxOverview}
+                        componentKey="PX-Overview"
                       />
-                      <Route
-                        path="/vcenter/vms"
-                        element={
-                          <ProtectedRoute component={VMs} componentKey="VMS" />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/proxmox/px-nodes"
+                    element={
+                      <ProtectedRoute
+                        component={ProxmoxNodes}
+                        componentKey="PX-Nodes"
                       />
-                      <Route
-                        path="/proxmox/px-overview"
-                        element={
-                          <ProtectedRoute
-                            component={ProxmoxOverview}
-                            componentKey="PX-Overview"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/proxmox/px-storage"
+                    element={
+                      <ProtectedRoute
+                        component={ProxmoxStorage}
+                        componentKey="PX-Storage"
                       />
-                      <Route
-                        path="/proxmox/px-nodes"
-                        element={
-                          <ProtectedRoute
-                            component={ProxmoxNodes}
-                            componentKey="PX-Nodes"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/proxmox/px-vms"
+                    element={
+                      <ProtectedRoute
+                        component={ProxmoxVMs}
+                        componentKey="PX-VMs"
                       />
-                      <Route
-                        path="/proxmox/px-storage"
-                        element={
-                          <ProtectedRoute
-                            component={ProxmoxStorage}
-                            componentKey="PX-Storage"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ipmi-dashboard"
+                    element={
+                      <ProtectedRoute
+                        component={IPMIDashboard}
+                        componentKey="IpmiDashboard"
                       />
-                      <Route
-                        path="/proxmox/px-vms"
-                        element={
-                          <ProtectedRoute
-                            component={ProxmoxVMs}
-                            componentKey="PX-VMs"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/hyperv-monitoring"
+                    element={
+                      <ProtectedRoute
+                        component={HyperV}
+                        componentKey="HyperV"
                       />
-                      <Route
-                        path="/ipmi-dashboard"
-                        element={
-                          <ProtectedRoute
-                            component={IPMIDashboard}
-                            componentKey="IpmiDashboard"
-                          />
-                        }
+                    }
+                  />
+                  {/* Domain Routes */}
+                  <Route
+                    path="/domain"
+                    element={
+                      <ProtectedRoute
+                        component={Domain}
+                        componentKey="Domain"
                       />
-                      <Route
-                        path="/hyperv-monitoring"
-                        element={
-                          <ProtectedRoute
-                            component={HyperV}
-                            componentKey="HyperV"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/domain/domain-create-form"
+                    element={
+                      <ProtectedRoute
+                        component={DomainCreationForm}
+                        componentKey="Domain"
                       />
-                      {/* Domain Routes */}
-                      <Route
-                        path="/domain"
-                        element={
-                          <ProtectedRoute
-                            component={Domain}
-                            componentKey="Domain"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/domain/edit-domain/:id"
+                    element={
+                      <ProtectedRoute
+                        component={EditDomain}
+                        componentKey="Domain"
                       />
-                      <Route
-                        path="/domain/domain-create-form"
-                        element={
-                          <ProtectedRoute
-                            component={DomainCreationForm}
-                            componentKey="Domain"
-                          />
-                        }
-                      />
-                      <Route
-                        path="/domain/edit-domain/:id"
-                        element={
-                          <ProtectedRoute
-                            component={EditDomain}
-                            componentKey="Domain"
-                          />
-                        }
-                      />
+                    }
+                  />
 
-                      {/* VCenter Route */}
-                      <Route
-                        path="/vcenter"
-                        element={
-                          <ProtectedRoute
-                            component={VCenter}
-                            componentKey="VCenter"
-                          />
-                        }
+                  {/* VCenter Route */}
+                  <Route
+                    path="/vcenter"
+                    element={
+                      <ProtectedRoute
+                        component={VCenter}
+                        componentKey="VCenter"
                       />
+                    }
+                  />
 
-                      {/* Reports Routes */}
-                      <Route
-                        path="/reports/horizon"
-                        element={
-                          <ProtectedRoute
-                            tokenParsed={tokenParsed}
-                            component={Reports}
-                            componentKey="Horizon Reports"
-                          />
-                        }
+                  {/* Reports Routes */}
+                  <Route
+                    path="/reports/horizon"
+                    element={
+                      <ProtectedRoute
+                        tokenParsed={tokenParsed}
+                        component={Reports}
+                        componentKey="Horizon Reports"
                       />
-                      <Route
-                        path="/reports/vamanit"
-                        element={
-                          <ProtectedRoute
-                            tokenParsed={tokenParsed}
-                            component={VamanitReports}
-                            componentKey="Vamanit Dass Reports"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/reports/vamanit"
+                    element={
+                      <ProtectedRoute
+                        tokenParsed={tokenParsed}
+                        component={VamanitReports}
+                        componentKey="Vamanit Dass Reports"
                       />
-                      <Route
-                        path="/template"
-                        element={
-                          <ProtectedRoute
-                            component={Template}
-                            componentKey="Template"
-                            tokenParsed={tokenParsed}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/template"
+                    element={
+                      <ProtectedRoute
+                        component={Template}
+                        componentKey="Template"
+                        tokenParsed={tokenParsed}
                       />
-                      <Route
-                        path="/Schedule"
-                        element={
-                          <ProtectedRoute
-                            component={Schedule}
-                            componentKey="Schedule"
-                            tokenParsed={tokenParsed}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/Schedule"
+                    element={
+                      <ProtectedRoute
+                        component={Schedule}
+                        componentKey="Schedule"
+                        tokenParsed={tokenParsed}
                       />
-                      <Route
-                        path="/ReportList"
-                        element={
-                          <ProtectedRoute
-                            component={ReportList}
-                            componentKey="Schedule"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ReportList"
+                    element={
+                      <ProtectedRoute
+                        component={ReportList}
+                        componentKey="Schedule"
                       />
+                    }
+                  />
 
-                      {/* Pool Routes */}
-                      <Route
-                        path="/pools"
-                        element={
-                          <ProtectedRoute
-                            component={Pools}
-                            componentKey="Pools"
-                            token={refreshToken}
-                          />
-                        }
+                  {/* Pool Routes */}
+                  <Route
+                    path="/pools"
+                    element={
+                      <ProtectedRoute
+                        component={Pools}
+                        componentKey="Pools"
+                        token={refreshToken}
                       />
-                      <Route
-                        path="/ip-pools"
-                        element={
-                          <ProtectedRoute
-                            component={IpPoolsList}
-                            componentKey="IpPools"
-                            token={refreshToken}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ip-pools"
+                    element={
+                      <ProtectedRoute
+                        component={IpPoolsList}
+                        componentKey="IpPools"
+                        token={refreshToken}
                       />
-                      <Route
-                        path="/ip-pools/create"
-                        element={
-                          <ProtectedRoute
-                            component={IpPoolsCreate}
-                            componentKey="IpPools"
-                            token={refreshToken}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ip-pools/create"
+                    element={
+                      <ProtectedRoute
+                        component={IpPoolsCreate}
+                        componentKey="IpPools"
+                        token={refreshToken}
                       />
-                      <Route
-                        path="/pools/pool-creation-form"
-                        element={
-                          <ProtectedRoute
-                            component={PoolCreationForm}
-                            componentKey="Pools"
-                            token={refreshToken}
-                            tokenParsed={tokenParsed}
-                            setWorkflowId={setWorkflowId}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/pools/pool-creation-form"
+                    element={
+                      <ProtectedRoute
+                        component={PoolCreationForm}
+                        componentKey="Pools"
+                        token={refreshToken}
+                        tokenParsed={tokenParsed}
+                        setWorkflowId={setWorkflowId}
                       />
-                      <Route
-                        path="/pools/manage-pool/:id"
-                        element={
-                          <ProtectedRoute
-                            component={ManagePool}
-                            componentKey="Pools"
-                            token={refreshToken}
-                            tokenParsed={tokenParsed}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/pools/manage-pool/:id"
+                    element={
+                      <ProtectedRoute
+                        component={ManagePool}
+                        componentKey="Pools"
+                        token={refreshToken}
+                        tokenParsed={tokenParsed}
                       />
-                      <Route
-                        path="/pools/edit-pool/:id"
-                        element={
-                          <ProtectedRoute
-                            component={EditPool}
-                            componentKey="Pools"
-                            token={refreshToken}
-                            tokenParsed={tokenParsed}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/pools/edit-pool/:id"
+                    element={
+                      <ProtectedRoute
+                        component={EditPool}
+                        componentKey="Pools"
+                        token={refreshToken}
+                        tokenParsed={tokenParsed}
                       />
-                      <Route
-                        path="/pools/:poolId/vm/:vmId/task-manager"
-                        element={<TaskManagerPage />}
+                    }
+                  />
+                  <Route
+                    path="/pools/:poolId/vm/:vmId/task-manager"
+                    element={<TaskManagerPage />}
+                  />
+                  <Route
+                    path="/tasks"
+                    element={
+                      <ProtectedRoute
+                        component={Task}
+                        componentKey="Tasks"
+                        token={refreshToken}
+                        tokenParsed={tokenParsed}
                       />
-                      <Route
-                        path="/tasks"
-                        element={
-                          <ProtectedRoute
-                            component={Task}
-                            componentKey="Tasks"
-                            token={refreshToken}
-                            tokenParsed={tokenParsed}
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ipmi"
+                    element={
+                      <ProtectedRoute component={IPMI} componentKey="IPMI" />
+                    }
+                  />
+                  <Route
+                    path="/ipmi/ipmi-create-form"
+                    element={
+                      <ProtectedRoute
+                        component={IpmiCreation}
+                        componentKey="IPMI"
                       />
-                      <Route
-                        path="/ipmi"
-                        element={
-                          <ProtectedRoute
-                            component={IPMI}
-                            componentKey="IPMI"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ipmi/show-ipmi"
+                    element={
+                      <ProtectedRoute
+                        component={ShowIpmi}
+                        componentKey="IPMI"
                       />
-                      <Route
-                        path="/ipmi/ipmi-create-form"
-                        element={
-                          <ProtectedRoute
-                            component={IpmiCreation}
-                            componentKey="IPMI"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/ipmi/edit-ipmi/:id"
+                    element={
+                      <ProtectedRoute
+                        component={EditIpmi}
+                        componentKey="IPMI"
                       />
-                      <Route
-                        path="/ipmi/show-ipmi"
-                        element={
-                          <ProtectedRoute
-                            component={ShowIpmi}
-                            componentKey="IPMI"
-                          />
-                        }
+                    }
+                  />
+                  {/* Cluster Routes */}
+                  <Route
+                    path="/clusters"
+                    element={
+                      <ProtectedRoute
+                        component={Clusters}
+                        componentKey="Cluster"
                       />
-                      <Route
-                        path="/ipmi/edit-ipmi/:id"
-                        element={
-                          <ProtectedRoute
-                            component={EditIpmi}
-                            componentKey="IPMI"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/cluster/cluster-create-form"
+                    element={
+                      <ProtectedRoute
+                        component={ClusterCreationForm}
+                        componentKey="Cluster"
                       />
-                      {/* Cluster Routes */}
-                      <Route
-                        path="/clusters"
-                        element={
-                          <ProtectedRoute
-                            component={Clusters}
-                            componentKey="Cluster"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/cluster/show-clusters"
+                    element={
+                      <ProtectedRoute
+                        component={ShowClusters}
+                        componentKey="Cluster"
                       />
-                      <Route
-                        path="/cluster/cluster-create-form"
-                        element={
-                          <ProtectedRoute
-                            component={ClusterCreationForm}
-                            componentKey="Cluster"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/cluster/edit-cluster/:id"
+                    element={
+                      <ProtectedRoute
+                        component={EditCluster}
+                        componentKey="Cluster"
                       />
-                      <Route
-                        path="/cluster/show-clusters"
-                        element={
-                          <ProtectedRoute
-                            component={ShowClusters}
-                            componentKey="Cluster"
-                          />
-                        }
-                      />
-                      <Route
-                        path="/cluster/edit-cluster/:id"
-                        element={
-                          <ProtectedRoute
-                            component={EditCluster}
-                            componentKey="Cluster"
-                          />
-                        }
-                      />
+                    }
+                  />
 
-                      {/* Settings Routes */}
-                      <Route
-                        path="/ssl"
-                        element={
-                          <ProtectedRoute component={SSL} componentKey="SSL" />
-                        }
+                  {/* Settings Routes */}
+                  <Route
+                    path="/ssl"
+                    element={
+                      <ProtectedRoute component={SSL} componentKey="SSL" />
+                    }
+                  />
+                  <Route
+                    path="/recordings"
+                    element={
+                      <ProtectedRoute
+                        component={Recordings}
+                        componentKey="Recordings"
                       />
-                      <Route
-                        path="/recordings"
-                        element={
-                          <ProtectedRoute
-                            component={Recordings}
-                            componentKey="Recordings"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/active-sessions"
+                    element={
+                      <ProtectedRoute
+                        component={ActiveSessions}
+                        componentKey="ActiveSessions"
                       />
-                      <Route
-                        path="/active-sessions"
-                        element={
-                          <ProtectedRoute
-                            component={ActiveSessions}
-                            componentKey="ActiveSessions"
-                          />
-                        }
+                    }
+                  />
+                  <Route
+                    path="/totp"
+                    element={
+                      <ProtectedRoute component={TOTP} componentKey="TOTP" />
+                    }
+                  />
+                  <Route
+                    path="/SmtpConfig"
+                    element={
+                      <ProtectedRoute component={SMTP} componentKey="SMTP" />
+                    }
+                  />
+                  <Route
+                    path="/user_management"
+                    element={
+                      <ProtectedRoute
+                        component={UserManagement}
+                        componentKey="RBAC"
                       />
-                      <Route
-                        path="/totp"
-                        element={
-                          <ProtectedRoute
-                            component={TOTP}
-                            componentKey="TOTP"
-                          />
-                        }
-                      />
-                      <Route
-                        path="/SmtpConfig"
-                        element={
-                          <ProtectedRoute
-                            component={SMTP}
-                            componentKey="SMTP"
-                          />
-                        }
-                      />
-                      <Route
-                        path="/user_management"
-                        element={
-                          <ProtectedRoute
-                            component={UserManagement}
-                            componentKey="RBAC"
-                          />
-                        }
-                      />
+                    }
+                  />
 
-                      {/* VSphere Monitoring Route */}
-                      <Route
-                        path="/vsphere-monitoring"
-                        element={
-                          <ProtectedRoute
-                            component={VsphereMonitoring}
-                            componentKey="VsphereMonitoring"
-                          />
-                        }
+                  {/* VSphere Monitoring Route */}
+                  <Route
+                    path="/vsphere-monitoring"
+                    element={
+                      <ProtectedRoute
+                        component={VsphereMonitoring}
+                        componentKey="VsphereMonitoring"
                       />
+                    }
+                  />
 
-                      {/* User Settings Routes */}
-                      <Route
-                        path="/changepassword"
-                        element={<ChangePassword />}
+                  {/* User Settings Routes */}
+                  <Route path="/changepassword" element={<ChangePassword />} />
+                  {/* Namespace */}
+                  <Route
+                    path="/retention-period"
+                    element={
+                      <ProtectedRoute
+                        component={RetentionPeriod}
+                        componentKey="Retention Period"
+                        token={refreshToken}
+                        tokenParsed={tokenParsed}
                       />
-                      {/* Namespace */}
-                      <Route
-                        path="/retention-period"
-                        element={
-                          <ProtectedRoute
-                            component={RetentionPeriod}
-                            componentKey="Retention Period"
-                            token={refreshToken}
-                            tokenParsed={tokenParsed}
-                          />
-                        }
-                      />
-                      {/* Catch-all route for unmatched paths */}
-                      <Route
-                        path="*"
-                        element={<Navigate to="/landingpage" replace />}
-                      />
-                    </Routes>
-                    <FooterWrapper
-                      workflowId={workflowId}
-                      tokenParsed={tokenParsed}
-                    />
-                  </div>
-                </Suspense>
-              </BrowserRouter>
-            {/* </RBACProvider> */}
+                    }
+                  />
+                  {/* Catch-all route for unmatched paths */}
+                  <Route
+                    path="*"
+                    element={<Navigate to="/landingpage" replace />}
+                  />
+                </Routes>
+                <FooterWrapper
+                  workflowId={workflowId}
+                  tokenParsed={tokenParsed}
+                />
+              </div>
+            </Suspense>
+          </BrowserRouter>
+          {/* </RBACProvider> */}
           {/* </PoolContextProvider> */}
         </GrafanaToolbarContextProvider>
       ) : (
@@ -679,6 +673,8 @@ function FooterWrapper({ workflowId, tokenParsed }) {
   // Dynamically determine if the footer should be hidden
   const hideFooter = dashboardPaths.includes(location.pathname);
 
-  return !hideFooter ? <Footer workflowId={workflowId} tokenParsed={tokenParsed} /> : null;
+  return !hideFooter ? (
+    <Footer workflowId={workflowId} tokenParsed={tokenParsed} />
+  ) : null;
 }
 export default App;

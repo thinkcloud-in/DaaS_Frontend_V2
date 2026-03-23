@@ -192,7 +192,7 @@ const ManagePool = (props) => {
     machineIdentifier,
     machineId,
     vm_id,
-    pool_type
+    pool_type,
   ) => {
     if (selectedVm === machineId) {
       dispatch(setSelectedVm(null));
@@ -217,7 +217,7 @@ const ManagePool = (props) => {
           token,
           machineIdentifier: selectedVmIdentifier,
           user,
-        })
+        }),
       ).unwrap();
       const payload = res || {};
       if (payload.users_assigned)
@@ -256,7 +256,7 @@ const ManagePool = (props) => {
       if (!selectedPoolDetails.id) return;
       try {
         await dispatch(
-          fetchPoolMachines({ token, poolId: selectedPoolDetails.id })
+          fetchPoolMachines({ token, poolId: selectedPoolDetails.id }),
         ).unwrap();
       } catch (err) {}
     };
@@ -267,7 +267,7 @@ const ManagePool = (props) => {
     try {
       const searchText = e.target.value.toLowerCase();
       const filteredResults = users.filter((user) =>
-        user.username.toLowerCase().includes(searchText)
+        user.username.toLowerCase().includes(searchText),
       );
       setFilteredData(filteredResults);
       setSearchTerm(searchText);
@@ -283,7 +283,7 @@ const ManagePool = (props) => {
           token,
           machineIdentifier: selectedVmIdentifier,
           user: usr,
-        })
+        }),
       ).unwrap();
       const payload = res || {};
       if (payload.users_assigned)
@@ -324,7 +324,7 @@ const ManagePool = (props) => {
     try {
       // dispatch the imported thunk named `deletePool`
       const res = await dispatch(
-        deletePool({ token, poolId: selectedPoolDetails.id, userEmail })
+        deletePool({ token, poolId: selectedPoolDetails.id, userEmail }),
       ).unwrap();
       const payload = res || {};
       if (payload.pools) {
@@ -357,14 +357,14 @@ const ManagePool = (props) => {
 
   let handleDeleteVM = async (mach) => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this machine?"
+      "Are you sure you want to delete this machine?",
     );
     if (!confirmed) return;
     dispatch(setDeletingMachine(mach));
     // reuse outer scope userEmail (derived from selector at component top)
     try {
       const res = await dispatch(
-        deleteVM({ token, machineIdentifier: mach, userEmail })
+        deleteVM({ token, machineIdentifier: mach, userEmail }),
       ).unwrap();
       const payload = res || {};
       if (payload.machines) dispatch(setVmAvailable(payload.machines));
@@ -403,7 +403,7 @@ const ManagePool = (props) => {
   useEffect(() => {
     try {
       const availableUsers = (users || []).filter(
-        (user) => !assignedUsers.includes(user.username)
+        (user) => !assignedUsers.includes(user.username),
       );
       setFilteredData(availableUsers);
     } catch (err) {
@@ -415,7 +415,7 @@ const ManagePool = (props) => {
     if (!selectedPoolDetails.id) return;
     try {
       const res = await dispatch(
-        fetchPoolMachines({ token, poolId: selectedPoolDetails.id })
+        fetchPoolMachines({ token, poolId: selectedPoolDetails.id }),
       ).unwrap();
       if (res?.machines) dispatch(setVmAvailable(res.machines));
     } catch (err) {
@@ -446,7 +446,7 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("reboot"));
     try {
       await dispatch(
-        rebootVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+        rebootVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
       ).unwrap();
       toast.success("VM reboot triggered");
       refreshMachines();
@@ -462,7 +462,7 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("shutdown"));
     try {
       await dispatch(
-        shutdownVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+        shutdownVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
       ).unwrap();
       toast.success("VM shutdown triggered");
       refreshMachines();
@@ -478,7 +478,7 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("start"));
     try {
       await dispatch(
-        startVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+        startVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
       ).unwrap();
       toast.success("VM started successfully");
       refreshMachines();
@@ -494,7 +494,7 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("stop"));
     try {
       await dispatch(
-        stopVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId })
+        stopVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
       ).unwrap();
       toast.success("VM stopped successfully");
       refreshMachines();
@@ -516,12 +516,12 @@ const ManagePool = (props) => {
 
     try {
       const res = await dispatch(
-        rebuildVM({ token, userEmail, vm_id: item.vm_id, poolId })
+        rebuildVM({ token, userEmail, vm_id: item.vm_id, poolId }),
       ).unwrap();
       const data = res || {};
       if (data.error || (data.status && data.status === "error")) {
         toast.error(data.msg || data.error || "Failed to rebuild VM");
-    } else {
+      } else {
         toast.success(data.msg || "VM rebuild triggered");
         refreshMachines();
       }
@@ -543,7 +543,7 @@ const ManagePool = (props) => {
   // Single row checkbox handler
   const handleRowCheckbox = (vmId) => {
     setSelectedRows((prev) =>
-      prev.includes(vmId) ? prev.filter((id) => id !== vmId) : [...prev, vmId]
+      prev.includes(vmId) ? prev.filter((id) => id !== vmId) : [...prev, vmId],
     );
   };
 
@@ -579,7 +579,7 @@ const ManagePool = (props) => {
               className={`h-5 ${width} bg-gray-100 rounded-md animate-pulse`}
             />
           </td>
-        )
+        ),
       )}
     </tr>
   ));
@@ -868,7 +868,7 @@ const ManagePool = (props) => {
                             item.identifier,
                             item.id,
                             item.vm_id,
-                            selectedPoolDetails.pool_type
+                            selectedPoolDetails.pool_type,
                           )
                         }
                       >
@@ -1008,16 +1008,16 @@ const ManagePool = (props) => {
                           <div className="flex items-center gap-3">
                             <i
                               className="fa-solid fa-ellipsis-vertical text-xl cursor-pointer hover:text-indigo-700"
-                              ref={(el) =>
-                                (ellipsisRefs.current[item.identifier] = el)
-                              }
+                              ref={(el) => {
+                                ellipsisRefs.current[item.id] = el;
+                              }}
                               onClick={(e) => {
-                                if (actionDropdown === item.identifier) {
+                                if (actionDropdown === item.id) {
                                   setActionDropdown(null);
                                 } else {
                                   const rect =
                                     ellipsisRefs.current[
-                                      item.identifier
+                                      item.id
                                     ]?.getBoundingClientRect();
                                   setDropdownPos({
                                     top: rect
@@ -1025,13 +1025,14 @@ const ManagePool = (props) => {
                                       : 0,
                                     left: rect
                                       ? rect.left + window.scrollX - 115
-                                      : 0, // shift left by dropdown width
+                                      : 0,
                                   });
-                                  setActionDropdown(item.identifier);
+                                  setActionDropdown(item.id);
                                 }
                               }}
                             ></i>
-                            {actionDropdown === item.identifier &&
+                            {actionDropdown &&
+                              actionDropdown === item.id &&
                               createPortal(
                                 <div
                                   ref={dropdownRef}
@@ -1068,12 +1069,14 @@ const ManagePool = (props) => {
                                     }}
                                     disabled={!!deletingMachine}
                                   >
-                                    {deletingMachine === item.identifier ? (
+                                    {deletingMachine &&
+                                    deletingMachine === item.identifier ? (
                                       <Loader2 className="h-4 w-4 animate-spin text-red-400" />
                                     ) : (
                                       <TrashIcon className="h-4 w-4 text-red-400" />
                                     )}
-                                    {deletingMachine === item.identifier
+                                    {deletingMachine &&
+                                    deletingMachine === item.identifier
                                       ? "Deleting..."
                                       : "Delete"}
                                   </button>
@@ -1116,7 +1119,7 @@ const ManagePool = (props) => {
                                               os_type: item.os_type,
                                               vm_name: item.name,
                                             },
-                                          }
+                                          },
                                         );
                                       }}
                                     >
@@ -1125,7 +1128,7 @@ const ManagePool = (props) => {
                                     </button>
                                   )}
                                 </div>,
-                                document.body
+                                document.body,
                               )}
                           </div>
                         </td>
