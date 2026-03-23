@@ -131,9 +131,9 @@ export default function SMTP() {
         .unwrap()
         .then((res) => {
           if (check) {
-            toast.success(res.msg || "SMTP config enabled!");
+            toast.success("SMTP enabled successfully!");
           } else {
-            toast.warn(res.msg || "SMTP config disabled!");
+            toast.success("SMTP disabled successfully!");
           }
         })
         .catch((err) => {
@@ -173,8 +173,9 @@ export default function SMTP() {
           toast.success(existingConfig ? "SMTP updated successfully" : "SMTP added successfully");
         }
       })
-      .catch(() => {
-        toast.error("Failed to save SMTP configuration.");
+      .catch((err) => {
+        const message = typeof err === 'string' ? err : (err?.msg || err?.message || "Failed to save SMTP configuration.");
+        toast.error(message);
       });
   };
 
@@ -260,6 +261,7 @@ export default function SMTP() {
                   name="serverIP"
                   required
                   disabled={!isEnabled}
+                  placeholder="e.g. smtp.gmail.com"
                   value={isEnabled ? data.serverIP : ""}
                   onChange={(e) => setData({ ...data, serverIP: e.target.value })}
                   size="small"
@@ -272,6 +274,7 @@ export default function SMTP() {
                   name="serverPort"
                   required
                   disabled={!isEnabled}
+                  placeholder="e.g. 587"
                   value={isEnabled ? data.serverPort : ""}
                   onChange={(e) => setData({ ...data, serverPort: e.target.value })}
                   size="small"
@@ -285,6 +288,7 @@ export default function SMTP() {
                   name="email"
                   required
                   disabled={!isEnabled}
+                  placeholder="Enter Sender Email"
                   value={isEnabled ? data.email : ""}
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                   size="small"
@@ -315,6 +319,7 @@ export default function SMTP() {
                       name="userName"
                       required
                       disabled={!isEnabled}
+                      placeholder="Enter Username"
                       value={isEnabled ? data.userName : ""}
                       onChange={(e) => setData({ ...data, userName: e.target.value })}
                       size="small"
@@ -328,6 +333,7 @@ export default function SMTP() {
                       required
                       disabled={!isEnabled}
                       type={showPassword ? "text" : "password"}
+                      placeholder="Enter Password"
                       value={isEnabled ? data.password : ""}
                       onChange={(e) => setData({ ...data, password: e.target.value })}
                       size="small"
@@ -411,6 +417,7 @@ export default function SMTP() {
             margin="normal"
             name="receiverEmail"
             type="email"
+            placeholder="Enter Receiver Email"
             value={receiverEmail}
             onChange={(e) => setReceiverEmail(e.target.value)}
             required
