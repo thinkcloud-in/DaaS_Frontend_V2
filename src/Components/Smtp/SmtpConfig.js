@@ -81,7 +81,7 @@ export default function SMTP() {
     smtpStatus: false,
     receiverMail: "",
   });
-  const [isEnabled, setIsEnabled] = useState(true);
+  const [isEnabled, setIsEnabled] = useState(false);
   const [existingConfig, setExistingConfig] = useState(false);
   const [receiverEmail, setReceiverEmail] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
@@ -126,18 +126,20 @@ export default function SMTP() {
     const check = event.target.checked;
     setIsEnabled(check);
     setData((prev) => ({ ...prev, smtpStatus: check }));
-    dispatch(updateSmtpStatusThunk({ token, data: { ...data, smtpStatus: check }, status: check }))
-      .unwrap()
-      .then((res) => {
-        if (check) {
-          toast.success(res.msg || "SMTP config enabled!");
-        } else {
-          toast.warn(res.msg || "SMTP config disabled!");
-        }
-      })
-      .catch((err) => {
-        toast.error(err || "Failed to update SMTP config status.");
-      });
+    if (existingConfig) {
+      dispatch(updateSmtpStatusThunk({ token, data: { ...data, smtpStatus: check }, status: check }))
+        .unwrap()
+        .then((res) => {
+          if (check) {
+            toast.success(res.msg || "SMTP config enabled!");
+          } else {
+            toast.warn(res.msg || "SMTP config disabled!");
+          }
+        })
+        .catch((err) => {
+          toast.error(err || "Failed to update SMTP config status.");
+        });
+    }
   };
 
   const handleCheckboxChange = (event) => {
@@ -258,7 +260,7 @@ export default function SMTP() {
                   name="serverIP"
                   required
                   disabled={!isEnabled}
-                  value={data.serverIP}
+                  value={isEnabled ? data.serverIP : ""}
                   onChange={(e) => setData({ ...data, serverIP: e.target.value })}
                   size="small"
                 />
@@ -270,7 +272,7 @@ export default function SMTP() {
                   name="serverPort"
                   required
                   disabled={!isEnabled}
-                  value={data.serverPort}
+                  value={isEnabled ? data.serverPort : ""}
                   onChange={(e) => setData({ ...data, serverPort: e.target.value })}
                   size="small"
                 />
@@ -283,7 +285,7 @@ export default function SMTP() {
                   name="email"
                   required
                   disabled={!isEnabled}
-                  value={data.email}
+                  value={isEnabled ? data.email : ""}
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                   size="small"
                 />
@@ -292,7 +294,7 @@ export default function SMTP() {
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={data.userAuthentication === "true"}
+                        checked={isEnabled && data.userAuthentication === "true"}
                         onChange={handleCheckboxChange}
                         name="userAuthentication"
                         disabled={!isEnabled}
@@ -313,7 +315,7 @@ export default function SMTP() {
                       name="userName"
                       required
                       disabled={!isEnabled}
-                      value={data.userName}
+                      value={isEnabled ? data.userName : ""}
                       onChange={(e) => setData({ ...data, userName: e.target.value })}
                       size="small"
                     />
@@ -326,7 +328,7 @@ export default function SMTP() {
                       required
                       disabled={!isEnabled}
                       type={showPassword ? "text" : "password"}
-                      value={data.password}
+                      value={isEnabled ? data.password : ""}
                       onChange={(e) => setData({ ...data, password: e.target.value })}
                       size="small"
                       InputProps={{
@@ -352,7 +354,7 @@ export default function SMTP() {
                   <RadioGroup
                     row
                     name="connOption"
-                    value={data.connOption}
+                    value={isEnabled ? data.connOption : ""}
                     onChange={handleRadioChange}
                   >
                     <FormControlLabel

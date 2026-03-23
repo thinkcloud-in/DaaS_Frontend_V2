@@ -89,7 +89,7 @@ export const updateTotpGuacStatus = async (token, enabled) => {
       }
     );
     
-    if (response.statusText === "OK") {
+    if (response.status === 200) {
       toast.success("Success", {
         position: "top-right",
         autoClose: 3000,
