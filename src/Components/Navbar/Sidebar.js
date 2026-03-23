@@ -72,7 +72,7 @@ const getIcon = (name, level = 0, parent = "") => {
         SSL: faLock,
         SMTP: faEnvelopeOpenText,
         RBAC: faUserCog,
-        // "Retention Period": faCalendarAlt,
+        "Retention Period": faCalendarAlt,
       }[name] || faAngleRight;
     }
 
