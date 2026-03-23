@@ -611,7 +611,11 @@ const PoolCreationForm = () => {
                         <div className="mt-2">
                           <select
                             onChange={handleOnChange}
-                            value={poolDetails.pool_os_type || ""}
+                            value={
+                              isHyperVCluster
+                                ? poolDetails.pool_template_vm_id?.os_type || ""
+                                : poolDetails.pool_os_type || ""
+                            }
                             name="pool_os_type"
                             required
                           >
