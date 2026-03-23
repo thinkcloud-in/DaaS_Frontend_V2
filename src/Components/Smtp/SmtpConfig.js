@@ -248,7 +248,7 @@ export default function SMTP() {
         </div>
 
         <div className="flex-1 overflow-auto custom-scrollbar px-2">
-          {loading ? (
+          {loading && !smtpConfig ? (
             <SkeletonLoader />
           ) : (
             <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto pb-8">
