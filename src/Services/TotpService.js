@@ -47,7 +47,7 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
     );
 
     if (response.status === 200) {
-      toast.success(`TOTP Admin Turned ${enabled ? 'ON' : 'OFF'}`, {
+      toast.info(`TOTP Turned ${enabled ? 'ON' : 'OFF'} for Admin`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -59,7 +59,7 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
         transition: Slide,
       });
     } else {
-      toast.error("enable-disable-totp-browser Failed", {
+      toast.error("Failed to update TOTP for Admin", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -90,7 +90,7 @@ export const updateTotpGuacStatus = async (token, enabled) => {
     );
     
     if (response.status === 200) {
-      toast.success(`TOTP Client Turned ${enabled ? 'ON' : 'OFF'}`, {
+      toast.info(`TOTP Turned ${enabled ? 'ON' : 'OFF'} for Client`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -102,7 +102,7 @@ export const updateTotpGuacStatus = async (token, enabled) => {
         transition: Slide,
       });
     } else {
-      toast.error("enable-disable-guac Failed", {
+      toast.error("Failed to update TOTP for Client", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
