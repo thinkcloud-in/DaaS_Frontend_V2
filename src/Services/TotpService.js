@@ -47,7 +47,7 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
     );
 
     if (response.status === 200) {
-      toast.success("Success", {
+      toast.success(`TOTP Admin Turned ${enabled ? 'ON' : 'OFF'}`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -90,7 +90,7 @@ export const updateTotpGuacStatus = async (token, enabled) => {
     );
     
     if (response.status === 200) {
-      toast.success("Success", {
+      toast.success(`TOTP Client Turned ${enabled ? 'ON' : 'OFF'}`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,

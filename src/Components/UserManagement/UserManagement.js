@@ -66,7 +66,7 @@ const componentCategories = {
     "SSL",
     "SMTP",
     "RBAC",
-    // "Retention Period",
+    "Retention Period",
   ],
 };
 const UserManagement = () => {
