@@ -294,7 +294,6 @@ const PoolCreationForm = () => {
           "pool_font_size",
           "pool_destination_port",
           "pool_port",
-          "pool_number_of_vms",
           "pool_template_vm_id",
         ].includes(name)
       ) {
@@ -413,6 +412,7 @@ const PoolCreationForm = () => {
     let requestData = {
       ...initialPoolDetails,
       ...poolDetails,
+      pool_number_of_vms: poolDetails.pool_number_of_vms || initialPoolDetails.pool_number_of_vms,
       email: userEmail,
     };
     try {
