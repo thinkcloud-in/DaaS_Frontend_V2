@@ -48,7 +48,7 @@ export const baseNavigation = [
     componentKey: "Reports",
     submenus: [
       { name: "Template", href: "/template", componentKey: "Template" },
-      { name: "Horizon Reports", href: "/reports/horizon", componentKey: "Horizon Reports" },
+      // { name: "Horizon Reports", href: "/reports/horizon", componentKey: "Horizon Reports" },
       { name: "Vamanit Dass Reports", href: "/reports/vamanit", componentKey: "Vamanit Dass Reports" },
     ],
   },

@@ -220,6 +220,7 @@ function App() {
           {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
           {/* <BrowserRouter basename="/admin"> */}
           <BrowserRouter>
+          <BrowserRouter basename="/admin">
             <ToastContainer />
             <Sidebar tokenParsed={tokenParsed} />
             <Suspense fallback={LoadingSpinner()}>
