@@ -865,112 +865,6 @@ const PoolCreationForm = () => {
                           </div>
                         </div>
                       </div>
-
-                      {/* Join AD Checkbox */}
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Join AD (For Windows Only)
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0 flex items-center h-full">
-                            <input
-                              type="checkbox"
-                              name="join_ad"
-                              className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-                              checked={poolDetails.join_ad || false}
-                              onChange={handleOnChange}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {poolDetails.join_ad && (
-                        <>
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Domain
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="text"
-                                  name="pool_ad_domain"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_domain || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="Domain"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Path
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="text"
-                                  name="pool_ad_path"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_path || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="OU=OU11,OU=OU1"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Username <span className="text-red-500">*</span>
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="text"
-                                  name="pool_ad_username"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_username || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="Username"
-                                  required
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Password <span className="text-red-500">*</span>
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="password"
-                                  name="pool_ad_password"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_password || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="Password"
-                                  required
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
                     </>
                   )}
 
@@ -1231,6 +1125,115 @@ const PoolCreationForm = () => {
                           </div>
                         </div>
                       </div>
+                    </>
+                  )}
+                  {/* Join AD Checkbox - visible for Proxmox and Hyper-V */}
+                  {(isProxmoxCluster || isHyperVCluster) && (
+                    <>
+                      <div className="tr">
+                        <div className="th">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                            Join AD (For Windows Only)
+                          </label>
+                        </div>
+                        <div className="td">
+                          <div className="mt-2 border-0 flex items-center h-full">
+                            <input
+                              type="checkbox"
+                              name="join_ad"
+                              className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                              checked={poolDetails.join_ad || false}
+                              onChange={handleOnChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {poolDetails.join_ad && (
+                        <>
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Domain
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_domain"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_domain || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Domain"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Path
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_path"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_path || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="OU=OU11,OU=OU1"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Username <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="text"
+                                  name="pool_ad_username"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_username || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Username"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="tr">
+                            <div className="th">
+                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                                Password <span className="text-red-500">*</span>
+                              </label>
+                            </div>
+                            <div className="td">
+                              <div className="mt-2 border-0">
+                                <input
+                                  type="password"
+                                  name="pool_ad_password"
+                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  value={poolDetails.pool_ad_password || ""}
+                                  onChange={handleOnChange}
+                                  placeholder="Password"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </>

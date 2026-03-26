@@ -502,15 +502,15 @@ const EditPool = (props) => {
                           <input
                             type="checkbox"
                             name="join_ad"
-                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-                            checked={poolDetails.pool_ad_username || false}
-                            onChange={handleOnChange}
+                            className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-not-allowed"
+                            checked={!!poolDetails.pool_ad_username}
+                            disabled
                           />
                         </div>
                       </div>
                     </div>
 
-                    {poolDetails.pool_ad_username && (
+                    {!!poolDetails.pool_ad_username && (
                       <>
                         <div className="tr">
                           <div className="th">
@@ -589,6 +589,190 @@ const EditPool = (props) => {
                                 onChange={handleOnChange}
                                 placeholder="Password"
                                 required
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {poolDetails.cluster_type === "Hyper-V" && (
+                      <>
+                        <div className="tr">
+                          <div className="th">
+                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                              vhdPath
+                            </label>
+                          </div>
+                          <div className="td">
+                            <div className="mt-2 text-left">
+                              <input
+                                type="text"
+                                name="hyperv_vhdPath"
+                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                value={poolDetails.pool_template_vm_id?.vhdPath || ""}
+                                onChange={(e) => {
+                                  setPoolDetails(prev => ({
+                                    ...prev,
+                                    pool_template_vm_id: {
+                                      ...prev.pool_template_vm_id,
+                                      vhdPath: e.target.value
+                                    }
+                                  }));
+                                }}
+                                placeholder="Enter vhdPath"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="tr">
+                          <div className="th">
+                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                              PvhdPath
+                            </label>
+                          </div>
+                          <div className="td">
+                            <div className="mt-2 text-left">
+                              <input
+                                type="text"
+                                name="hyperv_PvhdPath"
+                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
+                                onChange={(e) => {
+                                  setPoolDetails(prev => ({
+                                    ...prev,
+                                    pool_template_vm_id: {
+                                      ...prev.pool_template_vm_id,
+                                      PvhdPath: e.target.value
+                                    }
+                                  }));
+                                }}
+                                placeholder="Enter PvhdPath"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="tr">
+                          <div className="th">
+                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                              Host Password
+                            </label>
+                          </div>
+                          <div className="td">
+                            <div className="mt-2 text-left">
+                              <input
+                                type="password"
+                                name="hyperv_HostPassword"
+                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                value={poolDetails.pool_template_vm_id?.password || ""}
+                                onChange={(e) => {
+                                  setPoolDetails(prev => ({
+                                    ...prev,
+                                    pool_template_vm_id: {
+                                      ...prev.pool_template_vm_id,
+                                      password: e.target.value
+                                    }
+                                  }));
+                                }}
+                                placeholder="Enter Host password"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="tr">
+                          <div className="th">
+                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                              Generation
+                            </label>
+                          </div>
+                          <div className="td">
+                            <div className="mt-2 text-left">
+                              <select
+                                name="hyperv_generation"
+                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                value={
+                                  poolDetails.pool_template_vm_id?.generation === 1
+                                    ? "Gen1"
+                                    : poolDetails.pool_template_vm_id?.generation === 2
+                                    ? "Gen2"
+                                    : ""
+                                }
+                                onChange={(e) => {
+                                  const gen = e.target.value === "Gen2" ? 2 : e.target.value === "Gen1" ? 1 : "";
+                                  setPoolDetails(prev => ({
+                                    ...prev,
+                                    pool_template_vm_id: {
+                                      ...prev.pool_template_vm_id,
+                                      generation: gen
+                                    }
+                                  }));
+                                }}
+                              >
+                                <option value="">Select Generation</option>
+                                <option value="Gen1">Gen1</option>
+                                <option value="Gen2">Gen2</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="tr">
+                          <div className="th">
+                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                              Memory (GB)
+                            </label>
+                          </div>
+                          <div className="td">
+                            <div className="mt-2 text-left">
+                              <input
+                                type="number"
+                                min={2}
+                                step={1}
+                                max={64}
+                                name="hyperv_memory"
+                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                value={poolDetails.pool_template_vm_id?.memory || ""}
+                                onChange={(e) => {
+                                  setPoolDetails(prev => ({
+                                    ...prev,
+                                    pool_template_vm_id: {
+                                      ...prev.pool_template_vm_id,
+                                      memory: e.target.value ? parseInt(e.target.value, 10) : ""
+                                    }
+                                  }));
+                                }}
+                                placeholder="Enter memory size (GB)"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="tr">
+                          <div className="th">
+                            <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                              Switch
+                            </label>
+                          </div>
+                          <div className="td">
+                            <div className="mt-2 text-left">
+                              <input
+                                type="text"
+                                name="hyperv_switch"
+                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                value={poolDetails.pool_template_vm_id?.switch || ""}
+                                onChange={(e) => {
+                                  setPoolDetails(prev => ({
+                                    ...prev,
+                                    pool_template_vm_id: {
+                                      ...prev.pool_template_vm_id,
+                                      switch: e.target.value
+                                    }
+                                  }));
+                                }}
+                                placeholder="Enter Switch Name"
                               />
                             </div>
                           </div>

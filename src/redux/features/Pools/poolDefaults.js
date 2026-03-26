@@ -103,4 +103,8 @@ export const initialPoolDetails = {
   gateway: "",
   subnet: "",
   dns: "",
+  pool_ad_domain: "",
+  pool_ad_password: "",
+  pool_ad_username: "",
+  pool_ad_path: "",
 };
