@@ -219,6 +219,7 @@ function App() {
           {/* <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}> */}
           {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
           {/* <BrowserRouter basename="/admin"> */}
+          <BrowserRouter>
           <BrowserRouter basename="/admin">
             <ToastContainer />
             <Sidebar tokenParsed={tokenParsed} />

@@ -76,6 +76,8 @@ import {
   selectAuthToken,
   selectAuthTokenParsed,
 } from "../../redux/features/Auth/AuthSelectors";
+import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
+import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
 const ManagePool = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   // deletingMachine/deletingUser moved to redux
@@ -90,12 +92,30 @@ const ManagePool = (props) => {
   const assignedUsers = useSelector(selectAssignedUsers) || [];
   const usersLoading = useSelector(selectUsersLoading);
   const selectedVm = useSelector(selectSelectedVm);
-  const selectedVmDetails = useSelector(selectSelectedVmDetails);
   const vmDetailsMap = useSelector(selectVmDetailsMap) || {};
   const deletingMachine = useSelector(selectDeletingMachine);
   const deletingUser = useSelector(selectDeletingUser);
   const [selectedPoolDetails, setSelectedPoolDetails] = useState({});
   const poolId = useParams().id;
+
+  const clustersRaw = useSelector(selectAllClusters);
+  const clusters = React.useMemo(() => clustersRaw || [], [clustersRaw]);
+
+  const selectedCluster = React.useMemo(() => {
+    return (
+      (selectedPoolDetails?.cluster_id &&
+        clusters.find(
+          (c) => String(c.id) === String(selectedPoolDetails.cluster_id),
+        )) ||
+      null
+    );
+  }, [selectedPoolDetails, clusters]);
+
+  useEffect(() => {
+    if ((!clusters || clusters.length === 0) && token) {
+      dispatch(fetchClustersThunk(token));
+    }
+  }, [dispatch, token, clusters]);
   useEffect(() => {
     const foundPool = pools.find((pool) => String(pool.id) === String(poolId));
     if (foundPool) {
@@ -114,6 +134,29 @@ const ManagePool = (props) => {
     loadPoolById();
   }, [poolId, pools, dispatch, token]);
   const navigate = useNavigate();
+  const machineIdMap = React.useMemo(() => {
+    const map = {};
+    const clusterType = selectedCluster?.type;
+
+    if (clusterType === "Hyper-V" && selectedPoolDetails.pool_vmids) {
+      const sortedVms = [...vmAvailable].sort((a, b) => {
+        const nameA = a.name || "";
+        const nameB = b.name || "";
+        return nameA.localeCompare(nameB);
+      });
+      sortedVms.forEach((vm, index) => {
+        if (selectedPoolDetails.pool_vmids[index]) {
+          map[vm.identifier] = selectedPoolDetails.pool_vmids[index];
+        }
+      });
+    } else {
+      vmAvailable.forEach((vm) => {
+        map[vm.identifier] = vm.vm_id;
+      });
+    }
+    return map;
+  }, [vmAvailable, selectedCluster, selectedPoolDetails]);
+
   const dropdownRef = useRef(null);
   let [selectedVmIdentifier, setSelectedVmIdentifier] = useState();
   const [showEntitlePopup, setShowEntitlePopup] = useState(false);
@@ -176,11 +219,36 @@ const ManagePool = (props) => {
   };
   useEffect(() => {
     if (!Array.isArray(vmAvailable) || vmAvailable.length === 0) return;
-    const vmIds = vmAvailable.map((vm) => vm.vm_id).filter(Boolean);
-    vmIds.forEach((vmid) => {
-      dispatch(fetchMachineDetails({ token, vm_id: vmid })).catch(() => {});
+
+    const clusterType = selectedCluster?.type;
+    const sortedVms = [...vmAvailable].sort((a, b) => {
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+      return nameA.localeCompare(nameB);
     });
-  }, [vmAvailable, token, dispatch]);
+
+    vmAvailable.forEach((vm) => {
+      let vmidToFetch = vm.vm_id;
+
+      if (clusterType === "Hyper-V") {
+        const machineIndex = sortedVms.findIndex(
+          (m) => m.identifier === vm.identifier,
+        );
+        if (
+          machineIndex !== -1 &&
+          selectedPoolDetails.pool_vmids?.[machineIndex]
+        ) {
+          vmidToFetch = selectedPoolDetails.pool_vmids[machineIndex];
+        }
+      }
+
+      if (vmidToFetch) {
+        dispatch(fetchMachineDetails({ token, vm_id: vmidToFetch })).catch(
+          () => {},
+        );
+      }
+    });
+  }, [vmAvailable, token, dispatch, clusters, selectedPoolDetails]);
 
   let loadMachineDetails = async (vm_id) => {
     try {
@@ -423,7 +491,6 @@ const ManagePool = (props) => {
     }
   };
 
-  const checkboxRef = useRef(null);
   const Goback = () => {
     navigate("/pools");
   };
@@ -438,15 +505,20 @@ const ManagePool = (props) => {
   const isLoadingMachine =
     selectedPoolDetails?.pool_type === "Automated" &&
     selectedVmObj &&
-    (vmDetailsMap[selectedVmObj.vm_id] === undefined ||
-      vmDetailsMap[selectedVmObj.vm_id] === null);
+    (vmDetailsMap[machineIdMap[selectedVmObj.identifier]] === undefined ||
+      vmDetailsMap[machineIdMap[selectedVmObj.identifier]] === null);
 
   const handleReboot = async () => {
     if (!selectedVm) return;
     dispatch(setPowerActionLoading("reboot"));
     try {
       await dispatch(
-        rebootVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
+        rebootVM({
+          token,
+          userEmail,
+          vm_id: machineIdMap[selectedVmObj?.identifier],
+          poolId,
+        }),
       ).unwrap();
       toast.success("VM reboot triggered");
       refreshMachines();
@@ -462,7 +534,12 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("shutdown"));
     try {
       await dispatch(
-        shutdownVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
+        shutdownVM({
+          token,
+          userEmail,
+          vm_id: machineIdMap[selectedVmObj?.identifier],
+          poolId,
+        }),
       ).unwrap();
       toast.success("VM shutdown triggered");
       refreshMachines();
@@ -478,7 +555,12 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("start"));
     try {
       await dispatch(
-        startVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
+        startVM({
+          token,
+          userEmail,
+          vm_id: machineIdMap[selectedVmObj?.identifier],
+          poolId,
+        }),
       ).unwrap();
       toast.success("VM started successfully");
       refreshMachines();
@@ -494,7 +576,12 @@ const ManagePool = (props) => {
     dispatch(setPowerActionLoading("stop"));
     try {
       await dispatch(
-        stopVM({ token, userEmail, vm_id: selectedVmObj.vm_id, poolId }),
+        stopVM({
+          token,
+          userEmail,
+          vm_id: machineIdMap[selectedVmObj?.identifier],
+          poolId,
+        }),
       ).unwrap();
       toast.success("VM stopped successfully");
       refreshMachines();
@@ -516,7 +603,12 @@ const ManagePool = (props) => {
 
     try {
       const res = await dispatch(
-        rebuildVM({ token, userEmail, vm_id: item.vm_id, poolId }),
+        rebuildVM({
+          token,
+          userEmail,
+          vm_id: machineIdMap[item.identifier],
+          poolId,
+        }),
       ).unwrap();
       const data = res || {};
       if (data.error || (data.status && data.status === "error")) {
@@ -867,7 +959,7 @@ const ManagePool = (props) => {
                           handleMachineRowClick(
                             item.identifier,
                             item.id,
-                            item.vm_id,
+                            machineIdMap[item.identifier],
                             selectedPoolDetails.pool_type,
                           )
                         }
@@ -885,13 +977,22 @@ const ManagePool = (props) => {
                         <td className="py-2 px-3">{item.protocol}</td>
                         <td className="py-2 px-3">{item.port}</td>
                         <td className="py-2 px-3">
-                          {vmDetailsMap[item.vm_id]?.ip_address?.join(", ") ||
+                          {vmDetailsMap[machineIdMap[item.identifier]]
+                            ?.ip_address?.join(", ") ||
+                            vmDetailsMap[machineIdMap[item.identifier]]
+                              ?.ip_addresses?.join(", ") ||
+                            vmDetailsMap[machineIdMap[item.identifier]]
+                              ?.NetworkAdapters?.flatMap((na) => na.IPAddresses)
+                              ?.join(", ") ||
                             item.hostname ||
                             "N/A"}
                         </td>
                         {selectedPoolDetails.pool_type !== "Manual" && (
                           <td className="py-2 px-3">
-                            {vmDetailsMap[item.vm_id]?.node ||
+                            {vmDetailsMap[machineIdMap[item.identifier]]
+                              ?.node ||
+                              vmDetailsMap[machineIdMap[item.identifier]]
+                                ?.ComputerName ||
                               item.node ||
                               "Loading..."}
                           </td>
@@ -899,7 +1000,11 @@ const ManagePool = (props) => {
                         {/* Datastores column (only for non-Manual) */}
                         {selectedPoolDetails.pool_type !== "Manual" && (
                           <td className="py-2 px-3">
-                            {vmDetailsMap[item.vm_id]?.datastores?.join(", ") ||
+                            {vmDetailsMap[machineIdMap[item.identifier]]
+                              ?.datastores?.join(", ") ||
+                              vmDetailsMap[machineIdMap[item.identifier]]
+                                ?.HardDrives?.map((hd) => hd.Path)
+                                ?.join(", ") ||
                               item.datastore ||
                               "Loading..."}
                           </td>
@@ -907,7 +1012,8 @@ const ManagePool = (props) => {
                         {/* Agent Enabled column (only for non-Manual) */}
                         {selectedPoolDetails.pool_type !== "Manual" && (
                           <td className="py-2 px-3">
-                            {vmDetailsMap[item.vm_id]?.agent_enabled
+                            {vmDetailsMap[machineIdMap[item.identifier]]
+                              ?.agent_enabled
                               ? "Yes"
                               : "No"}
                           </td>
@@ -1113,7 +1219,9 @@ const ManagePool = (props) => {
                                       className={`px-4 py-2 hover:bg-blue-50 text-sm flex items-center gap-2 text-left  border-t border-gray-100`}
                                       onClick={() => {
                                         navigate(
-                                          `/pools/${poolId}/vm/${item.vm_id}/task-manager`,
+                                          `/pools/${poolId}/vm/${
+                                            machineIdMap[item.identifier]
+                                          }/task-manager`,
                                           {
                                             state: {
                                               os_type: item.os_type,
@@ -1233,48 +1341,66 @@ const ManagePool = (props) => {
                         </div>
                       ))}
                     </div>
-                  ) : selectedVmDetails ? (
+                  ) : selectedVmObj &&
+                    machineIdMap[selectedVmObj.identifier] &&
+                    vmDetailsMap[machineIdMap[selectedVmObj.identifier]] ? (
                     <div className="flex flex-col w-full">
                       <div className="ml-1">
-                        {[
-                          {
-                            label: "Host",
-                            value:
-                              selectedVmDetails.node ||
-                              selectedVmDetails.host ||
-                              "N/A",
-                          },
-                          {
-                            label: "Datastores",
-                            value:
-                              selectedVmDetails.datastores?.join(", ") || "N/A",
-                          },
-                          {
-                            label: "IP Addresses",
-                            value:
-                              selectedVmDetails.ip_addresses?.join(", ") ||
-                              "N/A",
-                          },
-                          {
-                            label: "Agent Enabled",
-                            value: selectedVmDetails.agent_enabled
-                              ? "Yes"
-                              : "No",
-                          },
-                        ].map(({ label, value }) => (
-                          <div
-                            key={label}
-                            className="mb-3 flex flex-row items-start"
-                          >
-                            <span className="text-gray-800 min-w-[120px]">
-                              {label}
-                            </span>
-                            <span className="mx-3 text-gray-700 font-bold">
-                              :
-                            </span>
-                            <span className="text-gray-600">{value}</span>
-                          </div>
-                        ))}
+                        {(() => {
+                          const details =
+                            vmDetailsMap[
+                              machineIdMap[selectedVmObj?.identifier]
+                            ];
+                          return [
+                            {
+                              label: "Host",
+                              value:
+                                details.node ||
+                                details.ComputerName ||
+                                selectedVmObj?.node ||
+                                "N/A",
+                            },
+                            {
+                              label: "Datastores",
+                              value:
+                                details.datastores?.join(", ") ||
+                                details.HardDrives?.map((hd) => hd.Path)?.join(
+                                  ", ",
+                                ) ||
+                                (selectedVmObj?.datastores &&
+                                  selectedVmObj.datastores.join(", ")) ||
+                                "N/A",
+                            },
+                            {
+                              label: "IP Addresses",
+                              value:
+                                details.ip_address?.join(", ") ||
+                                details.ip_addresses?.join(", ") ||
+                                details.NetworkAdapters?.flatMap(
+                                  (na) => na.IPAddresses,
+                                )?.join(", ") ||
+                                selectedVmObj?.hostname ||
+                                "N/A",
+                            },
+                            {
+                              label: "Agent Enabled",
+                              value: details.agent_enabled ? "Yes" : "No",
+                            },
+                          ].map(({ label, value }) => (
+                            <div
+                              key={label}
+                              className="mb-3 flex flex-row items-start"
+                            >
+                              <span className="text-gray-800 min-w-[120px]">
+                                {label}
+                              </span>
+                              <span className="mx-3 text-gray-700 font-bold">
+                                :
+                              </span>
+                              <span className="text-gray-600">{value}</span>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   ) : (
@@ -1284,8 +1410,8 @@ const ManagePool = (props) => {
               )}
             </div>
 
-            {selectedPoolDetails.pool_type == "Automated" &&
-              selectedVmObj.status === "COMPLETED" && (
+            {selectedPoolDetails.pool_type === "Automated" &&
+              selectedVmObj?.status === "COMPLETED" && (
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
                   <h3 className="text-sm font-medium text-gray-700 mb-3 text-center">
                     Actions
@@ -1297,14 +1423,14 @@ const ManagePool = (props) => {
                       className={`
               flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
               ${
-                selectedVmObj.error_message === "power-off" &&
+                selectedVmObj?.error_message === "power-off" &&
                 !powerActionLoading
                   ? "bg-white hover:bg-gray-200 text-green-600"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
               }
             `}
                       disabled={
-                        selectedVmObj.error_message !== "power-off" ||
+                        selectedVmObj?.error_message !== "power-off" ||
                         powerActionLoading === "start"
                       }
                     >
@@ -1322,14 +1448,14 @@ const ManagePool = (props) => {
                       className={`
               flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
               ${
-                selectedVmObj.error_message === "power-on" &&
+                selectedVmObj?.error_message === "power-on" &&
                 !powerActionLoading
                   ? "bg-white hover:bg-gray-200 text-red-600"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
               }
             `}
                       disabled={
-                        selectedVmObj.error_message !== "power-on" ||
+                        selectedVmObj?.error_message !== "power-on" ||
                         powerActionLoading === "stop"
                       }
                     >
@@ -1340,7 +1466,7 @@ const ManagePool = (props) => {
                       )}
                       Stop
                     </button>
-                    {selectedVmObj.error_message === "power-on" && (
+                    {selectedVmObj?.error_message === "power-on" && (
                       <>
                         <button
                           onClick={handleReboot}
@@ -1369,7 +1495,7 @@ const ManagePool = (props) => {
                         </button>
                       </>
                     )}
-                    {selectedVmObj.error_message === "power-off" && (
+                    {selectedVmObj?.error_message === "power-off" && (
                       <>
                         <button
                           className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-200 text-yellow-400 rounded-md text-sm font-medium cursor-not-allowed opacity-60"
