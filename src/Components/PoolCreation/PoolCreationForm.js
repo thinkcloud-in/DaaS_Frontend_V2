@@ -43,6 +43,7 @@ import { Loader2 } from "lucide-react";
 import Select from "react-select";
 import { selectIpPools } from "../../redux/features/IP-Pools/IpPoolsSelectors";
 import { fetchIpPoolsThunk } from "../../redux/features/IP-Pools/IpPoolsThunks";
+import { FaEye, FaEyeSlash, FaInfoCircle } from "react-icons/fa";
 
 const poolType = ["Automated", "Manual"];
 
@@ -69,6 +70,8 @@ const PoolCreationForm = () => {
   const storages = useSelector((state) => state.pools.proxmoxStorages);
   const userEmail = tokenParsed?.preferred_username;
   const pools = useSelector(selectIpPools);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showHostInfo, setShowHostInfo] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -412,7 +415,8 @@ const PoolCreationForm = () => {
     let requestData = {
       ...initialPoolDetails,
       ...poolDetails,
-      pool_number_of_vms: poolDetails.pool_number_of_vms || initialPoolDetails.pool_number_of_vms,
+      pool_number_of_vms:
+        poolDetails.pool_number_of_vms || initialPoolDetails.pool_number_of_vms,
       email: userEmail,
     };
     try {
@@ -448,7 +452,7 @@ const PoolCreationForm = () => {
       ?.find((opt) => opt.value === poolDetails?.pool_storage) || null;
 
   return (
-    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
@@ -470,7 +474,7 @@ const PoolCreationForm = () => {
           </svg>
         </div>
       </div>
-      <div className="pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ">
+      <div className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${isLoading ? "opacity-50 pointer-events-none select-none" : ""}`}>
         <div className="space-y-5 m-2">
           <div className="w-full mx-auto p-3 rounded-md bg-white">
             <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
@@ -530,6 +534,7 @@ const PoolCreationForm = () => {
                         name="pool_protocol"
                         onChange={handleProtocolChange}
                         value={poolDetails.pool_protocol || ""}
+                        required
                       >
                         <option value="">Select Protocol</option>
                         <option value="RDP">RDP</option>
@@ -546,7 +551,7 @@ const PoolCreationForm = () => {
                 <div className="tr">
                   <div className="th">
                     <label className="block text-sm font-medium leading-6 text-gray-900">
-                      Cluster
+                      Cluster <span className="text-red-500 text-xl">*</span>
                     </label>
                   </div>
                   <div className="td">
@@ -554,6 +559,7 @@ const PoolCreationForm = () => {
                       <select
                         onChange={handleClusterSelect}
                         value={poolDetails.cluster_id || ""}
+                        required
                       >
                         <option value="">Select Cluster</option>
                         {clusters.map((c) => (
@@ -731,6 +737,7 @@ const PoolCreationForm = () => {
                               className="basic-multi-select text-xs"
                               classNamePrefix="select"
                               placeholder="Select IP Pools"
+                              required
                             />
                           </div>
                         </div>
@@ -739,7 +746,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Template
+                            Template <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -756,6 +763,7 @@ const PoolCreationForm = () => {
                                     : ""
                                 }
                                 className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                                required
                               >
                                 <option value="">Select Template</option>
                                 {templates.map((template) => (
@@ -775,7 +783,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Node
+                            Node <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -794,6 +802,7 @@ const PoolCreationForm = () => {
                               classNamePrefix="select"
                               placeholder="Select Nodes"
                               noOptionsMessage={() => "No nodes available"}
+                              required
                             />
                           </div>
                         </div>
@@ -802,7 +811,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Storage
+                            Storage <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -820,6 +829,7 @@ const PoolCreationForm = () => {
                               placeholder="Select Storage"
                               isClearable={true}
                               noOptionsMessage={() => "No storages available"}
+                              required
                             />
                           </div>
                         </div>
@@ -828,7 +838,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Naming Pattern
+                            Naming Pattern <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -840,6 +850,7 @@ const PoolCreationForm = () => {
                               value={poolDetails.pool_naming_pattern || ""}
                               onChange={handleNamingPatternChange}
                               placeholder="Naming Pattern"
+                              required
                             />
                           </div>
                         </div>
@@ -898,6 +909,7 @@ const PoolCreationForm = () => {
                               className="basic-multi-select text-xs"
                               classNamePrefix="select"
                               placeholder="Select IP Pools"
+                              required
                             />
                           </div>
                         </div>
@@ -940,8 +952,15 @@ const PoolCreationForm = () => {
 
                       <div className="tr">
                         <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            vhdPath
+                          <label className="flex items-center gap-2 text-sm font-medium leading-7 text-gray-900 border-0 group relative">
+                            Child Disk path
+                            <span className="text-red-500 text-xl">*</span>
+                            <div className="relative flex items-center">
+                              <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs" />
+                              <span className="invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm whitespace-nowrap z-50">
+                                It should be the root folder where the VM's all structure will be created !
+                              </span>
+                            </div>
                           </label>
                         </div>
                         <div className="td">
@@ -953,7 +972,8 @@ const PoolCreationForm = () => {
                                 poolDetails.pool_template_vm_id?.vhdPath || ""
                               }
                               onChange={handleOnChange}
-                              placeholder="Enter vhdPath"
+                              placeholder="Enter Child Disk Path"
+                              required
                             />
                           </div>
                         </div>
@@ -962,7 +982,8 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            PvhdPath
+                            Parent Disk Path{" "}
+                            <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -974,28 +995,44 @@ const PoolCreationForm = () => {
                                 poolDetails.pool_template_vm_id?.PvhdPath || ""
                               }
                               onChange={handleOnChange}
-                              placeholder="Enter PvhdPath"
+                              placeholder="Enter Parent Disk Path"
+                              required
                             />
                           </div>
                         </div>
                       </div>
                       <div className="tr">
                         <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0 flex items-center gap-1 group relative">
                             Host Password
+                            <div className="relative flex items-center">
+                              <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs" />
+                              <span className="invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm whitespace-nowrap z-50">
+                                It is used only for Linux, If Pool OS Type is
+                                Windows then you may skip it !
+                              </span>
+                            </div>
                           </label>
                         </div>
                         <div className="td">
-                          <div className="mt-2">
+                          <div className="mt-2 flex items-center border border-[#e2e8f0] rounded-[0.5rem] bg-white pr-3 focus-within:border-[#1a365d] focus-within:shadow-[0_0_0_2px_rgba(26,54,93,0.1)] max-w-[40rem] transition-all">
                             <input
-                              type="password"
+                              type={showPassword ? "text" : "password"}
                               name="hyperv_HostPassword"
                               value={
                                 poolDetails.pool_template_vm_id?.password || ""
                               }
                               onChange={handleOnChange}
                               placeholder="Enter Host password"
+                              className="block w-full bg-transparent py-1.5 pl-3 focus:ring-0 sm:text-sm sm:leading-6 border-none"
                             />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="text-gray-400 hover:text-[#1a365d] focus:outline-none transition-colors"
+                            >
+                              {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1003,7 +1040,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Generation
+                            Generation <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -1020,6 +1057,7 @@ const PoolCreationForm = () => {
                                     : ""
                               }
                               onChange={handleOnChange}
+                              required
                             >
                               <option value="">Select Generation</option>
                               <option value="Gen1">Gen1</option>
@@ -1032,7 +1070,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Memory (GB)
+                            Memory (GB) <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -1048,6 +1086,7 @@ const PoolCreationForm = () => {
                               }
                               onChange={handleOnChange}
                               placeholder="Enter memory size (GB)"
+                              required
                             />
                           </div>
                         </div>
@@ -1056,7 +1095,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Switch
+                            Switch <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -1067,6 +1106,7 @@ const PoolCreationForm = () => {
                                 poolDetails.pool_template_vm_id?.switch || ""
                               }
                               onChange={handleOnChange}
+                              required
                             >
                               {ispoolloading ? (
                                 <option>Loading switches...</option>
@@ -1090,7 +1130,7 @@ const PoolCreationForm = () => {
                       <div className="tr">
                         <div className="th">
                           <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Naming Pattern
+                            Naming Pattern <span className="text-red-500 text-xl">*</span>
                           </label>
                         </div>
                         <div className="td">
@@ -1154,7 +1194,7 @@ const PoolCreationForm = () => {
                           <div className="tr">
                             <div className="th">
                               <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Domain
+                                Domain <span className="text-red-500 text-xl">*</span>
                               </label>
                             </div>
                             <div className="td">
@@ -1174,7 +1214,7 @@ const PoolCreationForm = () => {
                           <div className="tr">
                             <div className="th">
                               <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Path
+                                Path <span className="text-red-500 text-xl">*</span>
                               </label>
                             </div>
                             <div className="td">
@@ -1194,7 +1234,7 @@ const PoolCreationForm = () => {
                           <div className="tr">
                             <div className="th">
                               <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Username <span className="text-red-500">*</span>
+                                Username <span className="text-red-500 text-xl">*</span>
                               </label>
                             </div>
                             <div className="td">
@@ -1215,20 +1255,27 @@ const PoolCreationForm = () => {
                           <div className="tr">
                             <div className="th">
                               <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Password <span className="text-red-500">*</span>
+                                Password <span className="text-red-500 text-xl">*</span>
                               </label>
                             </div>
                             <div className="td">
-                              <div className="mt-2 border-0">
+                              <div className="mt-2 flex items-center border border-[#e2e8f0] rounded-[0.5rem] bg-white pr-3 focus-within:border-[#1a365d] focus-within:shadow-[0_0_0_2px_rgba(26,54,93,0.1)] max-w-[40rem] transition-all">
                                 <input
-                                  type="password"
+                                  type={showPassword ? "text" : "password"}
                                   name="pool_ad_password"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                  className="block w-full bg-transparent py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-none"
                                   value={poolDetails.pool_ad_password || ""}
                                   onChange={handleOnChange}
                                   placeholder="Password"
                                   required
                                 />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="text-gray-400 hover:text-[#1a365d] focus:outline-none transition-colors"
+                                >
+                                  {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                                </button>
                               </div>
                             </div>
                           </div>

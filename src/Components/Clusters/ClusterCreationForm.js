@@ -238,7 +238,7 @@ const ClusterCreationForm = () => {
           </div>
         </div>
         <div className="cluster-creation-form w-full">
-          <div className="space-y-5 m-2">
+          <div className={`space-y-5 m-2 ${ (isLoading || monitoringLoading || migrateLoading) ? "opacity-50 pointer-events-none select-none" : ""}`}>
             <div className="bg-white p-3 w-full max-w-4xl mx-auto">
               <h2 className="font-bold leading-7 text-[#1a365d]">
                 Create Cluster

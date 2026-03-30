@@ -247,7 +247,7 @@ export default function SMTP() {
           </FormGroup>
         </div>
 
-        <div className="flex-1 overflow-auto custom-scrollbar px-2">
+        <div className={`flex-1 overflow-auto custom-scrollbar px-2 ${ (saveLoading || statusLoading || testMailLoading) ? "opacity-50 pointer-events-none select-none" : ""}`}>
           {loading && !smtpConfig ? (
             <SkeletonLoader />
           ) : (

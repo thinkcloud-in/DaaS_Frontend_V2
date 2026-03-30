@@ -1,12 +1,17 @@
-import React, { useState, useContext } from "react";
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { PoolContext } from "../../Context/PoolContext";
-import { createIpmiServerThunk } from '../../redux/features/IPMI/IpmiThunks';
-import { selectCreateLoading, selectIpmiError } from '../../redux/features/IPMI/IpmiSelectors';
-import { clearError } from '../../redux/features/IPMI/IpmiSlice';
-import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import { createIpmiServerThunk } from "../../redux/features/IPMI/IpmiThunks";
+import {
+  selectCreateLoading,
+  selectIpmiError,
+} from "../../redux/features/IPMI/IpmiSelectors";
+import { clearError } from "../../redux/features/IPMI/IpmiSlice";
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
 
 const IpmiCreationForm = () => {
   const dispatch = useDispatch();
@@ -35,7 +40,7 @@ const IpmiCreationForm = () => {
       dispatch(clearError());
     }
   }, [error, dispatch]);
-  
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -47,11 +52,45 @@ const IpmiCreationForm = () => {
 
   // Eye icon SVGs for show/hide
   const EyeIcon = ({ visible, onClick }) => (
-    <span onClick={onClick} style={{ cursor: 'pointer', marginLeft: 8 }}>
+    <span onClick={onClick} style={{ cursor: "pointer", marginLeft: 8 }}>
       {visible ? (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m3.362-2.522A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 6L6 6" /></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m3.362-2.522A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 6L6 6"
+          />
+        </svg>
       )}
     </span>
   );
@@ -71,17 +110,18 @@ const IpmiCreationForm = () => {
     if (validate()) {
       try {
         const payload = { ...form, email: userEmail };
-        const result = await dispatch(createIpmiServerThunk({ token, payload })).unwrap();
+        const result = await dispatch(
+          createIpmiServerThunk({ token, payload }),
+        ).unwrap();
         navigate("/ipmi");
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   };
- 
+
   const Goback = () => {
     navigate(-1);
   };
- 
+
   return (
     <div className=" w-[98%] h-[90vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden ">
       <div className="flex items-center mb-6 mt-10">
@@ -97,18 +137,30 @@ const IpmiCreationForm = () => {
             justifyContent: "center",
           }}
         >
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </button>
       </div>
-         
-      <div className="w-full mx-auto pt-12 px-2  h-[90vh]">
+
+      <div
+        className={`w-full mx-auto pt-12 px-2 h-[90vh] ${loading ? "opacity-50 pointer-events-none select-none" : ""}`}
+      >
         <h3 className="text-lg font-medium text-[#00000099] mb-8  pb-4 pl-6 bg-transparent">
-            Create New IPMI Device
-          </h3>
+          Create New IPMI Device
+        </h3>
         <div className="bg-white rounded-xl h-full p-8">
-       
           <form onSubmit={handleSubmit} className="pr-2">
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -128,7 +180,11 @@ const IpmiCreationForm = () => {
                 placeholder="Enter IPMI server IP"
                 disabled={loading}
               />
-              {errors.ipmi_server_ip && <div className="text-red-600 text-sm mt-1 ml-2">{errors.ipmi_server_ip}</div>}
+              {errors.ipmi_server_ip && (
+                <div className="text-red-600 text-sm mt-1 ml-2">
+                  {errors.ipmi_server_ip}
+                </div>
+              )}
             </div>
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -148,7 +204,11 @@ const IpmiCreationForm = () => {
                 placeholder="Enter device Name"
                 disabled={loading}
               />
-              {errors.name && <div className="text-red-600 text-sm mt-1 ml-2">{errors.name}</div>}
+              {errors.name && (
+                <div className="text-red-600 text-sm mt-1 ml-2">
+                  {errors.name}
+                </div>
+              )}
             </div>
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -168,7 +228,11 @@ const IpmiCreationForm = () => {
                 placeholder="Enter username"
                 disabled={loading}
               />
-              {errors.username && <div className="text-red-600 text-sm mt-1 ml-2">{errors.username}</div>}
+              {errors.username && (
+                <div className="text-red-600 text-sm mt-1 ml-2">
+                  {errors.username}
+                </div>
+              )}
             </div>
             <div className="mb-6 flex items-center">
               <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
@@ -190,10 +254,17 @@ const IpmiCreationForm = () => {
                   disabled={loading}
                 />
                 <span className="absolute right-2  -translate-y-1/2 mt-1.5 text-gray-500">
-                  <EyeIcon visible={showPassword} onClick={handleTogglePassword} />
+                  <EyeIcon
+                    visible={showPassword}
+                    onClick={handleTogglePassword}
+                  />
                 </span>
               </div>
-              {errors.password && <div className="text-red-600 text-sm mt-1">{errors.password}</div>}
+              {errors.password && (
+                <div className="text-red-600 text-sm mt-1">
+                  {errors.password}
+                </div>
+              )}
             </div>
             <div className="flex justify-start mt-10">
               <button
@@ -210,5 +281,5 @@ const IpmiCreationForm = () => {
     </div>
   );
 };
- 
+
 export default IpmiCreationForm;

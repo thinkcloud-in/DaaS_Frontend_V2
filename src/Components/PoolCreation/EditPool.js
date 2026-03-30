@@ -31,6 +31,7 @@ import { Loader2 } from "lucide-react";
 import { Slide, toast } from "react-toastify";
 import SkeletonEditPool from "./SkeletonEditPool";
 import Select from "react-select";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 const poolType = ["Automated", "Manual"];
 const EditPool = (props) => {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ const EditPool = (props) => {
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("RDP");
+  const [showPassword, setShowPassword] = useState(false);
   const nodes = useSelector(selectCreationNodes) || [];
   const templates = useSelector(selectCreationTemplates) || [];
   const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
@@ -225,7 +227,7 @@ const EditPool = (props) => {
   }));
 
   return (
-    <div className="pool_creation w-[98%] h-[86vh]  m-auto flex-1 mx-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="pool_creation w-[98%] h-[86vh] m-auto flex-1 mx-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
@@ -251,7 +253,7 @@ const EditPool = (props) => {
         {loading ? (
           <SkeletonEditPool />
         ) : (
-          <div className="space-y-5 m-2">
+          <div className={`space-y-5 m-2 ${isLoading ? "opacity-60 pointer-events-none select-none" : ""}`}>
             <div className="w-full mx-auto p-3 rounded-md  bg-white">
               <h2 className="font-semibold leading-7 text-gray-900">
                 <span className="text-[#1a365d] text-xl">Edit </span> :{" "}
@@ -580,16 +582,23 @@ const EditPool = (props) => {
                             </label>
                           </div>
                           <div className="td">
-                            <div className="mt-2 border-0">
+                            <div className="mt-2 flex items-center border border-[#e2e8f0] rounded-[0.5rem] bg-white pr-3 focus-within:border-[#1a365d] focus-within:shadow-[0_0_0_2px_rgba(26,54,93,0.1)] max-w-[40rem] transition-all">
                               <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="pool_ad_password"
-                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                className="block w-full bg-transparent py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-none"
                                 value={poolDetails.pool_ad_password || ""}
                                 onChange={handleOnChange}
                                 placeholder="Password"
                                 required
                               />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="text-gray-400 hover:text-[#1a365d] focus:outline-none transition-colors"
+                              >
+                                {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -601,7 +610,8 @@ const EditPool = (props) => {
                         <div className="tr">
                           <div className="th">
                             <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                              vhdPath
+                              Child Disk Path{" "}
+                              <span className="text-red-500">*</span>
                             </label>
                           </div>
                           <div className="td">
@@ -610,17 +620,20 @@ const EditPool = (props) => {
                                 type="text"
                                 name="hyperv_vhdPath"
                                 className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_template_vm_id?.vhdPath || ""}
+                                value={
+                                  poolDetails.pool_template_vm_id?.vhdPath || ""
+                                }
                                 onChange={(e) => {
-                                  setPoolDetails(prev => ({
+                                  setPoolDetails((prev) => ({
                                     ...prev,
                                     pool_template_vm_id: {
                                       ...prev.pool_template_vm_id,
-                                      vhdPath: e.target.value
-                                    }
+                                      vhdPath: e.target.value,
+                                    },
                                   }));
                                 }}
-                                placeholder="Enter vhdPath"
+                                placeholder="Enter Child Disk Path"
+                                required
                               />
                             </div>
                           </div>
@@ -638,14 +651,17 @@ const EditPool = (props) => {
                                 type="text"
                                 name="hyperv_PvhdPath"
                                 className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
+                                value={
+                                  poolDetails.pool_template_vm_id?.PvhdPath ||
+                                  ""
+                                }
                                 onChange={(e) => {
-                                  setPoolDetails(prev => ({
+                                  setPoolDetails((prev) => ({
                                     ...prev,
                                     pool_template_vm_id: {
                                       ...prev.pool_template_vm_id,
-                                      PvhdPath: e.target.value
-                                    }
+                                      PvhdPath: e.target.value,
+                                    },
                                   }));
                                 }}
                                 placeholder="Enter PvhdPath"
@@ -661,23 +677,32 @@ const EditPool = (props) => {
                             </label>
                           </div>
                           <div className="td">
-                            <div className="mt-2 text-left">
+                            <div className="mt-2 flex items-center border border-[#e2e8f0] rounded-[0.5rem] bg-white pr-3 focus-within:border-[#1a365d] focus-within:shadow-[0_0_0_2px_rgba(26,54,93,0.1)] max-w-[40rem] transition-all">
                               <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="hyperv_HostPassword"
-                                className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_template_vm_id?.password || ""}
+                                className="block w-full bg-transparent py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-none"
+                                value={
+                                  poolDetails.pool_template_vm_id?.password || ""
+                                }
                                 onChange={(e) => {
-                                  setPoolDetails(prev => ({
+                                  setPoolDetails((prev) => ({
                                     ...prev,
                                     pool_template_vm_id: {
                                       ...prev.pool_template_vm_id,
-                                      password: e.target.value
-                                    }
+                                      password: e.target.value,
+                                    },
                                   }));
                                 }}
                                 placeholder="Enter Host password"
                               />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="text-gray-400 hover:text-[#1a365d] focus:outline-none transition-colors"
+                              >
+                                {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -694,20 +719,27 @@ const EditPool = (props) => {
                                 name="hyperv_generation"
                                 className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                                 value={
-                                  poolDetails.pool_template_vm_id?.generation === 1
+                                  poolDetails.pool_template_vm_id
+                                    ?.generation === 1
                                     ? "Gen1"
-                                    : poolDetails.pool_template_vm_id?.generation === 2
-                                    ? "Gen2"
-                                    : ""
+                                    : poolDetails.pool_template_vm_id
+                                          ?.generation === 2
+                                      ? "Gen2"
+                                      : ""
                                 }
                                 onChange={(e) => {
-                                  const gen = e.target.value === "Gen2" ? 2 : e.target.value === "Gen1" ? 1 : "";
-                                  setPoolDetails(prev => ({
+                                  const gen =
+                                    e.target.value === "Gen2"
+                                      ? 2
+                                      : e.target.value === "Gen1"
+                                        ? 1
+                                        : "";
+                                  setPoolDetails((prev) => ({
                                     ...prev,
                                     pool_template_vm_id: {
                                       ...prev.pool_template_vm_id,
-                                      generation: gen
-                                    }
+                                      generation: gen,
+                                    },
                                   }));
                                 }}
                               >
@@ -734,14 +766,18 @@ const EditPool = (props) => {
                                 max={64}
                                 name="hyperv_memory"
                                 className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_template_vm_id?.memory || ""}
+                                value={
+                                  poolDetails.pool_template_vm_id?.memory || ""
+                                }
                                 onChange={(e) => {
-                                  setPoolDetails(prev => ({
+                                  setPoolDetails((prev) => ({
                                     ...prev,
                                     pool_template_vm_id: {
                                       ...prev.pool_template_vm_id,
-                                      memory: e.target.value ? parseInt(e.target.value, 10) : ""
-                                    }
+                                      memory: e.target.value
+                                        ? parseInt(e.target.value, 10)
+                                        : "",
+                                    },
                                   }));
                                 }}
                                 placeholder="Enter memory size (GB)"
@@ -762,14 +798,16 @@ const EditPool = (props) => {
                                 type="text"
                                 name="hyperv_switch"
                                 className="block flex-1 w-full bg-white py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                value={poolDetails.pool_template_vm_id?.switch || ""}
+                                value={
+                                  poolDetails.pool_template_vm_id?.switch || ""
+                                }
                                 onChange={(e) => {
-                                  setPoolDetails(prev => ({
+                                  setPoolDetails((prev) => ({
                                     ...prev,
                                     pool_template_vm_id: {
                                       ...prev.pool_template_vm_id,
-                                      switch: e.target.value
-                                    }
+                                      switch: e.target.value,
+                                    },
                                   }));
                                 }}
                                 placeholder="Enter Switch Name"

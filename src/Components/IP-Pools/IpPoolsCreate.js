@@ -103,7 +103,7 @@ const IpPoolsCreate = () => {
             </svg>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ">
+      <div className={`flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${loading ? "opacity-50 pointer-events-none select-none" : ""}`}>
          <div className=" space-y-5 m-2 w-full mx-auto p-3 rounded-md  bg-white">
             <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-3">
               Create New IP-Pool

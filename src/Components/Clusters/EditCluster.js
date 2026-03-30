@@ -212,7 +212,7 @@ const EditCluster = () => {
         </div>
       </div>
       <div className="cluster-creation-form overflow-y-auto rounded-md bg-white custom-scrollbar ">
-        <div className="space-y-5 m-2">
+        <div className={`space-y-5 m-2 ${isLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}>
           <div className="mx-10 p-3 rounded-md w-3/4">
             <h2 className="font-bold leading-7 text-gray-900 text-left">
               Edit Cluster

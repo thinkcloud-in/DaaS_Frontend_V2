@@ -188,7 +188,7 @@ export default function Auto_Mail() {
         </div>
           <h2 className="text-[1.5rem] md:text-[1.7rem] font-bold text-[#1a365d] mx-auto">Schedule</h2>
         </nav>
-        <div className="w-full md:w-[60%] lg:w-[45%] xl:w-[35%] bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col items-center m-auto border border-gray-100">
+        <div className={`w-full md:w-[60%] lg:w-[45%] xl:w-[35%] bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col items-center m-auto border border-gray-100 ${scheduleSaveLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}>
           <form onSubmit={handleSubmit} className="flex flex-col w-full h-full">
             <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
               <TextField

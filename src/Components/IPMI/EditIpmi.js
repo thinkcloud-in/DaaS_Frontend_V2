@@ -1,25 +1,31 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { PoolContext } from "../../Context/PoolContext"; 
+import { PoolContext } from "../../Context/PoolContext";
 import { toast } from "react-toastify";
-import { 
-  fetchIpmiServerByIdThunk, 
-  updateIpmiServerThunk 
-} from '../../redux/features/IPMI/IpmiThunks';
-import { 
-  selectSelectedIpmi, 
-  selectFetchByIdLoading, 
-  selectUpdateLoading, 
-  selectIpmiError 
-} from '../../redux/features/IPMI/IpmiSelectors';
-import { clearError, clearSelectedIpmi } from '../../redux/features/IPMI/IpmiSlice';
-import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
-
+import {
+  fetchIpmiServerByIdThunk,
+  updateIpmiServerThunk,
+} from "../../redux/features/IPMI/IpmiThunks";
+import {
+  selectSelectedIpmi,
+  selectFetchByIdLoading,
+  selectUpdateLoading,
+  selectIpmiError,
+} from "../../redux/features/IPMI/IpmiSelectors";
+import {
+  clearError,
+  clearSelectedIpmi,
+} from "../../redux/features/IPMI/IpmiSlice";
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const SkeletonInput = () => (
   <div className="w-[40%] h-[36px] bg-gray-200 animate-pulse rounded-lg ml-2"></div>
-); 
+);
 
 const EditIpmi = () => {
   const dispatch = useDispatch();
@@ -42,12 +48,15 @@ const EditIpmi = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
   useEffect(() => {
     if (token && id) {
       dispatch(fetchIpmiServerByIdThunk({ token, id }));
     }
-    
+
     return () => {
       dispatch(clearSelectedIpmi());
     };
@@ -59,7 +68,7 @@ const EditIpmi = () => {
         ipmi_server_ip: selectedIpmi.ipmi_server_ip ?? "",
         name: selectedIpmi.name ?? "",
         username: selectedIpmi.username ?? "",
-        password: "", 
+        password: "",
       });
     }
   }, [selectedIpmi]);
@@ -80,7 +89,7 @@ const EditIpmi = () => {
       [e.target.name]: e.target.value,
     });
   };
- 
+
   const validate = () => {
     const newErrors = {};
     setErrors(newErrors);
@@ -98,18 +107,17 @@ const EditIpmi = () => {
           email: userEmail,
           ...(form.password ? { password: form.password } : {}),
         };
-        
+
         await dispatch(updateIpmiServerThunk({ token, id, payload })).unwrap();
         navigate("/ipmi");
-      } catch (error) {
-      }
+      } catch (error) {}
     }
   };
 
   const Goback = () => {
     navigate(-1);
   };
- 
+
   return (
     <div className="w-[98%] h-[90vh] m-auto mt-4 bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="flex items-center mb-6 mt-10">
@@ -125,12 +133,25 @@ const EditIpmi = () => {
             justifyContent: "center",
           }}
         >
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </button>
       </div>
-      <div className="w-full mx-auto pt-12 px-2 h-[90vh]">
+      <div
+        className={`w-full mx-auto pt-12 px-2 h-[90vh] ${updateLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}
+      >
         <h3 className="text-lg font-medium text-[#2d3146] mb-8 pb-4 pl-6 bg-transparent">
           Edit IPMI Device
         </h3>
@@ -241,18 +262,32 @@ const EditIpmi = () => {
                   </span>
                   Password
                 </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-100 text-base bg-white ${
-                    errors.password && "border-red-400"
-                  }`}
-                  placeholder="Enter new password"
-                  disabled={updateLoading}
-                  autoComplete="new-password"
-                />
+                <div className="relative w-[40%] ml-2">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    className={`w-full border border-gray-300 rounded-lg px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
+                      errors.password && "border-red-400"
+                    }`}
+                    placeholder="Enter new password"
+                    disabled={updateLoading}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleTogglePassword}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <FaEyeSlash size={16} />
+                    ) : (
+                      <FaEye size={16} />
+                    )}
+                  </button>
+                </div>
               </div>
               <div className="flex justify-start mt-10">
                 <button
@@ -270,5 +305,5 @@ const EditIpmi = () => {
     </div>
   );
 };
- 
+
 export default EditIpmi;
