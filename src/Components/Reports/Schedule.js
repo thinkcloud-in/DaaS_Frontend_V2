@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import TextField from "@mui/material/TextField";
 import { Radio, RadioGroup, FormControlLabel, FormLabel } from "@mui/material";
 import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 import { toast } from "react-toastify";
@@ -8,6 +7,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { useDispatch, useSelector } from 'react-redux';
 import { addOrUpdateSchedule } from '../../redux/features/Reports/ReportsThunks';
 import { selectScheduleSaveLoading } from '../../redux/features/Reports/ReportsSelectors';
+import { InputField, SelectField } from '../Common';
+
 
 export default function Auto_Mail() {
   const token = useSelector(selectAuthToken);
@@ -188,126 +189,110 @@ export default function Auto_Mail() {
         </div>
           <h2 className="text-[1.5rem] md:text-[1.7rem] font-bold text-[#1a365d] mx-auto">Schedule</h2>
         </nav>
-        <div className={`w-full md:w-[60%] lg:w-[45%] xl:w-[35%] bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col items-center m-auto border border-gray-100 ${scheduleSaveLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}>
-          <form onSubmit={handleSubmit} className="flex flex-col w-full h-full">
-            <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-              <TextField
+        <div className={`w-[95%] max-w-4xl bg-white p-4 md:p-8 rounded-lg shadow-md flex flex-col mx-auto border border-gray-100 ${scheduleSaveLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}>
+          <form onSubmit={handleSubmit} className="flex flex-col w-full h-full pr-2 text-left">
+            <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+
+              <InputField
                 label="Email Address"
-                variant="outlined"
-                type="text"
                 name="receiverEmail"
+                iconClass="fa-envelope"
                 value={formData.receiverEmail}
-                fullWidth
-                margin="normal"
-                required
-                inputProps={{ style: { height: "10px", color: "#1a365d" } }}
-                InputLabelProps={{ style: { color: "#1a365d" } }}
                 onChange={handleChange}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#1a365d" },
-                    "&:hover fieldset": { borderColor: "#1a365d" },
-                    "&.Mui-focused fieldset": { borderColor: "#1a365d" },
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": { color: "#1a365d" },
-                }}
+                required={true}
+                placeholder="Enter email addresses (comma separated)"
               />
-              <div className="flex flex-col my-2">
-                <select
-                  name="report"
-                  value={formData.report}
-                  onChange={(e) =>
-                    setFormData({ ...formData, report: e.target.value })
-                  }
-                  required
-                  className="text-[#1a365d] border-[1.5px] border-[#1a365d] rounded px-3 py-2 font-medium focus:outline-none focus:border-[#1a365d] focus:ring-2 focus:ring-[#1a365d]/15 bg-white transition-colors"
-                >
-                  <option value="Vamanit"> Vamanit Daas Reports </option>
-                  <option value="Horizon"> Horizon Reports </option>
-                </select>
-              </div>
-              <div className="flex flex-col my-2">
-                <select
-                  id="report"
-                  name="reportName"
-                  value={formData.reportName}
-                  onChange={handleChange}
-                  required
-                  className="text-[#1a365d] border-[1.5px] border-[#1a365d] rounded px-3 py-2 font-medium focus:outline-none focus:border-[#1a365d] focus:ring-2 focus:ring-[#1a365d]/15 bg-white transition-colors"
-                >
-                  <option value="">Select Report</option>
-                  <option value="Session Reports">Session Reports</option>
-                  <option value="Daily Reports">Daily Reports</option>
-                  <option value="Consolidate Reports">
-                    Consolidate Reports
-                  </option>
-                </select>
-              </div>
-              <TextField
-                variant="outlined"
-                type="time"
-                fullWidth
+
+              <SelectField
+                label="Report Type"
+                name="report"
+                iconClass="fa-folder"
+                value={formData.report}
+                onChange={(e) => setFormData({ ...formData, report: e.target.value })}
+                required={true}
+                options={[
+                  { value: 'Vamanit', label: 'Vamanit Daas Reports' },
+                  { value: 'Horizon', label: 'Horizon Reports' }
+                ]}
+              />
+
+              <SelectField
+                label="Report Name"
+                name="reportName"
+                iconClass="fa-file-lines"
+                value={formData.reportName}
+                onChange={handleChange}
+                required={true}
+                options={[
+                  { value: '', label: 'Select Report', disabled: true },
+                  { value: 'Session Reports', label: 'Session Reports' },
+                  { value: 'Daily Reports', label: 'Daily Reports' },
+                  { value: 'Consolidate Reports', label: 'Consolidate Reports' }
+                ]}
+              />
+
+              <InputField
+                label="Time"
                 name="time"
-                inputProps={{ style: { height: "10px" } }}
+                type="time"
+                iconClass="fa-clock"
                 value={formData.time}
-                margin="normal"
                 onChange={handleChange}
-                required
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: "#1a365d" },
-                    "&:hover fieldset": { borderColor: "#1a365d" },
-                    "&.Mui-focused fieldset": { borderColor: "#1a365d" },
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": { color: "#1a365d" },
-                }}
+                required={true}
               />
-              <FormLabel component="legend" className="text-left font-semibold text-[#1a365d] mt-2">
-                Schedule Type
-              </FormLabel>
-              <RadioGroup
-                onChange={handleRadioChange}
-                value={formData.schedule_type}
-                required
-                className="flex flex-row flex-wrap"
-                sx={{
-                  color: '#1a365d',
-                  '& .MuiFormControlLabel-label': { color: '#1a365d', fontSize: '0.9rem' },
-                }}
-              >
-                <FormControlLabel
-                  value="daily"
-                  control={<Radio sx={{ color: '#1a365d', '&.Mui-checked': { color: '#1a365d' } }} />}
-                  label="Daily"
-                />
-                <FormControlLabel
-                  value="weekly"
-                  control={<Radio sx={{ color: '#1a365d', '&.Mui-checked': { color: '#1a365d' } }} />}
-                  label="Weekly"
-                />
-                <FormControlLabel
-                  value="monthly"
-                  control={<Radio sx={{ color: '#1a365d', '&.Mui-checked': { color: '#1a365d' } }} />}
-                  label="Monthly"
-                />
-              </RadioGroup>
+
+              <div className="mb-6 flex items-start">
+                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] mt-2">
+                  <span><i className="fas fa-calendar-alt mr-2"></i></span> Schedule Type
+                </label>
+                <div className="flex-1 ml-2">
+                  <RadioGroup
+                    onChange={handleRadioChange}
+                    value={formData.schedule_type}
+                    required
+                    className="flex flex-row flex-wrap mt-[0.3rem]"
+                    sx={{
+                      color: '#1a365d',
+                      '& .MuiFormControlLabel-label': { color: '#1a365d', fontSize: '0.9rem' },
+                    }}
+                  >
+                    <FormControlLabel
+                      value="daily"
+                      control={<Radio sx={{ color: '#1a365d', '&.Mui-checked': { color: '#1a365d' } }} />}
+                      label="Daily"
+                    />
+                    <FormControlLabel
+                      value="weekly"
+                      control={<Radio sx={{ color: '#1a365d', '&.Mui-checked': { color: '#1a365d' } }} />}
+                      label="Weekly"
+                    />
+                    <FormControlLabel
+                      value="monthly"
+                      control={<Radio sx={{ color: '#1a365d', '&.Mui-checked': { color: '#1a365d' } }} />}
+                      label="Monthly"
+                    />
+                  </RadioGroup>
+                </div>
+              </div>
+
               <div
                 id="container-footer"
-                className="mt-4 p-3 bg-gray-50 rounded text-left border border-gray-100"
+                className="mt-4 p-4 lg:ml-[188px] bg-gray-50 rounded text-left border border-gray-100"
                 style={{ display: formData.schedule_type ? "block" : "none" }}
               >
-                <h6 className="text-[13px] text-gray-600">
-                  Date Range From: <span className="font-semibold text-gray-800">{formData.report_start}</span>
+                <h6 className="text-[14px] text-gray-700 mb-1">
+                  Date Range From: <span className="font-semibold text-[#1a365d]">{formData.report_start}</span>
                 </h6>
-                <h6 className="text-[13px] text-gray-600">
-                  Date Range To: <span className="font-semibold text-gray-800">{formData.report_end}</span>
+                <h6 className="text-[14px] text-gray-700 mb-1">
+                  Date Range To: <span className="font-semibold text-[#1a365d]">{formData.report_end}</span>
                 </h6>
-                <h6 className="text-[13px] text-gray-600">
-                  Reports generated on: <span className="font-semibold text-gray-800">{formData.schedule_date}</span> at <span className="font-semibold text-gray-800">{formData.time}</span>
+                <h6 className="text-[14px] text-gray-700">
+                  Reports generated on: <span className="font-semibold text-[#1a365d]">{formData.schedule_date}</span> at <span className="font-semibold text-[#1a365d]">{formData.time}</span>
                 </h6>
               </div>
             </div>
-            <div className="flex justify-end mt-6">
+
+            <div className="flex justify-start lg:ml-[188px] mt-6 w-full">
               {scheduleSaveLoading ? (
                 <div className="flex items-center gap-2 px-6 py-2 rounded bg-[#1a365d] text-[#f5f5f5] cursor-wait shadow-sm">
                   <CircularProgress size={16} style={{ color: "#f5f5f5" }} />
@@ -318,7 +303,7 @@ export default function Auto_Mail() {
                   type="submit"
                   className="px-6 py-2 rounded bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] transition-all font-medium shadow-sm active:scale-95"
                 >
-                  Submit
+                  {reports ? "Update Scheduler" : "Submit"}
                 </button>
               )}
             </div>

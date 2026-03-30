@@ -8,6 +8,7 @@ import { createIpPoolThunk } from '../../redux/features/IP-Pools/IpPoolsThunks';
 import { selectCreateLoading, selectIpPoolsError } from '../../redux/features/IP-Pools/IpPoolsSelectors';
 import { clearError } from '../../redux/features/IP-Pools/IpPoolsSlice'; 
 import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import { InputField } from '../Common';
 
 const IpPoolsCreate = () => {
   const dispatch = useDispatch();
@@ -86,9 +87,6 @@ const IpPoolsCreate = () => {
     navigate(-1);
   };
 
-  const inputClass = (error) =>
-    `w-full input-ip-pools px-3 py-2 ${error ? 'border-red-400' : ''}`;
-
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto min-h-[75vh] mt-4 bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="flex justify-start mt-5">
@@ -109,116 +107,82 @@ const IpPoolsCreate = () => {
               Create New IP-Pool
             </h2>
           </div>
-        <form onSubmit={handleSubmit} className="p-8 text-left pr-2">
-          <div className="grid grid-cols-12 gap-4 items-center mb-4 ">
-            <label className="text-sm font-medium leading-6 text-gray-900">
-              Pool Name <span className="text-red-500">*</span>
-            </label>
-            <div className="col-span-6">
-              <input
-                type="text"
-                name="poolName"
-                value={form.poolName}
-                onChange={handleChange}
-                className={inputClass(errors.poolName)}
-                placeholder=""
-                disabled={loading}
-              />
-              {errors.poolName && <div className="text-red-600 text-sm mt-1">{errors.poolName}</div>}
-            </div>
-          </div>
-          <div className="grid grid-cols-12 gap-4 items-center mb-4">
-            <label className="text-sm font-medium leading-6 text-gray-900">
-              Starting IP <span className="text-red-500">*</span>
-            </label>
-            <div className="col-span-6">
-              <input
-                type="text"
-                name="startIp"
-                value={form.startIp}
-                onChange={handleChange}
-                className={inputClass(errors.startIp)}
-                placeholder=""
-                disabled={loading}
-              />
-              {errors.startIp && <div className="text-red-600 text-sm mt-1">{errors.startIp}</div>}
-            </div>
-          </div>
-          <div className="grid grid-cols-12 gap-4 items-center mb-4">
-            <label className="text-sm font-medium leading-6 text-gray-900">
-              End IP <span className="text-red-500">*</span>
-            </label>
-            <div className="col-span-6">
-              <input
-                type="text"
-                name="endIp"
-                value={form.endIp}
-                onChange={handleChange}
-                className={inputClass(errors.endIp)}
-                placeholder=""
-                disabled={loading}
-              />
-              {errors.endIp && <div className="text-red-600 text-sm mt-1">{errors.endIp}</div>}
-            </div>
-          </div>
-          <div className="grid grid-cols-12 gap-4 items-center mb-4">
-            <label className="text-sm font-medium leading-6 text-gray-900">
-              Subnet <span className="text-red-500">*</span>
-            </label>
-            <div className="col-span-6">
-              <input
-                type="text"
-                name="subnet"
-                value={form.subnet}
-                onChange={handleChange}
-                className={inputClass(errors.subnet)}
-                placeholder=""
-                disabled={loading}
-              />
-              {errors.subnet && <div className="text-red-600 text-sm mt-1">{errors.subnet}</div>}
-            </div>
-          </div>
-          <div className="grid grid-cols-12 gap-4 items-center mb-4">
-            <label className="text-sm font-medium leading-6 text-gray-900">
-              Gateway <span className="text-red-500">*</span>
-            </label>
-            <div className="col-span-6">
-              <input
-                type="text"
-                name="gateway"
-                value={form.gateway}
-                onChange={handleChange}
-                className={inputClass(errors.gateway)}
-                placeholder=""
-                disabled={loading}
-              />
-              {errors.gateway && <div className="text-red-600 text-sm mt-1">{errors.gateway}</div>}
-            </div>
-          </div>
-          <div className="grid grid-cols-12 gap-4 items-center mb-8">
-            <label className="text-sm font-medium leading-6 text-gray-900">
-              DNS <span className="text-red-500">*</span>
-            </label>
-            <div className="col-span-6">
-              <input
-                type="text"
-                name="dns"
-                value={form.dns}
-                onChange={handleChange}
-                className={inputClass(errors.dns)}
-                placeholder="e.g. 8.8.8.8, 8.8.4.4"
-                disabled={loading}
-              />
-              {errors.dns && <div className="text-red-600 text-sm mt-1">{errors.dns}</div>}
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white px-4 py-2 rounded-md font-semibold text-sm transition-all ml-2"
+        <form onSubmit={handleSubmit} className="p-8 text-left pr-2 w-full max-w-4xl mx-auto">
+          <InputField
+            label="Pool Name"
+            name="poolName"
+            iconClass="fa-diagram-project"
+            value={form.poolName}
+            onChange={handleChange}
+            required={true}
             disabled={loading}
-          >
-            {loading ? 'Submitting...' : 'Submit'}
-          </button>
+            error={errors.poolName}
+            placeholder="Enter Pool Name"
+          />
+          <InputField
+            label="Starting IP"
+            name="startIp"
+            iconClass="fa-network-wired"
+            value={form.startIp}
+            onChange={handleChange}
+            required={true}
+            disabled={loading}
+            error={errors.startIp}
+            placeholder="Starting IP"
+          />
+          <InputField
+            label="End IP"
+            name="endIp"
+            iconClass="fa-network-wired"
+            value={form.endIp}
+            onChange={handleChange}
+            required={true}
+            disabled={loading}
+            error={errors.endIp}
+            placeholder="End IP"
+          />
+          <InputField
+            label="Subnet"
+            name="subnet"
+            iconClass="fa-sitemap"
+            value={form.subnet}
+            onChange={handleChange}
+            required={true}
+            disabled={loading}
+            error={errors.subnet}
+            placeholder="Subnet"
+          />
+          <InputField
+            label="Gateway"
+            name="gateway"
+            iconClass="fa-route"
+            value={form.gateway}
+            onChange={handleChange}
+            required={true}
+            disabled={loading}
+            error={errors.gateway}
+            placeholder="Gateway"
+          />
+          <InputField
+            label="DNS"
+            name="dns"
+            iconClass="fa-globe"
+            value={form.dns}
+            onChange={handleChange}
+            required={true}
+            disabled={loading}
+            error={errors.dns}
+            placeholder="e.g. 8.8.8.8, 8.8.4.4"
+          />
+          <div className="flex justify-start mt-6">
+            <button
+              type="submit"
+              className="bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white px-4 py-2 rounded-md font-semibold text-sm transition-all ml-2"
+              disabled={loading}
+            >
+              {loading ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

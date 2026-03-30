@@ -41,6 +41,7 @@ import CustomTabs from "../CustomTabs/CustomTabs";
 import { Slide, toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import Select from "react-select";
+import { InputField, SelectField, PasswordField } from "../Common";
 import { selectIpPools } from "../../redux/features/IP-Pools/IpPoolsSelectors";
 import { fetchIpPoolsThunk } from "../../redux/features/IP-Pools/IpPoolsThunks";
 import { FaEye, FaEyeSlash, FaInfoCircle } from "react-icons/fa";
@@ -391,27 +392,60 @@ const PoolCreationForm = () => {
 
   // Submit
   const handleOnClick = async () => {
-    if (
-      !poolDetails.pool_type ||
-      !poolDetails.pool_protocol ||
-      !poolDetails.pool_name
-    ) {
-      toast.error(
-        "Please fill all mandatory fields (Pool Type, Pool Name, and Protocol)",
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Slide,
-        },
-      );
+    // JS validation is required because the button uses type="button" (onClick),
+    // so native HTML `required` attribute doesn't trigger browser validation.
+
+    // Build an ordered list of [condition, fieldLabel] checks
+    const checks = [
+      // Always required
+      [!poolDetails.pool_type,     "Pool Type"],
+      [!poolDetails.pool_protocol, "Protocol"],
+      [!poolDetails.pool_name,     "Pool Name"],
+    ];
+
+    if (poolDetails.pool_type === "Automated") {
+      checks.push([!poolDetails.cluster_id,    "Cluster"]);
+      checks.push([!poolDetails.pool_os_type && !poolDetails.pool_template_vm_id?.os_type, "Pool OS Type"]);
+      checks.push([!poolDetails.pool_naming_pattern, "Naming Pattern"]);
+
+      if (isProxmoxCluster) {
+        checks.push([!(poolDetails.pool_ip_pool_names?.length > 0), "IP Pools"]);
+        checks.push([!poolDetails.pool_template_vm_id?.vmid,        "Template"]);
+        checks.push([!(poolDetails.pool_selected_nodes?.length > 0), "Node"]);
+        checks.push([!poolDetails.pool_storage,                      "Storage"]);
+      }
+
+      if (isHyperVCluster) {
+        checks.push([!(poolDetails.pool_ip_pool_names?.length > 0),         "IP Pools (Hyper-V)"]);
+        checks.push([!poolDetails.pool_template_vm_id?.vhdPath,             "Child Disk Path"]);
+        checks.push([!poolDetails.pool_template_vm_id?.PvhdPath,            "Parent Disk Path"]);
+        checks.push([!poolDetails.pool_template_vm_id?.generation,          "Generation"]);
+        checks.push([!poolDetails.pool_template_vm_id?.memory,              "Memory (GB)"]);
+        checks.push([!poolDetails.pool_template_vm_id?.switch,              "Switch"]);
+      }
+
+      // AD Join fields (if join_ad is checked)
+      if (poolDetails.join_ad) {
+        checks.push([!poolDetails.pool_ad_domain,   "AD Domain"]);
+        checks.push([!poolDetails.pool_ad_path,     "AD Path"]);
+        checks.push([!poolDetails.pool_ad_username, "AD Username"]);
+        checks.push([!poolDetails.pool_ad_password, "AD Password"]);
+      }
+    }
+
+    const failing = checks.find(([condition]) => condition);
+    if (failing) {
+      toast.error(`Please fill in the required field: "${failing[1]}"`, {
+        position: "top-right",
+        autoClose: 5000,
+        closeOnClick: true,
+        pauseOnHover: true,
+        theme: "light",
+        transition: Slide,
+      });
       return;
     }
+
     let requestData = {
       ...initialPoolDetails,
       ...poolDetails,
@@ -486,115 +520,61 @@ const PoolCreationForm = () => {
               </div>
             )}
 
-            <div className="text-left table-auto ml-5">
-              <div className="tr">
-                <div className="th">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                    Pool Type <span className="text-red-500 text-xl">*</span>
-                  </label>
-                </div>
-                <div className="td">
-                  <div className="mt-2">
-                    <select
-                      onChange={handleOnChange}
-                      value={poolDetails.pool_type || ""}
-                      name="pool_type"
-                      required
-                    >
-                      <option value="">Pool Type</option>
-                      {poolType.map((item) => (
-                        <option
-                          key={item}
-                          value={item}
-                          className="capitalize px-1"
-                        >
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
+            <div className="text-left w-full ml-5 max-w-4xl py-4">
+              <SelectField
+                label="Pool Type"
+                name="pool_type"
+                iconClass="fa-server"
+                value={poolDetails.pool_type || ""}
+                onChange={(e) => handleOnChange({ target: { name: 'pool_type', value: e.target.value }})}
+                required={true}
+                options={[
+                  { value: '', label: 'Pool Type', disabled: true },
+                  ...poolType.map(item => ({ value: item, label: item }))
+                ]}
+              />
 
-              {/* Protocol */}
-              <div className="protocol_field mb-4 mt-3">
-                <div className="tr">
-                  <div className="th">
-                    <label
-                      htmlFor="protocol"
-                      className="block text-sm font-medium leading-6 text-gray-900 border-0"
-                    >
-                      Protocol <span className="text-red-500 text-xl">*</span>
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2">
-                      <select
-                        id="protocol"
-                        name="pool_protocol"
-                        onChange={handleProtocolChange}
-                        value={poolDetails.pool_protocol || ""}
-                        required
-                      >
-                        <option value="">Select Protocol</option>
-                        <option value="RDP">RDP</option>
-                        <option value="SSH">SSH</option>
-                        <option value="VNC">VNC</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SelectField
+                label="Protocol"
+                name="pool_protocol"
+                iconClass="fa-network-wired"
+                value={poolDetails.pool_protocol || ""}
+                onChange={handleProtocolChange}
+                required={true}
+                options={[
+                  { value: '', label: 'Select Protocol', disabled: true },
+                  { value: 'RDP', label: 'RDP' },
+                  { value: 'SSH', label: 'SSH' },
+                  { value: 'VNC', label: 'VNC' }
+                ]}
+              />
 
-              {/* Cluster - moved right after Protocol, but only for Automated (preserve Manual/Automated conditions) */}
               {poolDetails.pool_type === "Automated" && (
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900">
-                      Cluster <span className="text-red-500 text-xl">*</span>
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2">
-                      <select
-                        onChange={handleClusterSelect}
-                        value={poolDetails.cluster_id || ""}
-                        required
-                      >
-                        <option value="">Select Cluster</option>
-                        {clusters.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {error && <div className="text-red-600 mt-1">{error}</div>}
-                  </div>
-                </div>
+                <SelectField
+                  label="Cluster"
+                  name="cluster_id"
+                  iconClass="fa-sitemap"
+                  value={poolDetails.cluster_id || ""}
+                  onChange={handleClusterSelect}
+                  required={true}
+                  error={error}
+                  options={[
+                    { value: '', label: 'Select Cluster', disabled: true },
+                    ...clusters.map(c => ({ value: c.id, label: c.name }))
+                  ]}
+                />
               )}
 
-              {/* Pool Name - keep visible when pool type is selected (preserve original behavior) */}
               {poolDetails.pool_type && (
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                      Pool Name <span className="text-red-500 text-xl">*</span>
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2">
-                      <input
-                        type="text"
-                        name="pool_name"
-                        value={poolDetails.pool_name || ""}
-                        onChange={handleOnChange}
-                        required
-                        placeholder="Pool Name"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <InputField
+                  label="Pool Name"
+                  name="pool_name"
+                  iconClass="fa-diagram-project"
+                  value={poolDetails.pool_name || ""}
+                  onChange={handleOnChange}
+                  required={true}
+                  placeholder="Pool Name"
+                />
               )}
 
               {/* The cluster-specific fields for Automated pools.
@@ -606,679 +586,372 @@ const PoolCreationForm = () => {
                 <>
                   {/* OS Type - shown for all cluster types in the mapping */}
                   {poolDetails.cluster_id && (
-                    <div className="tr">
-                      <div className="th">
-                        <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                          Pool OS Type{" "}
-                          <span className="text-red-500 text-xl">*</span>
-                        </label>
-                      </div>
-                      <div className="td">
-                        <div className="mt-2">
-                          <select
-                            onChange={handleOnChange}
-                            value={
-                              isHyperVCluster
-                                ? poolDetails.pool_template_vm_id?.os_type || ""
-                                : poolDetails.pool_os_type || ""
-                            }
-                            name="pool_os_type"
-                            required
-                          >
-                            <option value="">Select OS</option>
-                            {isHyperVCluster ? (
-                              <>
-                                <option value="Windows 10">Windows 10 </option>
-                                <option value="Windows 11">Windows 11 </option>
-                                <option value="Windows server OS">
-                                  Windows (2019/2022/2025){" "}
-                                </option>
-                                <option value="Ubuntu desktop">
-                                  Linux (Ubuntu desktop)
-                                </option>
-                              </>
-                            ) : (
-                              <>
-                                <option value="Windows">Windows</option>
-                                <option value="Linux">Linux</option>
-                              </>
-                            )}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
+                    <SelectField
+                      label="Pool OS Type"
+                      name="pool_os_type"
+                      iconClass="fa-computer"
+                      value={isHyperVCluster ? poolDetails.pool_template_vm_id?.os_type || "" : poolDetails.pool_os_type || ""}
+                      onChange={handleOnChange}
+                      required={true}
+                      options={[
+                        { value: '', label: 'Select OS', disabled: true },
+                        ...(isHyperVCluster ? [
+                          { value: 'Windows 10', label: 'Windows 10' },
+                          { value: 'Windows 11', label: 'Windows 11' },
+                          { value: 'Windows server OS', label: 'Windows (2019/2022/2025)' },
+                          { value: 'Ubuntu desktop', label: 'Linux (Ubuntu desktop)' }
+                        ] : [
+                          { value: 'Windows', label: 'Windows' },
+                          { value: 'Linux', label: 'Linux' }
+                        ])
+                      ]}
+                    />
                   )}
 
                   {/* VMware-specific fields */}
                   {isVmwareCluster && (
                     <>
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Select DC
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <select
-                              name="pool_vmware_dc"
-                              value={poolDetails.pool_vmware_dc || ""}
-                              onChange={handleVmwareDCChange}
-                              className="w-full cursor-pointer py-1.5 text-gray-900 border-2"
-                            >
-                              <option value="">Select DC</option>
-                              {vmwareDCs.map((dc) => (
-                                <option key={dc.id || dc.name} value={dc.name}>
-                                  {dc.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Select Folder
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <select
-                              name="pool_vmware_folder"
-                              value={poolDetails.pool_vmware_folder || ""}
-                              onChange={handleVmwareFolderChange}
-                              className="w-full cursor-pointer py-1.5 text-gray-900 border-2"
-                            >
-                              <option value="">Select Folder</option>
-                              {vmwareFolders.map((folder) => (
-                                <option
-                                  key={folder.id || folder.name}
-                                  value={folder.name}
-                                >
-                                  {folder.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
+                      <SelectField
+                        label="Select DC"
+                        name="pool_vmware_dc"
+                        iconClass="fa-folder-tree"
+                        value={poolDetails.pool_vmware_dc || ""}
+                        onChange={handleVmwareDCChange}
+                        options={[
+                          { value: '', label: 'Select DC', disabled: true },
+                          ...vmwareDCs.map(dc => ({ value: dc.name, label: dc.name }))
+                        ]}
+                      />
+                      <SelectField
+                        label="Select Folder"
+                        name="pool_vmware_folder"
+                        iconClass="fa-folder-open"
+                        value={poolDetails.pool_vmware_folder || ""}
+                        onChange={handleVmwareFolderChange}
+                        options={[
+                          { value: '', label: 'Select Folder', disabled: true },
+                          ...vmwareFolders.map(folder => ({ value: folder.name, label: folder.name }))
+                        ]}
+                      />
                     </>
                   )}
 
                   {/* Proxmox-specific fields */}
                   {isProxmoxCluster && (
                     <>
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Select IP Pools{" "}
-                            <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <Select
-                              isMulti
-                              name="pool_ip_pool_names"
-                              value={ipPoolNames
-                                .filter((name) =>
-                                  (
-                                    poolDetails.pool_ip_pool_names || []
-                                  ).includes(name),
-                                )
-                                .map((name) => ({ label: name, value: name }))}
-                              onChange={handleIpPoolsChange}
-                              options={ipPoolNames.map((name) => ({
-                                label: name,
-                                value: name,
-                              }))}
-                              className="basic-multi-select text-xs"
-                              classNamePrefix="select"
-                              placeholder="Select IP Pools"
-                              required
-                            />
-                          </div>
+                      <div className="mb-6 flex items-start">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                          <span><i className="fas fa-network-wired mr-2"></i></span>
+                          Select IP Pools <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
+                          <Select
+                            isMulti
+                            name="pool_ip_pool_names"
+                            value={ipPoolNames.filter(name => (poolDetails.pool_ip_pool_names || []).includes(name)).map(name => ({ label: name, value: name }))}
+                            onChange={handleIpPoolsChange}
+                            options={ipPoolNames.map((name) => ({ label: name, value: name }))}
+                            className="basic-multi-select bg-white"
+                            classNamePrefix="select"
+                            placeholder="Select IP Pools"
+                            required
+                          />
                         </div>
                       </div>
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Template <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <div className="flex ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
-                              <select
-                                name="pool_template_vm_id"
-                                onChange={handleTemplateChange}
-                                value={
-                                  poolDetails.pool_template_vm_id?.vmid
-                                    ? String(
-                                        poolDetails.pool_template_vm_id.vmid,
-                                      )
-                                    : ""
-                                }
-                                className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 sm:text-sm sm:leading-6"
-                                required
-                              >
-                                <option value="">Select Template</option>
-                                {templates.map((template) => (
-                                  <option
-                                    key={template.vmid}
-                                    value={String(template.vmid)}
-                                  >
-                                    {template.vmid} ({template.name})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
+                      <div className="mb-6 flex items-start">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                          <span><i className="fas fa-file-invoice mr-2"></i></span>
+                          Template <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
+                          <select
+                            name="pool_template_vm_id"
+                            onChange={handleTemplateChange}
+                            value={poolDetails.pool_template_vm_id?.vmid ? String(poolDetails.pool_template_vm_id.vmid) : ""}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white"
+                            required
+                          >
+                            <option value="">Select Template</option>
+                            {templates.map((template) => (
+                              <option key={template.vmid} value={String(template.vmid)}>
+                                {template.vmid} ({template.name})
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Node <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <Select
-                              isMulti
-                              name="pool_selected_nodes"
-                              value={nodeOptions.filter((opt) =>
-                                (
-                                  poolDetails.pool_selected_nodes || []
-                                ).includes(opt.value),
-                              )}
-                              onChange={handleNodesChange}
-                              options={nodeOptions}
-                              className="basic-multi-select text-xs"
-                              classNamePrefix="select"
-                              placeholder="Select Nodes"
-                              noOptionsMessage={() => "No nodes available"}
-                              required
-                            />
-                          </div>
+                      <div className="mb-6 flex items-start">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                          <span><i className="fas fa-server mr-2"></i></span>
+                          Node <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
+                          <Select
+                            isMulti
+                            name="pool_selected_nodes"
+                            value={nodeOptions.filter(opt => (poolDetails.pool_selected_nodes || []).includes(opt.value))}
+                            onChange={handleNodesChange}
+                            options={nodeOptions}
+                            className="basic-multi-select bg-white"
+                            classNamePrefix="select"
+                            placeholder="Select Nodes"
+                            noOptionsMessage={() => "No nodes available"}
+                            required
+                          />
                         </div>
                       </div>
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Storage <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <Select
-                              name="pool_storage"
-                              value={selectedStorageOption}
-                              onChange={handleStorageChange}
-                              options={storages.map((s) => ({
-                                label: s.storage,
-                                value: s.storage,
-                              }))}
-                              className="basic-single text-xs"
-                              classNamePrefix="select"
-                              placeholder="Select Storage"
-                              isClearable={true}
-                              noOptionsMessage={() => "No storages available"}
-                              required
-                            />
-                          </div>
+                      <div className="mb-6 flex items-start">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                          <span><i className="fas fa-database mr-2"></i></span>
+                          Storage <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
+                          <Select
+                            name="pool_storage"
+                            value={selectedStorageOption}
+                            onChange={handleStorageChange}
+                            options={storages.map((s) => ({ label: s.storage, value: s.storage }))}
+                            className="basic-single bg-white"
+                            classNamePrefix="select"
+                            placeholder="Select Storage"
+                            isClearable={true}
+                            noOptionsMessage={() => "No storages available"}
+                            required
+                          />
                         </div>
                       </div>
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Naming Pattern <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <input
-                              type="text"
-                              name="pool_naming_pattern"
-                              className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                              value={poolDetails.pool_naming_pattern || ""}
-                              onChange={handleNamingPatternChange}
-                              placeholder="Naming Pattern"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <InputField
+                        label="Naming Pattern"
+                        name="pool_naming_pattern"
+                        iconClass="fa-font"
+                        value={poolDetails.pool_naming_pattern || ""}
+                        onChange={handleNamingPatternChange}
+                        required={true}
+                        placeholder="Naming Pattern"
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Number of VMs
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <input
-                              type="number"
-                              min={1}
-                              name="pool_number_of_vms"
-                              className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                              value={poolDetails.pool_number_of_vms || ""}
-                              onChange={handleCountChange}
-                              placeholder="Number of VMs"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <InputField
+                        label="Number of VMs"
+                        type="number"
+                        name="pool_number_of_vms"
+                        iconClass="fa-list-ol"
+                        value={poolDetails.pool_number_of_vms || ""}
+                        onChange={handleCountChange}
+                        placeholder="Number of VMs"
+                        min="1"
+                      />
                     </>
                   )}
 
                   {/* Hyper-V-specific fields */}
                   {isHyperVCluster && (
                     <>
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Select IP Pools{" "}
-                            <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0">
-                            <Select
-                              isMulti
-                              name="pool_ip_pool_names"
-                              value={ipPoolNames
-                                .filter((name) =>
-                                  (
-                                    poolDetails.pool_ip_pool_names || []
-                                  ).includes(name),
-                                )
-                                .map((name) => ({ label: name, value: name }))}
-                              onChange={handleIpPoolsChange}
-                              options={ipPoolNames.map((name) => ({
-                                label: name,
-                                value: name,
-                              }))}
-                              className="basic-multi-select text-xs"
-                              classNamePrefix="select"
-                              placeholder="Select IP Pools"
-                              required
-                            />
-                          </div>
+                      <div className="mb-6 flex items-start">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                          <span><i className="fas fa-network-wired mr-2"></i></span>
+                          Select IP Pools <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
+                          <Select
+                            isMulti
+                            name="pool_ip_pool_names"
+                            value={ipPoolNames.filter((name) => (poolDetails.pool_ip_pool_names || []).includes(name)).map((name) => ({ label: name, value: name }))}
+                            onChange={handleIpPoolsChange}
+                            options={ipPoolNames.map((name) => ({ label: name, value: name }))}
+                            className="basic-multi-select bg-white"
+                            classNamePrefix="select"
+                            placeholder="Select IP Pools"
+                            required
+                          />
                         </div>
                       </div>
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Node
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2">
-                            <Select
-                              isMulti
-                              name="pool_selected_nodes"
-                              value={nodeOptions.filter((opt) =>
-                                (
-                                  poolDetails.pool_selected_nodes || []
-                                ).includes(opt.value),
-                              )}
-                              onChange={handleNodesChange}
-                              options={nodeOptions}
-                              className="basic-multi-select text-xs"
-                              classNamePrefix="select"
-                              placeholder="Not applicable for Hyper-V"
-                              isDisabled={true}
-                              noOptionsMessage={() => "Not applicable"}
-                              styles={{
-                                control: (base) => ({
-                                  ...base,
-                                  cursor: "not-allowed",
-                                  backgroundColor: "#f3f4f6",
-                                }),
-                              }}
-                            />
-                          </div>
+                      <div className="mb-6 flex items-start">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                          <span><i className="fas fa-server mr-2"></i></span>
+                          Node
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
+                          <Select
+                            isMulti
+                            name="pool_selected_nodes"
+                            value={nodeOptions.filter((opt) => (poolDetails.pool_selected_nodes || []).includes(opt.value))}
+                            onChange={handleNodesChange}
+                            options={nodeOptions}
+                            className="basic-multi-select bg-white"
+                            classNamePrefix="select"
+                            placeholder="Not applicable for Hyper-V"
+                            isDisabled={true}
+                            noOptionsMessage={() => "Not applicable"}
+                            styles={{
+                              control: (base) => ({
+                                ...base,
+                                cursor: "not-allowed",
+                                backgroundColor: "#f3f4f6",
+                              }),
+                            }}
+                          />
                         </div>
                       </div>
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="flex items-center gap-2 text-sm font-medium leading-7 text-gray-900 border-0 group relative">
-                            Child Disk path
-                            <span className="text-red-500 text-xl">*</span>
-                            <div className="relative flex items-center">
-                              <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs" />
-                              <span className="invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm whitespace-nowrap z-50">
-                                It should be the root folder where the VM's all structure will be created !
-                              </span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="hyperv_vhdPath"
-                              value={
-                                poolDetails.pool_template_vm_id?.vhdPath || ""
-                              }
-                              onChange={handleOnChange}
-                              placeholder="Enter Child Disk Path"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <InputField
+                        label="Child Disk path"
+                        name="hyperv_vhdPath"
+                        iconClass="fa-hard-drive"
+                        value={poolDetails.pool_template_vm_id?.vhdPath || ""}
+                        onChange={handleOnChange}
+                        placeholder="Enter Child Disk Path"
+                        required={true}
+                        tooltip="It should be the root folder where the VM's all structure will be created!"
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Parent Disk Path{" "}
-                            <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="hyperv_PvhdPath"
-                              value={
-                                poolDetails.pool_template_vm_id?.PvhdPath || ""
-                              }
-                              onChange={handleOnChange}
-                              placeholder="Enter Parent Disk Path"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0 flex items-center gap-1 group relative">
-                            Host Password
-                            <div className="relative flex items-center">
-                              <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs" />
-                              <span className="invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm whitespace-nowrap z-50">
-                                It is used only for Linux, If Pool OS Type is
-                                Windows then you may skip it !
-                              </span>
-                            </div>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 flex items-center border border-[#e2e8f0] rounded-[0.5rem] bg-white pr-3 focus-within:border-[#1a365d] focus-within:shadow-[0_0_0_2px_rgba(26,54,93,0.1)] max-w-[40rem] transition-all">
-                            <input
-                              type={showPassword ? "text" : "password"}
-                              name="hyperv_HostPassword"
-                              value={
-                                poolDetails.pool_template_vm_id?.password || ""
-                              }
-                              onChange={handleOnChange}
-                              placeholder="Enter Host password"
-                              className="block w-full bg-transparent py-1.5 pl-3 focus:ring-0 sm:text-sm sm:leading-6 border-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="text-gray-400 hover:text-[#1a365d] focus:outline-none transition-colors"
-                            >
-                              {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                      <InputField
+                        label="Parent Disk Path"
+                        name="hyperv_PvhdPath"
+                        iconClass="fa-folder-open"
+                        value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
+                        onChange={handleOnChange}
+                        placeholder="Enter Parent Disk Path"
+                        required={true}
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Generation <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2">
-                            <select
-                              name="hyperv_generation"
-                              value={
-                                poolDetails.pool_template_vm_id?.generation ===
-                                1
-                                  ? "Gen1"
-                                  : poolDetails.pool_template_vm_id
-                                        ?.generation === 2
-                                    ? "Gen2"
-                                    : ""
-                              }
-                              onChange={handleOnChange}
-                              required
-                            >
-                              <option value="">Select Generation</option>
-                              <option value="Gen1">Gen1</option>
-                              <option value="Gen2">Gen2</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
+                      <PasswordField
+                        label="Host Password"
+                        name="hyperv_HostPassword"
+                        iconClass="fa-key"
+                        value={poolDetails.pool_template_vm_id?.password || ""}
+                        onChange={handleOnChange}
+                        placeholder="Enter Host password"
+                        tooltip="It is used only for Linux. If Pool OS Type is Windows then you may skip it!"
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Memory (GB) <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 text-left">
-                            <input
-                              type="number"
-                              min={2}
-                              step={1}
-                              max={64}
-                              name="hyperv_memory"
-                              value={
-                                poolDetails.pool_template_vm_id?.memory || ""
-                              }
-                              onChange={handleOnChange}
-                              placeholder="Enter memory size (GB)"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <SelectField
+                        label="Generation"
+                        name="hyperv_generation"
+                        iconClass="fa-microchip"
+                        value={poolDetails.pool_template_vm_id?.generation === 1 ? "Gen1" : poolDetails.pool_template_vm_id?.generation === 2 ? "Gen2" : ""}
+                        onChange={handleOnChange}
+                        required={true}
+                        options={[
+                          { value: '', label: 'Select Generation', disabled: true },
+                          { value: 'Gen1', label: 'Gen1' },
+                          { value: 'Gen2', label: 'Gen2' }
+                        ]}
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Switch <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2">
-                            <select
-                              name="hyperv_switch"
-                              value={
-                                poolDetails.pool_template_vm_id?.switch || ""
-                              }
-                              onChange={handleOnChange}
-                              required
-                            >
-                              {ispoolloading ? (
-                                <option>Loading switches...</option>
-                              ) : switches && switches.length > 0 ? (
-                                <>
-                                  <option value="">Select Switch</option>
-                                  {switches.map((sw, index) => (
-                                    <option key={index} value={sw.Name}>
-                                      {sw.Name}
-                                    </option>
-                                  ))}
-                                </>
-                              ) : (
-                                <option>No switches available</option>
-                              )}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
+                      <InputField
+                        label="Memory (GB)"
+                        name="hyperv_memory"
+                        type="number"
+                        iconClass="fa-memory"
+                        value={poolDetails.pool_template_vm_id?.memory || ""}
+                        onChange={handleOnChange}
+                        placeholder="Enter memory size (GB)"
+                        required={true}
+                        min="2"
+                        step="1"
+                        max="64"
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Naming Pattern <span className="text-red-500 text-xl">*</span>
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 text-left">
-                            <input
-                              type="text"
-                              name="pool_naming_pattern"
-                              value={poolDetails.pool_naming_pattern || ""}
-                              onChange={handleNamingPatternChange}
-                              placeholder="Naming Pattern"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <SelectField
+                        label="Switch"
+                        name="hyperv_switch"
+                        iconClass="fa-network-wired"
+                        value={poolDetails.pool_template_vm_id?.switch || ""}
+                        onChange={handleOnChange}
+                        required={true}
+                        options={[
+                          { value: '', label: 'Select Switch', disabled: true },
+                          ...(switches || []).map(sw => ({ value: sw.Name, label: sw.Name }))
+                        ]}
+                      />
 
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Number of VMs
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 text-left">
-                            <input
-                              type="number"
-                              min={1}
-                              name="pool_number_of_vms"
-                              value={poolDetails.pool_number_of_vms || ""}
-                              onChange={handleCountChange}
-                              placeholder="Number of VMs"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <InputField
+                        label="Naming Pattern"
+                        name="pool_naming_pattern"
+                        iconClass="fa-font"
+                        value={poolDetails.pool_naming_pattern || ""}
+                        onChange={handleNamingPatternChange}
+                        placeholder="Naming Pattern"
+                        required={true}
+                      />
+
+                      <InputField
+                        label="Number of VMs"
+                        type="number"
+                        name="pool_number_of_vms"
+                        iconClass="fa-list-ol"
+                        value={poolDetails.pool_number_of_vms || ""}
+                        onChange={handleCountChange}
+                        placeholder="Number of VMs"
+                        min="1"
+                      />
                     </>
                   )}
                   {/* Join AD Checkbox - visible for Proxmox and Hyper-V */}
                   {(isProxmoxCluster || isHyperVCluster) && (
                     <>
-                      <div className="tr">
-                        <div className="th">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                            Join AD (For Windows Only)
-                          </label>
-                        </div>
-                        <div className="td">
-                          <div className="mt-2 border-0 flex items-center h-full">
-                            <input
-                              type="checkbox"
-                              name="join_ad"
-                              className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-                              checked={poolDetails.join_ad || false}
-                              onChange={handleOnChange}
-                            />
-                          </div>
+                      <div className="mb-6 flex items-center">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                          <span><i className="fas fa-sitemap mr-2"></i></span>
+                          Join AD (For Windows Only)
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
+                          <input
+                            type="checkbox"
+                            name="join_ad"
+                            className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-pointer"
+                            checked={poolDetails.join_ad || false}
+                            onChange={handleOnChange}
+                          />
                         </div>
                       </div>
 
                       {poolDetails.join_ad && (
                         <>
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Domain <span className="text-red-500 text-xl">*</span>
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="text"
-                                  name="pool_ad_domain"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_domain || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="Domain"
-                                />
-                              </div>
-                            </div>
-                          </div>
+                          <InputField
+                            label="Domain"
+                            name="pool_ad_domain"
+                            iconClass="fa-globe"
+                            value={poolDetails.pool_ad_domain || ""}
+                            onChange={handleOnChange}
+                            placeholder="Domain"
+                            required={true}
+                          />
 
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Path <span className="text-red-500 text-xl">*</span>
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="text"
-                                  name="pool_ad_path"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_path || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="OU=OU11,OU=OU1"
-                                />
-                              </div>
-                            </div>
-                          </div>
+                          <InputField
+                            label="Path"
+                            name="pool_ad_path"
+                            iconClass="fa-folder-tree"
+                            value={poolDetails.pool_ad_path || ""}
+                            onChange={handleOnChange}
+                            placeholder="OU=OU11,OU=OU1"
+                            required={true}
+                          />
 
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Username <span className="text-red-500 text-xl">*</span>
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 border-0">
-                                <input
-                                  type="text"
-                                  name="pool_ad_username"
-                                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                                  value={poolDetails.pool_ad_username || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="Username"
-                                  required
-                                />
-                              </div>
-                            </div>
-                          </div>
+                          <InputField
+                            label="Username"
+                            name="pool_ad_username"
+                            iconClass="fa-user"
+                            value={poolDetails.pool_ad_username || ""}
+                            onChange={handleOnChange}
+                            placeholder="Username"
+                            required={true}
+                          />
 
-                          <div className="tr">
-                            <div className="th">
-                              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                                Password <span className="text-red-500 text-xl">*</span>
-                              </label>
-                            </div>
-                            <div className="td">
-                              <div className="mt-2 flex items-center border border-[#e2e8f0] rounded-[0.5rem] bg-white pr-3 focus-within:border-[#1a365d] focus-within:shadow-[0_0_0_2px_rgba(26,54,93,0.1)] max-w-[40rem] transition-all">
-                                <input
-                                  type={showPassword ? "text" : "password"}
-                                  name="pool_ad_password"
-                                  className="block w-full bg-transparent py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-none"
-                                  value={poolDetails.pool_ad_password || ""}
-                                  onChange={handleOnChange}
-                                  placeholder="Password"
-                                  required
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  className="text-gray-400 hover:text-[#1a365d] focus:outline-none transition-colors"
-                                >
-                                  {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                          <PasswordField
+                            label="Password"
+                            name="pool_ad_password"
+                            iconClass="fa-key"
+                            value={poolDetails.pool_ad_password || ""}
+                            onChange={handleOnChange}
+                            placeholder="Password"
+                            required={true}
+                          />
                         </>
                       )}
                     </>

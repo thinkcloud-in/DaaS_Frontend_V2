@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./css/ClusterCreationForm.css";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { InputField, PasswordField, SelectField } from "../Common";
 import { Slide, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -58,7 +59,6 @@ const ClusterCreationForm = () => {
   const [srcApiToken, setSrcApiToken] = useState("");
   const [migrateLoading, setMigrateLoading] = useState(false);
   const [showApiToken, setShowApiToken] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -243,294 +243,139 @@ const ClusterCreationForm = () => {
               <h2 className="font-bold leading-7 text-[#1a365d]">
                 Create Cluster
               </h2>
-              <div className="text-left table-auto">
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                      Cluster Type
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2 border-0">
-                      <select
-                        onChange={handleOnChange}
-                        value={clusterDetails.type}
-                        name="type"
-                        className="block cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset    sm:text-sm sm:leading-6"
-                      >
-                        <option value="" disabled>
-                          Cluster Type
-                        </option>
-                        {clusterType.map((item) => (
-                          <option
-                            key={item}
-                            value={item}
-                            className="capitalize px-1"
-                          >
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                      Cluster Name
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2 border-0">
-                      <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset    ">
-                        <input
-                          type="text"
-                          name="name"
-                          disabled={isDisabled}
-                          onChange={handleOnChange}
-                          value={clusterDetails.name}
-                          className={classNames(
-                            isDisabled
-                              ? "bg-gray-200 border-slate-300"
-                              : "bg-white bg-transparent",
-                            "block flex-1 rounded-md py-2 px-3 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-left w-full">
+                <SelectField
+                  label="Cluster Type"
+                  name="type"
+                  iconClass="fa-server"
+                  value={clusterDetails.type}
+                  onChange={handleOnChange}
+                  disabled={isDisabled}
+                  options={clusterType.map((item) => ({ value: item, label: item }))}
+                />
+
+                <InputField
+                  label="Cluster Name"
+                  name="name"
+                  iconClass="fa-object-group"
+                  value={clusterDetails.name}
+                  onChange={handleOnChange}
+                  disabled={isDisabled}
+                  placeholder="Enter cluster name"
+                />
+
                 {clusterDetails.type === "VMware" && (
-                  <div className="tr">
-                    <div className="th">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                        Vcenter IP / FQDN
-                      </label>
-                    </div>
-                    <div className="td">
-                      <div className="mt-2 border-0">
-                        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset">
-                          <input
-                            type="text"
-                            name="ip"
-                            disabled={isDisabled}
-                            onChange={handleOnChange}
-                            value={clusterDetails.ip[0] || ""}
-                            className={classNames(
-                              isDisabled
-                                ? "bg-gray-200 border-slate-300 w-300"
-                                : "bg-white bg-transparent",
-                              "block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <InputField
+                    label="Vcenter IP / FQDN"
+                    name="ip"
+                    iconClass="fa-network-wired"
+                    value={clusterDetails.ip[0] || ""}
+                    onChange={handleOnChange}
+                    disabled={isDisabled}
+                    placeholder="Enter Vcenter IP or FQDN"
+                  />
                 )}
+
                 {clusterDetails.type === "Proxmox" && (
-                  <div className="tr">
-                    <div className="th">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                        Proxmox IP / FQDN
-                      </label>
-                    </div>
-                    <div className="td">
-                      <div className="mt-2 border-0">
-                        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset    ">
-                          <input
-                            type="text"
-                            name="ip"
-                            disabled={isDisabled}
-                            onChange={handleOnChange}
-                            value={clusterDetails.ip[0] || ""}
-                            className={classNames(
-                              isDisabled
-                                ? "bg-gray-200 border-slate-300 w-300"
-                                : "bg-white bg-transparent",
-                              "block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <InputField
+                    label="Proxmox IP / FQDN"
+                    name="ip"
+                    iconClass="fa-network-wired"
+                    value={clusterDetails.ip[0] || ""}
+                    onChange={handleOnChange}
+                    disabled={isDisabled}
+                    placeholder="Enter Proxmox IP or FQDN"
+                  />
                 )}
 
                 {clusterDetails.type === "Hyper-V" && (
-                  <div className="tr">
-                    <div className="th">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                        Hyper-V IP / FQDN
-                      </label>
-                    </div>
-                    <div className="td">
-                      <div className="mt-2 border-0">
-                        <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset">
-                          <input
-                            type="text"
-                            name="ip"
-                            disabled={isDisabled}
-                            onChange={handleOnChange}
-                            value={clusterDetails.ip[0] || ""}
-                            className={classNames(
-                              isDisabled
-                                ? "bg-gray-200 border-slate-300 w-300"
-                                : "bg-white bg-transparent",
-                              "block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <InputField
+                    label="Hyper-V IP / FQDN"
+                    name="ip"
+                    iconClass="fa-network-wired"
+                    value={clusterDetails.ip[0] || ""}
+                    onChange={handleOnChange}
+                    disabled={isDisabled}
+                    placeholder="Enter Hyper-V IP or FQDN"
+                  />
                 )}
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                      Port
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2 border-0">
-                      <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset    ">
-                        <input
-                          onChange={handleOnChange}
-                          value={clusterDetails.port}
-                          disabled={isDisabled}
-                          type="number"
-                          name="port"
-                          className={classNames(
-                            isDisabled
-                              ? "bg-gray-200 border-slate-300"
-                              : "bg-white bg-transparent",
-                            "block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                      Username
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2 border-0">
-                      <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset    ">
-                        <input
-                          type="text"
-                          name="username"
-                          disabled={isDisabled}
-                          onChange={handleOnChange}
-                          value={clusterDetails.username}
-                          className={classNames(
-                            isDisabled
-                              ? "bg-gray-200 border-slate-300"
-                              : "bg-white bg-transparent",
-                            "block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="tr">
-                  <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                      Password
-                    </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-2 border-0">
-                      <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          name="password"
-                          disabled={isDisabled}
-                          onChange={handleOnChange}
-                          value={clusterDetails.password}
-                          className={classNames(
-                            isDisabled
-                              ? "bg-gray-200 border-slate-300"
-                              : "bg-white bg-transparent",
-                            "block flex-1 rounded-md py-1.5 pl-1 pr-8 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                          )}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? (
-                            <i className="fa-solid fa-eye-slash"></i>
-                          ) : (
-                            <i className="fa-solid fa-eye"></i>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
+                <InputField
+                  label="Port"
+                  name="port"
+                  type="number"
+                  iconClass="fa-door-open"
+                  value={clusterDetails.port}
+                  onChange={handleOnChange}
+                  disabled={isDisabled}
+                  placeholder="Enter port"
+                />
+
+                <InputField
+                  label="Username"
+                  name="username"
+                  iconClass="fa-user"
+                  value={clusterDetails.username}
+                  onChange={handleOnChange}
+                  disabled={isDisabled}
+                  placeholder="Enter username"
+                />
+
+                <PasswordField
+                  label="Password"
+                  name="password"
+                  value={clusterDetails.password}
+                  onChange={handleOnChange}
+                  disabled={isDisabled}
+                  placeholder="Enter password"
+                />
 
                 {clusterDetails.type === "Hyper-V" && (
-                  <div className="tr mt-4 mb-4">
-                    <div className="th">
-                      <label className="block text-sm mt-5 font-medium leading-6 text-gray-900 border-0">
-                        Node Type
-                      </label>
-                    </div>
-                    <div className="td">
-                      <div className="mt-2 flex items-center gap-6">
-                        <label className="flex items-center gap-2 whitespace-nowrap">
-                          <input
-                            type="checkbox"
-                            checked={hyperVNodeType.node_type}
-                            value={clusterDetails.node_type}
-                            onChange={() => handleHyperVNodeSelection("single")}
-                            disabled={hyperVNodeType.node_type}
-                          />
-                          <span>Standalone</span>
-                        </label>
-                        <label className="flex items-center gap-2 whitespace-nowrap">
-                          <input
-                            type="checkbox"
-                            checked={hyperVNodeType.node_type}
-                            value={clusterDetails.node_type}
-                            onChange={() => handleHyperVNodeSelection("multi")}
-                            disabled={hyperVNodeType.node_type}
-                          />
-                          <span>Multi Node</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div className="tr">
-                  <div className="th">
-                    <label
-                      htmlFor="username"
-                      className="block text-sm mt-5 font-medium leading-6 text-gray-900 border-0"
-                    >
-                      Insecure Skip Verify
+                  <div className="mb-6 flex items-center">
+                    <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                      <span><i className="fas fa-sitemap mr-2"></i></span> Node Type
                     </label>
-                  </div>
-                  <div className="td">
-                    <div className="mt-5 border-0">
-                      <label className="switch">
+                    <div className="ml-2 flex flex-1 items-center gap-6">
+                      <label className="flex items-center gap-2 whitespace-nowrap">
                         <input
                           type="checkbox"
-                          name="tls"
-                          disabled={isDisabled}
-                          onChange={handleChange}
-                          ref={checkboxRef}
-                          checked={clusterDetails.tls}
+                          checked={hyperVNodeType.node_type}
+                          value={clusterDetails.node_type}
+                          onChange={() => handleHyperVNodeSelection("single")}
+                          disabled={hyperVNodeType.node_type}
                         />
-                        <span className="slider round"></span>
+                        <span>Standalone</span>
+                      </label>
+                      <label className="flex items-center gap-2 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={hyperVNodeType.node_type}
+                          value={clusterDetails.node_type}
+                          onChange={() => handleHyperVNodeSelection("multi")}
+                          disabled={hyperVNodeType.node_type}
+                        />
+                        <span>Multi Node</span>
                       </label>
                     </div>
+                  </div>
+                )}
+
+                <div className="mb-6 flex items-center">
+                  <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                    <span><i className="fas fa-shield-halved mr-2"></i></span> Insecure Skip Verify
+                  </label>
+                  <div className="ml-2 flex-1">
+                    <label className="switch mt-1">
+                      <input
+                        type="checkbox"
+                        name="tls"
+                        disabled={isDisabled}
+                        onChange={handleChange}
+                        ref={checkboxRef}
+                        checked={clusterDetails.tls}
+                      />
+                      <span className="slider round"></span>
+                    </label>
                   </div>
                 </div>
               </div>

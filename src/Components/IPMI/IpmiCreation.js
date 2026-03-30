@@ -12,6 +12,7 @@ import {
   selectAuthToken,
   selectAuthTokenParsed,
 } from "../../redux/features/Auth/AuthSelectors";
+import { InputField, PasswordField } from "../Common";
 
 const IpmiCreationForm = () => {
   const dispatch = useDispatch();
@@ -47,53 +48,6 @@ const IpmiCreationForm = () => {
       [e.target.name]: e.target.value,
     });
   };
-
-  const handleTogglePassword = () => setShowPassword((prev) => !prev);
-
-  // Eye icon SVGs for show/hide
-  const EyeIcon = ({ visible, onClick }) => (
-    <span onClick={onClick} style={{ cursor: "pointer", marginLeft: 8 }}>
-      {visible ? (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-          />
-        </svg>
-      ) : (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m3.362-2.522A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 6L6 6"
-          />
-        </svg>
-      )}
-    </span>
-  );
 
   const validate = () => {
     const newErrors = {};
@@ -162,110 +116,52 @@ const IpmiCreationForm = () => {
         </h3>
         <div className="bg-white rounded-xl h-full p-8">
           <form onSubmit={handleSubmit} className="pr-2">
-            <div className="mb-6 flex items-center">
-              <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                <span>
-                  <i className="fas fa-server mr-2"></i>
-                </span>
-                IPMI Server IP <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="ipmi_server_ip"
-                value={form.ipmi_server_ip}
-                onChange={handleChange}
-                className={`w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-100 text-base bg-white ${
-                  errors.ipmi_server_ip && "border-red-400"
-                }`}
-                placeholder="Enter IPMI server IP"
-                disabled={loading}
-              />
-              {errors.ipmi_server_ip && (
-                <div className="text-red-600 text-sm mt-1 ml-2">
-                  {errors.ipmi_server_ip}
-                </div>
-              )}
-            </div>
-            <div className="mb-6 flex items-center">
-              <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                <span>
-                  <i className="fas fa-microchip mr-2"></i>
-                </span>
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className={`w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-                  errors.name && "border-red-400"
-                }`}
-                placeholder="Enter device Name"
-                disabled={loading}
-              />
-              {errors.name && (
-                <div className="text-red-600 text-sm mt-1 ml-2">
-                  {errors.name}
-                </div>
-              )}
-            </div>
-            <div className="mb-6 flex items-center">
-              <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                <span>
-                  <i className="fas fa-user mr-2"></i>
-                </span>
-                Username <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="username"
-                value={form.username}
-                onChange={handleChange}
-                className={`w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-                  errors.username && "border-red-400"
-                }`}
-                placeholder="Enter username"
-                disabled={loading}
-              />
-              {errors.username && (
-                <div className="text-red-600 text-sm mt-1 ml-2">
-                  {errors.username}
-                </div>
-              )}
-            </div>
-            <div className="mb-6 flex items-center">
-              <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                <span>
-                  <i className="fas fa-lock mr-2"></i>
-                </span>
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative w-[40%] ml-2">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`w-full border border-gray-300 rounded-lg px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-                    errors.password && "border-red-400"
-                  }`}
-                  placeholder="Enter password"
-                  disabled={loading}
-                />
-                <span className="absolute right-2  -translate-y-1/2 mt-1.5 text-gray-500">
-                  <EyeIcon
-                    visible={showPassword}
-                    onClick={handleTogglePassword}
-                  />
-                </span>
-              </div>
-              {errors.password && (
-                <div className="text-red-600 text-sm mt-1">
-                  {errors.password}
-                </div>
-              )}
-            </div>
+            <InputField
+              label="IPMI Server IP"
+              iconClass="fa-server"
+              name="ipmi_server_ip"
+              value={form.ipmi_server_ip}
+              onChange={handleChange}
+              placeholder="Enter IPMI server IP"
+              required={true}
+              disabled={loading}
+              error={errors.ipmi_server_ip}
+            />
+
+            <InputField
+              label="Name"
+              iconClass="fa-microchip"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Enter device Name"
+              required={true}
+              disabled={loading}
+              error={errors.name}
+            />
+
+            <InputField
+              label="Username"
+              iconClass="fa-user"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              placeholder="Enter username"
+              required={true}
+              disabled={loading}
+              error={errors.username}
+            />
+
+            <PasswordField
+              label="Password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Enter password"
+              required={true}
+              disabled={loading}
+              error={errors.password}
+            />
             <div className="flex justify-start mt-10">
               <button
                 type="submit"

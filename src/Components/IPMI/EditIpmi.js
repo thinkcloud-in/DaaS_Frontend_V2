@@ -22,6 +22,7 @@ import {
   selectAuthTokenParsed,
 } from "../../redux/features/Auth/AuthSelectors";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { InputField, PasswordField } from "../Common";
 
 const SkeletonInput = () => (
   <div className="w-[40%] h-[36px] bg-gray-200 animate-pulse rounded-lg ml-2"></div>
@@ -48,9 +49,6 @@ const EditIpmi = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleTogglePassword = () => setShowPassword((prev) => !prev);
 
   useEffect(() => {
     if (token && id) {
@@ -200,95 +198,50 @@ const EditIpmi = () => {
             </form>
           ) : (
             <form onSubmit={handleSubmit} className="pr-2">
-              <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                  <span>
-                    <i className="fas fa-server mr-2"></i>
-                  </span>
-                  IPMI Server IP <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="ipmi_server_ip"
-                  value={form.ipmi_server_ip}
-                  onChange={handleChange}
-                  readOnly
-                  className={`w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 bg-gray-100 text-gray-700 focus:outline-none text-base ${
-                    errors.ipmi_server_ip && "border-red-400"
-                  }`}
-                  placeholder="Enter IPMI server IP"
-                />
-              </div>
-              <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                  <span>
-                    <i className="fas fa-signature mr-2"></i>
-                  </span>
-                  Processor Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-100 text-base bg-white"
-                  placeholder="Enter  Name"
-                  disabled={updateLoading}
-                />
-              </div>
-              <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                  <span>
-                    <i className="fas fa-user mr-2"></i>
-                  </span>
-                  Username <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={form.username}
-                  onChange={handleChange}
-                  className={`w-[40%] border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-indigo-100 text-base bg-white ${
-                    errors.username && "border-red-400"
-                  }`}
-                  placeholder="Enter username"
-                  disabled={updateLoading}
-                />
-              </div>
-              <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                  <span>
-                    <i className="fas fa-lock mr-2"></i>
-                  </span>
-                  Password
-                </label>
-                <div className="relative w-[40%] ml-2">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    className={`w-full border border-gray-300 rounded-lg px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-                      errors.password && "border-red-400"
-                    }`}
-                    placeholder="Enter new password"
-                    disabled={updateLoading}
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleTogglePassword}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? (
-                      <FaEyeSlash size={16} />
-                    ) : (
-                      <FaEye size={16} />
-                    )}
-                  </button>
-                </div>
-              </div>
+              <InputField
+                label="IPMI Server IP"
+                iconClass="fa-server"
+                name="ipmi_server_ip"
+                value={form.ipmi_server_ip}
+                onChange={handleChange}
+                placeholder="Enter IPMI server IP"
+                required={true}
+                disabled={true}
+                error={errors.ipmi_server_ip}
+              />
+
+              <InputField
+                label="Processor Name"
+                iconClass="fa-signature"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Enter Name"
+                disabled={updateLoading}
+                error={errors.name}
+              />
+
+              <InputField
+                label="Username"
+                iconClass="fa-user"
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                placeholder="Enter username"
+                required={true}
+                disabled={updateLoading}
+                error={errors.username}
+              />
+
+              <PasswordField
+                label="Password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Enter new password"
+                disabled={updateLoading}
+                error={errors.password}
+              />
               <div className="flex justify-start mt-10">
                 <button
                   type="submit"
