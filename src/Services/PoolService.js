@@ -72,6 +72,18 @@ export const deletePoolService = async (token, poolId, userEmail) => {
 	});
 };
 
+export const rebuildPoolService = async (token, poolId, userEmail, vhdPath) => {
+	return axiosInstance.request({
+		method: "POST",
+		url: `${backendUrl}/v1/hyper_v/pool_rebuild`,
+		data: { email: userEmail, vhdPath: vhdPath, pool_id: poolId },
+		headers: {
+			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+		},
+	});
+};
+
 export const deleteVMService = async (token, mach, userEmail) => {
 	return axiosInstance.request({
 		method: "DELETE",
@@ -181,11 +193,11 @@ export const getClusterNodes = async (token, cluster_id) => {
 };
 
 export const getProxmoxStorages = async (token, cluster_id, nodes) => {
-	const response = await axiosInstance.post(`${backendUrl}/v1/get_proxmox_storages`, 
+	const response = await axiosInstance.post(`${backendUrl}/v1/get_proxmox_storages`,
 		{
-          cluster_id: cluster_id,
-          nodes: nodes,
-        },
+			cluster_id: cluster_id,
+			nodes: nodes,
+		},
 		{
 			headers: { Authorization: `Bearer ${token}` }
 		}
@@ -229,19 +241,19 @@ export const getSwitches = async (token, clusterId) => {
 		headers: { Authorization: `Bearer ${token}` },
 		params: { cluster_id: clusterId }
 	});
-	
+
 	const data = response.data?.data;
-	
+
 	// Handle both single object and array responses
 	if (!data) {
 		return [];
 	}
-	
+
 	// If it's already an array, return it
 	if (Array.isArray(data)) {
 		return data;
 	}
-	
+
 	// If it's a single object, wrap it in an array
 	return [data];
 };
