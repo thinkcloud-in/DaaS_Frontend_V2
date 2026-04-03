@@ -17,6 +17,7 @@ import {
   getPoolByIdService, updateMachineService,
   getSwitches,
   getProxmoxStorages,
+  rebuildPoolService,
 } from "Services/PoolService";
 
 export const fetchPoolById = createAsyncThunk(
@@ -93,6 +94,19 @@ export const deletePool = createAsyncThunk(
       return payload;
     } catch (err) {
       return rejectWithValue(err?.response?.data || err?.message || "Failed to delete pool");
+    }
+  }
+);
+
+export const rebuildPool = createAsyncThunk(
+  "pools/rebuildPool",
+  async ({ token, poolId, userEmail, vhdPath }, { rejectWithValue }) => {
+    try {
+      const res = await rebuildPoolService(token, poolId, userEmail, vhdPath);
+      const payload = res.data?.data || res.data;
+      return payload;
+    } catch (err) {
+      return rejectWithValue(err?.response?.data || err?.message || "Failed to rebuild pool");
     }
   }
 );
@@ -285,9 +299,9 @@ export const fetchClusterNodes = createAsyncThunk(
   }
 );
 
-export const fetchProxmoxStorages  = createAsyncThunk(
+export const fetchProxmoxStorages = createAsyncThunk(
   "proxmox/fetchStorages",
-  async ({ token, clusterId, nodes  }, { rejectWithValue }) => {
+  async ({ token, clusterId, nodes }, { rejectWithValue }) => {
     try {
       const data = await getProxmoxStorages(token, clusterId, nodes);
       return Array.isArray(data) ? data : [];

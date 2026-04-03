@@ -216,7 +216,7 @@ export default function EditMahchinePopover(props) {
         });
         try {
           props.setVmAvailable(machines);
-        } catch (e) {}
+        } catch (e) { }
         props.setOpen(false);
       })
       .catch((err) => {
@@ -281,6 +281,7 @@ export default function EditMahchinePopover(props) {
                                 type="text"
                                 id="name"
                                 name="name"
+                                disabled
                                 value={editMachine.name}
                                 onChange={handleChange}
                                 placeholder="Name"
@@ -306,6 +307,7 @@ export default function EditMahchinePopover(props) {
                                 type="text"
                                 id="ip"
                                 name="hostname"
+                                disabled
                                 value={editMachine.hostname}
                                 onChange={handleChange}
                                 placeholder="Hostname / IP"
@@ -330,6 +332,7 @@ export default function EditMahchinePopover(props) {
                               <input
                                 id="protocol"
                                 name="protocol"
+                                disabled
                                 onChange={handleChange}
                                 value={editMachine.protocol}
                                 placeholder="Protocol"
@@ -388,11 +391,10 @@ export default function EditMahchinePopover(props) {
                     type="submit"
                     disabled={isLoading || poolSaveLoading}
                     className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
-                    ${
-                      isLoading || poolSaveLoading
+                    ${isLoading || poolSaveLoading
                         ? "bg-[#1a365d] cursor-not-allowed"
                         : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
-                    }
+                      }
                   `}
                   >
                     {(isLoading || poolSaveLoading) && (

@@ -296,6 +296,7 @@ const EditPool = (props) => {
                       value={poolDetails.pool_os_type || ""}
                       onChange={handleOnChange}
                       required={true}
+                      disabled={true}
                       options={[
                         { value: '', label: 'Select OS', disabled: true },
                         { value: 'Windows', label: 'Windows' },
@@ -312,6 +313,7 @@ const EditPool = (props) => {
                       <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
                         <Select
                           isMulti
+                          isDisabled={true}
                           name="pool_ip_pool_names"
                           value={ipPoolNames.filter((name) => (poolDetails.pool_ip_pool_names || []).includes(name)).map((name) => ({ label: name, value: name }))}
                           onChange={handleIpPoolsChange}
@@ -570,10 +572,9 @@ const EditPool = (props) => {
             type="button"
             disabled={isLoading || poolSaveLoading}
             className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
-              ${
-                isLoading || poolSaveLoading
-                  ? "bg-[#1a365d] cursor-not-allowed"
-                  : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
+              ${isLoading || poolSaveLoading
+                ? "bg-[#1a365d] cursor-not-allowed"
+                : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
               }
             `}
           >
