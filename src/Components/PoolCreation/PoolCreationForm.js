@@ -44,7 +44,6 @@ import Select from "react-select";
 import { InputField, SelectField, PasswordField } from "../Common";
 import { selectIpPools } from "../../redux/features/IP-Pools/IpPoolsSelectors";
 import { fetchIpPoolsThunk } from "../../redux/features/IP-Pools/IpPoolsThunks";
-import { FaEye, FaEyeSlash, FaInfoCircle } from "react-icons/fa";
 
 const poolType = ["Automated", "Manual"];
 
@@ -71,8 +70,6 @@ const PoolCreationForm = () => {
   const storages = useSelector((state) => state.pools.proxmoxStorages);
   const userEmail = tokenParsed?.preferred_username;
   const pools = useSelector(selectIpPools);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showHostInfo, setShowHostInfo] = useState(false);
 
   useEffect(() => {
     if (token) {
@@ -92,13 +89,11 @@ const PoolCreationForm = () => {
   const isVmwareCluster = selectedCluster && selectedCluster.type === "VMware";
 
   useEffect(() => {
-    // Load clusters if not present
     if ((!clusters || clusters.length === 0) && token) {
       dispatch(fetchClustersThunk(token));
     }
   }, [dispatch, token, clusters]);
 
-  // When pool type is Automated, we need IP pools
   useEffect(() => {
     if (poolDetails.pool_type === "Automated") {
       dispatch(fetchIpPoolNames(token)).catch(() => {});
@@ -380,7 +375,9 @@ const PoolCreationForm = () => {
   };
   const handleCountChange = (e) => {
     dispatch(
-      setPoolCreationDetails({ pool_number_of_vms: Number(e.target.value) }),
+      setPoolCreationDetails({
+        pool_number_of_vms: !e.target.value ? 1 : Number(e.target.value),
+      }),
     );
   };
   const handleVmwareDCChange = (e) => {
@@ -398,36 +395,54 @@ const PoolCreationForm = () => {
     // Build an ordered list of [condition, fieldLabel] checks
     const checks = [
       // Always required
-      [!poolDetails.pool_type,     "Pool Type"],
+      [!poolDetails.pool_type, "Pool Type"],
       [!poolDetails.pool_protocol, "Protocol"],
-      [!poolDetails.pool_name,     "Pool Name"],
+      [!poolDetails.pool_name, "Pool Name"],
     ];
 
     if (poolDetails.pool_type === "Automated") {
-      checks.push([!poolDetails.cluster_id,    "Cluster"]);
-      checks.push([!poolDetails.pool_os_type && !poolDetails.pool_template_vm_id?.os_type, "Pool OS Type"]);
+      checks.push([!poolDetails.cluster_id, "Cluster"]);
+      checks.push([
+        !poolDetails.pool_os_type && !poolDetails.pool_template_vm_id?.os_type,
+        "Pool OS Type",
+      ]);
       checks.push([!poolDetails.pool_naming_pattern, "Naming Pattern"]);
 
       if (isProxmoxCluster) {
-        checks.push([!(poolDetails.pool_ip_pool_names?.length > 0), "IP Pools"]);
-        checks.push([!poolDetails.pool_template_vm_id?.vmid,        "Template"]);
+        checks.push([
+          !(poolDetails.pool_ip_pool_names?.length > 0),
+          "IP Pools",
+        ]);
+        checks.push([!poolDetails.pool_template_vm_id?.vmid, "Template"]);
         checks.push([!(poolDetails.pool_selected_nodes?.length > 0), "Node"]);
-        checks.push([!poolDetails.pool_storage,                      "Storage"]);
+        checks.push([!poolDetails.pool_storage, "Storage"]);
       }
 
       if (isHyperVCluster) {
-        checks.push([!(poolDetails.pool_ip_pool_names?.length > 0),         "IP Pools (Hyper-V)"]);
-        checks.push([!poolDetails.pool_template_vm_id?.vhdPath,             "Child Disk Path"]);
-        checks.push([!poolDetails.pool_template_vm_id?.PvhdPath,            "Parent Disk Path"]);
-        checks.push([!poolDetails.pool_template_vm_id?.generation,          "Generation"]);
-        checks.push([!poolDetails.pool_template_vm_id?.memory,              "Memory (GB)"]);
-        checks.push([!poolDetails.pool_template_vm_id?.switch,              "Switch"]);
+        checks.push([
+          !(poolDetails.pool_ip_pool_names?.length > 0),
+          "IP Pools (Hyper-V)",
+        ]);
+        checks.push([
+          !poolDetails.pool_template_vm_id?.vhdPath,
+          "Child Disk Path",
+        ]);
+        checks.push([
+          !poolDetails.pool_template_vm_id?.PvhdPath,
+          "Parent Disk Path",
+        ]);
+        checks.push([
+          !poolDetails.pool_template_vm_id?.generation,
+          "Generation",
+        ]);
+        checks.push([!poolDetails.pool_template_vm_id?.memory, "Memory (GB)"]);
+        checks.push([!poolDetails.pool_template_vm_id?.switch, "Switch"]);
       }
 
       // AD Join fields (if join_ad is checked)
       if (poolDetails.join_ad) {
-        checks.push([!poolDetails.pool_ad_domain,   "AD Domain"]);
-        checks.push([!poolDetails.pool_ad_path,     "AD Path"]);
+        checks.push([!poolDetails.pool_ad_domain, "AD Domain"]);
+        checks.push([!poolDetails.pool_ad_path, "AD Path"]);
         checks.push([!poolDetails.pool_ad_username, "AD Username"]);
         checks.push([!poolDetails.pool_ad_password, "AD Password"]);
       }
@@ -508,7 +523,9 @@ const PoolCreationForm = () => {
           </svg>
         </div>
       </div>
-      <div className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${isLoading ? "opacity-50 pointer-events-none select-none" : ""}`}>
+      <div
+        className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${isLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
+      >
         <div className="space-y-5 m-2">
           <div className="w-full mx-auto p-3 rounded-md bg-white">
             <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
@@ -526,11 +543,15 @@ const PoolCreationForm = () => {
                 name="pool_type"
                 iconClass="fa-server"
                 value={poolDetails.pool_type || ""}
-                onChange={(e) => handleOnChange({ target: { name: 'pool_type', value: e.target.value }})}
+                onChange={(e) =>
+                  handleOnChange({
+                    target: { name: "pool_type", value: e.target.value },
+                  })
+                }
                 required={true}
                 options={[
-                  { value: '', label: 'Pool Type', disabled: true },
-                  ...poolType.map(item => ({ value: item, label: item }))
+                  { value: "", label: "Pool Type", disabled: true },
+                  ...poolType.map((item) => ({ value: item, label: item })),
                 ]}
               />
 
@@ -542,10 +563,10 @@ const PoolCreationForm = () => {
                 onChange={handleProtocolChange}
                 required={true}
                 options={[
-                  { value: '', label: 'Select Protocol', disabled: true },
-                  { value: 'RDP', label: 'RDP' },
-                  { value: 'SSH', label: 'SSH' },
-                  { value: 'VNC', label: 'VNC' }
+                  { value: "", label: "Select Protocol", disabled: true },
+                  { value: "RDP", label: "RDP" },
+                  { value: "SSH", label: "SSH" },
+                  { value: "VNC", label: "VNC" },
                 ]}
               />
 
@@ -559,8 +580,8 @@ const PoolCreationForm = () => {
                   required={true}
                   error={error}
                   options={[
-                    { value: '', label: 'Select Cluster', disabled: true },
-                    ...clusters.map(c => ({ value: c.id, label: c.name }))
+                    { value: "", label: "Select Cluster", disabled: true },
+                    ...clusters.map((c) => ({ value: c.id, label: c.name })),
                   ]}
                 />
               )}
@@ -590,20 +611,32 @@ const PoolCreationForm = () => {
                       label="Pool OS Type"
                       name="pool_os_type"
                       iconClass="fa-computer"
-                      value={isHyperVCluster ? poolDetails.pool_template_vm_id?.os_type || "" : poolDetails.pool_os_type || ""}
+                      value={
+                        isHyperVCluster
+                          ? poolDetails.pool_template_vm_id?.os_type || ""
+                          : poolDetails.pool_os_type || ""
+                      }
                       onChange={handleOnChange}
                       required={true}
                       options={[
-                        { value: '', label: 'Select OS', disabled: true },
-                        ...(isHyperVCluster ? [
-                          { value: 'Windows 10', label: 'Windows 10' },
-                          { value: 'Windows 11', label: 'Windows 11' },
-                          { value: 'Windows server OS', label: 'Windows (2019/2022/2025)' },
-                          { value: 'Ubuntu desktop', label: 'Linux (Ubuntu desktop)' }
-                        ] : [
-                          { value: 'Windows', label: 'Windows' },
-                          { value: 'Linux', label: 'Linux' }
-                        ])
+                        { value: "", label: "Select OS", disabled: true },
+                        ...(isHyperVCluster
+                          ? [
+                              { value: "Windows 10", label: "Windows 10" },
+                              { value: "Windows 11", label: "Windows 11" },
+                              {
+                                value: "Windows server OS",
+                                label: "Windows (2019/2022/2025)",
+                              },
+                              {
+                                value: "Ubuntu desktop",
+                                label: "Linux (Ubuntu desktop)",
+                              },
+                            ]
+                          : [
+                              { value: "Windows", label: "Windows" },
+                              { value: "Linux", label: "Linux" },
+                            ]),
                       ]}
                     />
                   )}
@@ -618,8 +651,11 @@ const PoolCreationForm = () => {
                         value={poolDetails.pool_vmware_dc || ""}
                         onChange={handleVmwareDCChange}
                         options={[
-                          { value: '', label: 'Select DC', disabled: true },
-                          ...vmwareDCs.map(dc => ({ value: dc.name, label: dc.name }))
+                          { value: "", label: "Select DC", disabled: true },
+                          ...vmwareDCs.map((dc) => ({
+                            value: dc.name,
+                            label: dc.name,
+                          })),
                         ]}
                       />
                       <SelectField
@@ -629,8 +665,11 @@ const PoolCreationForm = () => {
                         value={poolDetails.pool_vmware_folder || ""}
                         onChange={handleVmwareFolderChange}
                         options={[
-                          { value: '', label: 'Select Folder', disabled: true },
-                          ...vmwareFolders.map(folder => ({ value: folder.name, label: folder.name }))
+                          { value: "", label: "Select Folder", disabled: true },
+                          ...vmwareFolders.map((folder) => ({
+                            value: folder.name,
+                            label: folder.name,
+                          })),
                         ]}
                       />
                     </>
@@ -641,16 +680,28 @@ const PoolCreationForm = () => {
                     <>
                       <div className="mb-6 flex items-start">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                          <span><i className="fas fa-network-wired mr-2"></i></span>
-                          Select IP Pools <span className="text-red-500">*</span>
+                          <span>
+                            <i className="fas fa-network-wired mr-2"></i>
+                          </span>
+                          Select IP Pools{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
                           <Select
                             isMulti
                             name="pool_ip_pool_names"
-                            value={ipPoolNames.filter(name => (poolDetails.pool_ip_pool_names || []).includes(name)).map(name => ({ label: name, value: name }))}
+                            value={ipPoolNames
+                              .filter((name) =>
+                                (poolDetails.pool_ip_pool_names || []).includes(
+                                  name,
+                                ),
+                              )
+                              .map((name) => ({ label: name, value: name }))}
                             onChange={handleIpPoolsChange}
-                            options={ipPoolNames.map((name) => ({ label: name, value: name }))}
+                            options={ipPoolNames.map((name) => ({
+                              label: name,
+                              value: name,
+                            }))}
                             className="basic-multi-select bg-white"
                             classNamePrefix="select"
                             placeholder="Select IP Pools"
@@ -661,20 +712,29 @@ const PoolCreationForm = () => {
 
                       <div className="mb-6 flex items-start">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                          <span><i className="fas fa-file-invoice mr-2"></i></span>
+                          <span>
+                            <i className="fas fa-file-invoice mr-2"></i>
+                          </span>
                           Template <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
                           <select
                             name="pool_template_vm_id"
                             onChange={handleTemplateChange}
-                            value={poolDetails.pool_template_vm_id?.vmid ? String(poolDetails.pool_template_vm_id.vmid) : ""}
+                            value={
+                              poolDetails.pool_template_vm_id?.vmid
+                                ? String(poolDetails.pool_template_vm_id.vmid)
+                                : ""
+                            }
                             className="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white"
                             required
                           >
                             <option value="">Select Template</option>
                             {templates.map((template) => (
-                              <option key={template.vmid} value={String(template.vmid)}>
+                              <option
+                                key={template.vmid}
+                                value={String(template.vmid)}
+                              >
                                 {template.vmid} ({template.name})
                               </option>
                             ))}
@@ -684,14 +744,20 @@ const PoolCreationForm = () => {
 
                       <div className="mb-6 flex items-start">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                          <span><i className="fas fa-server mr-2"></i></span>
+                          <span>
+                            <i className="fas fa-server mr-2"></i>
+                          </span>
                           Node <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
                           <Select
                             isMulti
                             name="pool_selected_nodes"
-                            value={nodeOptions.filter(opt => (poolDetails.pool_selected_nodes || []).includes(opt.value))}
+                            value={nodeOptions.filter((opt) =>
+                              (poolDetails.pool_selected_nodes || []).includes(
+                                opt.value,
+                              ),
+                            )}
                             onChange={handleNodesChange}
                             options={nodeOptions}
                             className="basic-multi-select bg-white"
@@ -705,7 +771,9 @@ const PoolCreationForm = () => {
 
                       <div className="mb-6 flex items-start">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                          <span><i className="fas fa-database mr-2"></i></span>
+                          <span>
+                            <i className="fas fa-database mr-2"></i>
+                          </span>
                           Storage <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
@@ -713,7 +781,10 @@ const PoolCreationForm = () => {
                             name="pool_storage"
                             value={selectedStorageOption}
                             onChange={handleStorageChange}
-                            options={storages.map((s) => ({ label: s.storage, value: s.storage }))}
+                            options={storages.map((s) => ({
+                              label: s.storage,
+                              value: s.storage,
+                            }))}
                             className="basic-single bg-white"
                             classNamePrefix="select"
                             placeholder="Select Storage"
@@ -739,7 +810,7 @@ const PoolCreationForm = () => {
                         type="number"
                         name="pool_number_of_vms"
                         iconClass="fa-list-ol"
-                        value={poolDetails.pool_number_of_vms || ""}
+                        value={poolDetails.pool_number_of_vms || 1}
                         onChange={handleCountChange}
                         placeholder="Number of VMs"
                         min="1"
@@ -752,16 +823,28 @@ const PoolCreationForm = () => {
                     <>
                       <div className="mb-6 flex items-start">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                          <span><i className="fas fa-network-wired mr-2"></i></span>
-                          Select IP Pools <span className="text-red-500">*</span>
+                          <span>
+                            <i className="fas fa-network-wired mr-2"></i>
+                          </span>
+                          Select IP Pools{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
                           <Select
                             isMulti
                             name="pool_ip_pool_names"
-                            value={ipPoolNames.filter((name) => (poolDetails.pool_ip_pool_names || []).includes(name)).map((name) => ({ label: name, value: name }))}
+                            value={ipPoolNames
+                              .filter((name) =>
+                                (poolDetails.pool_ip_pool_names || []).includes(
+                                  name,
+                                ),
+                              )
+                              .map((name) => ({ label: name, value: name }))}
                             onChange={handleIpPoolsChange}
-                            options={ipPoolNames.map((name) => ({ label: name, value: name }))}
+                            options={ipPoolNames.map((name) => ({
+                              label: name,
+                              value: name,
+                            }))}
                             className="basic-multi-select bg-white"
                             classNamePrefix="select"
                             placeholder="Select IP Pools"
@@ -772,19 +855,25 @@ const PoolCreationForm = () => {
 
                       <div className="mb-6 flex items-start">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                          <span><i className="fas fa-server mr-2"></i></span>
+                          <span>
+                            <i className="fas fa-server mr-2"></i>
+                          </span>
                           Node
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
                           <Select
                             isMulti
                             name="pool_selected_nodes"
-                            value={nodeOptions.filter((opt) => (poolDetails.pool_selected_nodes || []).includes(opt.value))}
+                            value={nodeOptions.filter((opt) =>
+                              (poolDetails.pool_selected_nodes || []).includes(
+                                opt.value,
+                              ),
+                            )}
                             onChange={handleNodesChange}
                             options={nodeOptions}
                             className="basic-multi-select bg-white"
                             classNamePrefix="select"
-                            placeholder="Not applicable for Hyper-V"
+                            placeholder="Now not applicable for Hyper-V"
                             isDisabled={true}
                             noOptionsMessage={() => "Not applicable"}
                             styles={{
@@ -833,13 +922,23 @@ const PoolCreationForm = () => {
                         label="Generation"
                         name="hyperv_generation"
                         iconClass="fa-microchip"
-                        value={poolDetails.pool_template_vm_id?.generation === 1 ? "Gen1" : poolDetails.pool_template_vm_id?.generation === 2 ? "Gen2" : ""}
+                        value={
+                          poolDetails.pool_template_vm_id?.generation === 1
+                            ? "Gen1"
+                            : poolDetails.pool_template_vm_id?.generation === 2
+                              ? "Gen2"
+                              : ""
+                        }
                         onChange={handleOnChange}
                         required={true}
                         options={[
-                          { value: '', label: 'Select Generation', disabled: true },
-                          { value: 'Gen1', label: 'Gen1' },
-                          { value: 'Gen2', label: 'Gen2' }
+                          {
+                            value: "",
+                            label: "Select Generation",
+                            disabled: true,
+                          },
+                          { value: "Gen1", label: "Gen1" },
+                          { value: "Gen2", label: "Gen2" },
                         ]}
                       />
 
@@ -865,8 +964,11 @@ const PoolCreationForm = () => {
                         onChange={handleOnChange}
                         required={true}
                         options={[
-                          { value: '', label: 'Select Switch', disabled: true },
-                          ...(switches || []).map(sw => ({ value: sw.Name, label: sw.Name }))
+                          { value: "", label: "Select Switch", disabled: true },
+                          ...(switches || []).map((sw) => ({
+                            value: sw.Name,
+                            label: sw.Name,
+                          })),
                         ]}
                       />
 
@@ -876,16 +978,19 @@ const PoolCreationForm = () => {
                         iconClass="fa-font"
                         value={poolDetails.pool_naming_pattern || ""}
                         onChange={handleNamingPatternChange}
-                        placeholder="Naming Pattern"
+                        placeholder="Naming Pattern (i.e example-{n:fixed=3})"
                         required={true}
+                        tooltip={`Naming Pattern should be like 'example-{n:fixed=3}'
+                          i.e example-001, example-002, etc.
+                          (where 3 means number of digits after the name)`}
+                        tooltipClass="w-40"
                       />
-
                       <InputField
                         label="Number of VMs"
                         type="number"
                         name="pool_number_of_vms"
                         iconClass="fa-list-ol"
-                        value={poolDetails.pool_number_of_vms || ""}
+                        value={poolDetails.pool_number_of_vms || 1}
                         onChange={handleCountChange}
                         placeholder="Number of VMs"
                         min="1"
@@ -897,7 +1002,9 @@ const PoolCreationForm = () => {
                     <>
                       <div className="mb-6 flex items-center">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                          <span><i className="fas fa-sitemap mr-2"></i></span>
+                          <span>
+                            <i className="fas fa-sitemap mr-2"></i>
+                          </span>
                           Join AD (For Windows Only)
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
