@@ -1462,7 +1462,6 @@ const ManagePool = (props) => {
                 </div>
               )}
             </div>
-            {console.log(selectedVmObj)}
             {selectedPoolDetails.pool_type === "Automated" &&
               selectedVmObj?.status === "COMPLETED" && (
                 <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
