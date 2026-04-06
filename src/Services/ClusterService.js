@@ -43,7 +43,6 @@ export const updateCluster = async (token, clusterId, payload) => {
   return res.data;
 };
 export const deleteCluster = async (token, clusterId, userEmail) => {
-  console.log("Deleting cluster with ID:", token, "for user:", userEmail);
   const res = await axiosInstance.delete(
     `${backendUrl}/v1/delete_cluster/${clusterId}`,
     {
