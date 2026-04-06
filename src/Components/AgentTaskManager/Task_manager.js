@@ -88,38 +88,52 @@ const TaskManagerPage = () => {
       : "linux";
 
     const internalIp = getInternalIp(vmDetails);
-    // Use VM name as primary, IP as fallback for Hyper-V or misconfigured agents
-    let hostForApi = vmName?.trim() || internalIp || "";
-    if (!hostForApi) return;
+    // Use VM name as primary, IP as fallback
+    let hostName = vmName?.trim();
+    let hostCandidates = [hostName, hostName?.toUpperCase(), internalIp].filter(Boolean);
+    hostCandidates = [...new Set(hostCandidates)]; // Unique candidates
 
-    fetchBackgroundProcesses(config, hostForApi, normalizedOS)
-      .then((data) => {
+    if (hostCandidates.length === 0) return;
+
+    const tryFetch = async (index) => {
+      if (index >= hostCandidates.length) {
+        setProcessData([]);
+        return;
+      }
+      const host = hostCandidates[index];
+      try {
+        const data = await fetchBackgroundProcesses(config, host, normalizedOS);
         if (data && data.length > 0) {
           setProcessData(data);
-        } else if (internalIp && hostForApi !== internalIp) {
-          // If name failed, try IP address
-          fetchBackgroundProcesses(config, internalIp, normalizedOS)
-            .then((ipData) => setProcessData(ipData || []))
-            .catch(() => setProcessData([]));
         } else {
-          setProcessData([]);
+          await tryFetch(index + 1);
         }
-      })
-      .catch(() => setProcessData([]));
+      } catch (err) {
+        console.warn(`Fetch failed for host ${host}:`, err);
+        await tryFetch(index + 1);
+      }
+    };
 
-    fetchHostStats(config, hostForApi, normalizedOS)
-      .then((data) => {
-        if (data && (data.cpu || data.memory)) {
+    const tryFetchStats = async (index) => {
+      if (index >= hostCandidates.length) {
+        setHostStats({ cpu: null, memory: null, diskio: null });
+        return;
+      }
+      const host = hostCandidates[index];
+      try {
+        const data = await fetchHostStats(config, host, normalizedOS);
+        if (data && (data.cpu !== null || data.memory !== null)) {
           setHostStats(data);
-        } else if (internalIp && hostForApi !== internalIp) {
-          fetchHostStats(config, internalIp, normalizedOS)
-            .then((ipStats) => setHostStats(ipStats))
-            .catch(() => setHostStats({ cpu: null, memory: null, diskio: null }));
         } else {
-          setHostStats(data);
+          await tryFetchStats(index + 1);
         }
-      })
-      .catch(() => setHostStats({ cpu: null, memory: null, diskio: null }));
+      } catch (err) {
+        await tryFetchStats(index + 1);
+      }
+    };
+
+    tryFetch(0);
+    tryFetchStats(0);
   };
 
   useEffect(() => {

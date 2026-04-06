@@ -1,8 +1,11 @@
 import axiosInstance from "Services/AxiosInstance";
 import { getEnv } from "utils/getEnv";
 
-const backendUrl = getEnv("BACKEND_URL");
-const agentBackendUrl = getEnv("AGENT_BACKEND_URL");
+const backendUrl = getEnv("BACKEND_URL")?.replace(/\/$/, "");
+let agentBackendUrl = getEnv("AGENT_BACKEND_URL")?.replace(/\/$/, "");
+if (agentBackendUrl && !agentBackendUrl.endsWith("/agent")) {
+  agentBackendUrl += "/agent";
+}
 
 export const fetchVmDetails = async (vmId) => {
   const res = await axiosInstance.get(`${backendUrl}/v1/proxmox/proxmox_vm_info/${vmId}`);
@@ -10,7 +13,7 @@ export const fetchVmDetails = async (vmId) => {
 };
 
 export const fetchBackgroundProcesses = async (config, hostForApi, osType) => {
-  const res = await axiosInstance.get(`${agentBackendUrl}/agent/influxdb/fetch-background-processes`, {
+  const res = await axiosInstance.get(`${agentBackendUrl}/influxdb/fetch-background-processes`, {
     params: {
       bucket: config.bucket,
       range_start: "-1m",
@@ -22,7 +25,7 @@ export const fetchBackgroundProcesses = async (config, hostForApi, osType) => {
 };
 
 export const fetchHostStats = async (config, hostForApi, osType) => {
-  const res = await axiosInstance.get(`${agentBackendUrl}/agent/influxdb/fetch-host-stats`, {
+  const res = await axiosInstance.get(`${agentBackendUrl}/influxdb/fetch-host-stats`, {
     params: {
       bucket: config.bucket,
       host: hostForApi,
@@ -35,7 +38,7 @@ export const fetchHostStats = async (config, hostForApi, osType) => {
 
 export const killProcesses = async (processHost, hostIp, pids, osType) => {
   return axiosInstance.post(
-    `${agentBackendUrl}/agent/TaskManager/kill_process`,
+    `${agentBackendUrl}/TaskManager/kill_process`,
     {
       host: processHost,
       IP: hostIp,
