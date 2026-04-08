@@ -401,7 +401,7 @@ const PoolCreationForm = () => {
     ];
 
     if (poolDetails.pool_type === "Automated") {
-      checks.push([!poolDetails.cluster_id, "Cluster"]);
+      checks.push([!poolDetails.cluster_id || String(poolDetails.cluster_id).toLowerCase() === "nan", "Cluster"]);
       checks.push([
         !poolDetails.pool_os_type && !poolDetails.pool_template_vm_id?.os_type,
         "Pool OS Type",

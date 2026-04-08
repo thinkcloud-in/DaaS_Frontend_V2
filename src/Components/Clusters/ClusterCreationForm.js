@@ -12,6 +12,10 @@ import {
   addInfluxdbThunk,
   migrateMonitoringDataThunk,
 } from "../../redux/features/Clusters/ClustersThunks";
+import {
+  verifyStandaloneHyperV,
+  pingHyperVAgent,
+} from "../../Services/ClusterService";
 import { selectClustersLoading } from "../../redux/features/Clusters/ClustersSelectors";
 import {
   selectAuthToken,
@@ -30,7 +34,7 @@ const ClusterCreationForm = () => {
   const userEmail = tokenParsed?.preferred_username;
   const isLoading = useSelector(selectClustersLoading);
   const monitoringLoading = useSelector(
-    (state) => state.clusters.monitoring.monitoringLoading
+    (state) => state.clusters.monitoring.monitoringLoading,
   );
 
   const [isDisabled] = useState(false);
@@ -42,6 +46,7 @@ const ClusterCreationForm = () => {
     name: "",
     ip: "",
     port: "",
+    agent_port: "",
     username: "",
     password: "",
     tls: false,
@@ -59,6 +64,24 @@ const ClusterCreationForm = () => {
   const [srcApiToken, setSrcApiToken] = useState("");
   const [migrateLoading, setMigrateLoading] = useState(false);
   const [showApiToken, setShowApiToken] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [showVerificationPanel, setShowVerificationPanel] = useState(false);
+  const [verificationSteps, setVerificationSteps] = useState([
+    { id: "agent_present", label: "Hyper-V agent is present", status: "idle" },
+    { id: "agent_running", label: "Agent is running", status: "idle" },
+    {
+      id: "hyperv_enabled",
+      label: "Hyper-V is enabled on host",
+      status: "idle",
+    },
+    { id: "credentials", label: "Credentials verified", status: "idle" },
+  ]);
+
+  const setStepStatus = (indexes, status) => {
+    setVerificationSteps((prev) =>
+      prev.map((s, i) => (indexes.includes(i) ? { ...s, status } : s)),
+    );
+  };
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -71,18 +94,125 @@ const ClusterCreationForm = () => {
 
   const handleOnClick = async () => {
     let payload = { ...clusterDetails, email: userEmail };
+    if (
+      !clusterDetails.type ||
+      !clusterDetails.name ||
+      !clusterDetails.ip ||
+      (clusterDetails.type !== "Hyper-V" && !clusterDetails.port) ||
+      !clusterDetails.username ||
+      !clusterDetails.password ||
+      (!hyperVNodeType.singleNode && !hyperVNodeType.multiNode)
+    ) {
+      toast.error("Please fill all the fields", { transition: Slide });
+      return;
+    }
     if (clusterDetails.type === "Hyper-V") {
       payload.node_type = hyperVNodeType.singleNode
         ? "Single Node"
         : hyperVNodeType.multiNode
-        ? "Multi Node"
-        : null;
+          ? "Multi Node"
+          : null;
+
+      if (hyperVNodeType.singleNode) {
+        setIsVerifying(true);
+        // Reset all steps to idle and show panel
+        setVerificationSteps([
+          {
+            id: "agent_present",
+            label: "Hyper-V agent is present",
+            status: "idle",
+          },
+          { id: "agent_running", label: "Agent is running", status: "idle" },
+          {
+            id: "hyperv_enabled",
+            label: "Hyper-V is enabled on host",
+            status: "idle",
+          },
+          { id: "credentials", label: "Credentials verified", status: "idle" },
+        ]);
+        setShowVerificationPanel(true);
+
+        // ── Steps 1 & 2: confirm the agent process is reachable 
+        setStepStatus([0, 1], "loading");
+        try {
+          await pingHyperVAgent(token, {
+            ip: clusterDetails.ip[0],
+            port: Number(clusterDetails.agent_port) || 8765,
+          });
+          setStepStatus([0, 1], "success");
+        } catch {
+          setStepStatus([0, 1], "error");
+          toast.error(
+            "Hyper-V agent is not running or unreachable. Please start the agent and try again.",
+            { transition: Slide },
+          );
+          setIsVerifying(false);
+          return;
+        }
+
+        setStepStatus([2], "loading");
+        let verifyResult;
+        try {
+          const verifyPayload = {
+            ip: Array.isArray(clusterDetails.ip)
+              ? clusterDetails.ip[0]
+              : clusterDetails.ip,
+            username: clusterDetails.username,
+            password: clusterDetails.password,
+            agent_port: Number(clusterDetails.agent_port) || 8765,
+          };
+          verifyResult = await verifyStandaloneHyperV(token, verifyPayload);
+        } catch (error) {
+          // Network / agent unreachable — mark both remaining steps failed
+          const message =
+            typeof error === "string"
+              ? error
+              : error?.response?.data?.detail ||
+                error?.response?.data?.message ||
+                error?.message ||
+                "Failed to reach the Hyper-V agent";
+          setStepStatus([2, 3], "error");
+          toast.error(message, { transition: Slide });
+          setIsVerifying(false);
+          return;
+        }
+
+        const agentData = verifyResult?.data;
+
+        // Step 3 — Hyper-V role check  →  is_verify_hyper_v
+        if (!agentData?.is_verify_hyper_v) {
+          setStepStatus([2], "error");
+          setStepStatus([3], "idle"); // credentials step never reached
+          toast.error(
+            "Hyper-V role is not enabled on this host. Please install the Hyper-V Windows Feature and try again.",
+            { transition: Slide },
+          );
+          setIsVerifying(false);
+          return;
+        }
+        setStepStatus([2], "success");
+
+        // Step 4 — Credentials check  →  is_user_verify
+        setStepStatus([3], "loading");
+        if (!agentData?.is_user_verify) {
+          setStepStatus([3], "error");
+          toast.error(
+            "Credentials verification failed. Please check the username and password and try again.",
+            { transition: Slide },
+          );
+          setIsVerifying(false);
+          return;
+        }
+        setStepStatus([3], "success");
+
+        setIsVerifying(false);
+      }
     }
 
     if (!Array.isArray(payload.ip)) payload.ip = [payload.ip];
     try {
       const res = await dispatch(
-        createClusterThunk({ token, payload })
+        createClusterThunk({ token, payload }),
       ).unwrap();
       if (res.warning && res.message) {
         toast.warn(res.message, {
@@ -98,7 +228,13 @@ const ClusterCreationForm = () => {
         }
       }
     } catch (error) {
-      const message = typeof error === 'string' ? error : (error?.msg || error?.message || error?.detail || "Failed to create cluster");
+      const message =
+        typeof error === "string"
+          ? error
+          : error?.msg ||
+            error?.message ||
+            error?.detail ||
+            "Failed to create cluster";
       toast.error(message, { transition: Slide });
     }
   };
@@ -110,7 +246,7 @@ const ClusterCreationForm = () => {
     const checked = e.target.checked;
     if (checked && createdClusterId) {
       dispatch(
-        fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId })
+        fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
       ).then(({ payload }) => {
         if (payload && !payload.error && Object.keys(payload).length > 0) {
           setMonitoringEnabled(true);
@@ -139,7 +275,7 @@ const ClusterCreationForm = () => {
           token,
           clusterId: createdClusterId,
           isCustomIntegration,
-        })
+        }),
       );
       toast.success("InfluxDB integrated successfully");
       dispatch(
@@ -238,7 +374,9 @@ const ClusterCreationForm = () => {
           </div>
         </div>
         <div className="cluster-creation-form w-full">
-          <div className={`space-y-5 m-2 ${ (isLoading || monitoringLoading || migrateLoading) ? "opacity-50 pointer-events-none select-none" : ""}`}>
+          <div
+            className={`space-y-5 m-2 ${isLoading || monitoringLoading || migrateLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
+          >
             <div className="bg-white p-3 w-full max-w-4xl mx-auto">
               <h2 className="font-bold leading-7 text-[#1a365d]">
                 Create Cluster
@@ -251,7 +389,11 @@ const ClusterCreationForm = () => {
                   value={clusterDetails.type}
                   onChange={handleOnChange}
                   disabled={isDisabled}
-                  options={clusterType.map((item) => ({ value: item, label: item }))}
+                  options={clusterType.map((item) => ({
+                    value: item,
+                    label: item,
+                  }))}
+                  required={true}
                 />
 
                 <InputField
@@ -262,6 +404,7 @@ const ClusterCreationForm = () => {
                   onChange={handleOnChange}
                   disabled={isDisabled}
                   placeholder="Enter cluster name"
+                  required={true}
                 />
 
                 {clusterDetails.type === "VMware" && (
@@ -273,6 +416,7 @@ const ClusterCreationForm = () => {
                     onChange={handleOnChange}
                     disabled={isDisabled}
                     placeholder="Enter Vcenter IP or FQDN"
+                    required={true}
                   />
                 )}
 
@@ -285,6 +429,7 @@ const ClusterCreationForm = () => {
                     onChange={handleOnChange}
                     disabled={isDisabled}
                     placeholder="Enter Proxmox IP or FQDN"
+                    required={true}
                   />
                 )}
 
@@ -297,19 +442,38 @@ const ClusterCreationForm = () => {
                     onChange={handleOnChange}
                     disabled={isDisabled}
                     placeholder="Enter Hyper-V IP or FQDN"
+                    required={true}
                   />
                 )}
 
-                <InputField
-                  label="Port"
-                  name="port"
-                  type="number"
-                  iconClass="fa-door-open"
-                  value={clusterDetails.port}
-                  onChange={handleOnChange}
-                  disabled={isDisabled}
-                  placeholder="Enter port"
-                />
+                {clusterDetails.type !== "Hyper-V" && (
+                  <InputField
+                    label="Port"
+                    name="port"
+                    type="number"
+                    iconClass="fa-door-open"
+                    value={clusterDetails.port}
+                    onChange={handleOnChange}
+                    disabled={isDisabled}
+                    placeholder="Enter port"
+                    required={true}
+                  />
+                )}
+
+                {clusterDetails.type === "Hyper-V" && (
+                  <InputField
+                    label="Agent Port"
+                    name="agent_port"
+                    type="number"
+                    iconClass="fa-door-open"
+                    value={clusterDetails.agent_port || 8765}
+                    onChange={handleOnChange}
+                    disabled={isDisabled}
+                    placeholder="Enter agent port"
+                    tooltip="This is the port number for the Hyper-V agent if changed. (default: 8765)"
+                    tooltipClass={"w-60"}
+                  />
+                )}
 
                 <InputField
                   label="Username"
@@ -319,6 +483,7 @@ const ClusterCreationForm = () => {
                   onChange={handleOnChange}
                   disabled={isDisabled}
                   placeholder="Enter username"
+                  required={true}
                 />
 
                 <PasswordField
@@ -328,31 +493,35 @@ const ClusterCreationForm = () => {
                   onChange={handleOnChange}
                   disabled={isDisabled}
                   placeholder="Enter password"
+                  required={true}
                 />
 
                 {clusterDetails.type === "Hyper-V" && (
                   <div className="mb-6 flex items-center">
                     <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                      <span><i className="fas fa-sitemap mr-2"></i></span> Node Type
+                      <span>
+                        <i className="fas fa-sitemap mr-2"></i>
+                      </span>{" "}
+                      Node Type
                     </label>
                     <div className="ml-2 flex flex-1 items-center gap-6">
                       <label className="flex items-center gap-2 whitespace-nowrap">
                         <input
-                          type="checkbox"
-                          checked={hyperVNodeType.node_type}
-                          value={clusterDetails.node_type}
+                          type="radio"
+                          checked={hyperVNodeType.singleNode}
+                          value={"single"}
                           onChange={() => handleHyperVNodeSelection("single")}
-                          disabled={hyperVNodeType.node_type}
+                          name="nodeType"
                         />
                         <span>Standalone</span>
                       </label>
                       <label className="flex items-center gap-2 whitespace-nowrap">
                         <input
-                          type="checkbox"
-                          checked={hyperVNodeType.node_type}
-                          value={clusterDetails.node_type}
+                          type="radio"
+                          checked={hyperVNodeType.multiNode}
+                          value={"multi"}
                           onChange={() => handleHyperVNodeSelection("multi")}
-                          disabled={hyperVNodeType.node_type}
+                          name="nodeType"
                         />
                         <span>Multi Node</span>
                       </label>
@@ -362,7 +531,10 @@ const ClusterCreationForm = () => {
 
                 <div className="mb-6 flex items-center">
                   <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                    <span><i className="fas fa-shield-halved mr-2"></i></span> Insecure Skip Verify
+                    <span>
+                      <i className="fas fa-shield-halved mr-2"></i>
+                    </span>{" "}
+                    Insecure Skip Verify
                   </label>
                   <div className="ml-2 flex-1">
                     <label className="switch mt-1">
@@ -385,11 +557,11 @@ const ClusterCreationForm = () => {
             <div className="buttons mt-5 pl-5 flex items-start justify-start">
               <button
                 onClick={handleOnClick}
-                disabled={isDisabled || isLoading}
+                disabled={isDisabled || isLoading || isVerifying}
                 type="submit"
                 className="rounded-md bg-[#1a365dcc] px-4 py-3 text-sm font-semibold text-[#f5f5f5] shadow-sm hover:bg-[#1a365d] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d] flex items-center justify-center"
               >
-                {isLoading ? (
+                {isLoading || isVerifying ? (
                   <CircularProgress
                     size={20}
                     color="inherit"
@@ -401,6 +573,80 @@ const ClusterCreationForm = () => {
               </button>
             </div>
           )}
+
+          {/* Hyper-V verification step panel */}
+          {showVerificationPanel &&
+            clusterDetails.type === "Hyper-V" &&
+            hyperVNodeType.singleNode && (
+              <div className="mt-4 pl-5">
+                <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-sm">
+                  <h4 className="text-sm font-bold text-[#1a365d] mb-4 flex items-center gap-2">
+                    <i className="fas fa-shield-halved text-[#1a365d]" />
+                    Verification Status
+                  </h4>
+                  <div className="space-y-3">
+                    {verificationSteps.map((step) => (
+                      <div key={step.id} className="flex items-center gap-3">
+                        <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
+                          {step.status === "idle" && (
+                            <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                          )}
+                          {step.status === "loading" && (
+                            <CircularProgress
+                              size={16}
+                              style={{ color: "#1a365d" }}
+                            />
+                          )}
+                          {step.status === "success" && (
+                            <svg
+                              className="w-5 h-5 text-green-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                          {step.status === "error" && (
+                            <svg
+                              className="w-5 h-5 text-red-500"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span
+                          className={`text-sm ${
+                            step.status === "success"
+                              ? "text-green-600 font-semibold"
+                              : step.status === "error"
+                                ? "text-red-500 font-semibold"
+                                : step.status === "loading"
+                                  ? "text-[#1a365d] font-medium"
+                                  : "text-gray-400"
+                          }`}
+                        >
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
         {createdClusterId && clusterDetails.type === "Proxmox" && (
           <div className="monitoring-section mt-4 p-3 relative bg-gray-50 rounded-lg">
@@ -467,7 +713,7 @@ const ClusterCreationForm = () => {
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
                             : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2",
                         )}
                       />
                     </div>
@@ -487,7 +733,7 @@ const ClusterCreationForm = () => {
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
                             : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2",
                         )}
                       />
                     </div>
@@ -507,7 +753,7 @@ const ClusterCreationForm = () => {
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
                             : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2",
                         )}
                       />
                     </div>
@@ -527,7 +773,7 @@ const ClusterCreationForm = () => {
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
                             : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2",
                         )}
                       />
                     </div>
@@ -551,7 +797,7 @@ const ClusterCreationForm = () => {
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
                             : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400     border-2",
                         )}
                       />
                     </div>
@@ -570,7 +816,7 @@ const ClusterCreationForm = () => {
                         onChange={(e) => setSrcApiToken(e.target.value)}
                         placeholder="Enter source API token"
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2",
                         )}
                       />
                       <button

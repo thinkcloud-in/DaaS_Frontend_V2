@@ -106,3 +106,31 @@ export const updateProxmoxNodes = async (token) => {
   );
   return res.data;
 };
+
+export const verifyStandaloneHyperV = async (token, payload) => {
+  const res = await axiosInstance.post(
+    `${backendUrl}/v1/hyper_v/verify_standalone_hyper_v`,
+    payload,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};
+
+export const pingHyperVAgent = async (token, params = {}) => {
+  const res = await axiosInstance.get(
+    `${backendUrl}/v1/hyper_v/ping_agent`,
+    { headers: { Authorization: `Bearer ${token}` }, params: params }
+  );
+  return res.data;
+};
+
+export const fetchHyperVVMs = async (token, clusterId) => {
+  const res = await axiosInstance.get(
+    `${backendUrl}/v1/hyper_v/get_vms`,
+    { 
+        params: { cluster_id: clusterId },
+        headers: { Authorization: `Bearer ${token}` } 
+    }
+  );
+  return res.data?.data || [];
+};
