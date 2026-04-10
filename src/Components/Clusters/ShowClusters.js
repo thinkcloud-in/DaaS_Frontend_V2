@@ -67,13 +67,14 @@ const ShowClusters = () => {
 
     try {
       await dispatch(
-        deleteClusterThunk({ token, cluster_id, email: userEmail })
+        deleteClusterThunk({ token, cluster_id, email: userEmail }),
       ).unwrap();
       dispatch(fetchClustersThunk(token));
       toast.success("Cluster deleted", { transition: Slide });
       await dispatch(fetchClustersThunk(token)).unwrap();
     } catch (err) {
-      toast.error("Failed to delete cluster", { transition: Slide });
+      const errorMsg = err?.detail || err?.message || (typeof err === 'string' ? err : "Failed to delete cluster due to active connected pools.");
+      toast.error(errorMsg, { transition: Slide });
     } finally {
       setDeletingClusterId(null);
     }
@@ -111,7 +112,7 @@ const ShowClusters = () => {
             disabled={updating}
             className={classNames(
               "bg-[#1a365dcc] hover:bg-[#1a365d] hover:text-white text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium",
-              updating ? "opacity-50 cursor-not-allowed" : ""
+              updating ? "opacity-50 cursor-not-allowed" : "",
             )}
           >
             {updating ? (
@@ -182,7 +183,11 @@ const ShowClusters = () => {
                       key={`${item.id}-${col.key}`}
                       className={`py-2 px-3 text-${col.align}`}
                     >
-                      {item[col.key]}
+                      {col.key === "port"
+                        ? item.type === "Hyper-V"
+                          ? item.agent_port
+                          : item.port
+                        : item[col.key]}
                     </td>
                   ))}
                   <td className="py-2 px-3 text-center">
@@ -212,7 +217,7 @@ const ShowClusters = () => {
                           "fa-solid fa-trash cursor-pointer text-lg inline-block",
                           deletingClusterId
                             ? "opacity-60 cursor-not-allowed"
-                            : ""
+                            : "",
                         )}
                         style={{ color: "#f84545b9" }}
                         onMouseOver={(e) =>

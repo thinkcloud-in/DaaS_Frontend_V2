@@ -101,7 +101,9 @@ const ClusterCreationForm = () => {
       (clusterDetails.type !== "Hyper-V" && !clusterDetails.port) ||
       !clusterDetails.username ||
       !clusterDetails.password ||
-      (!hyperVNodeType.singleNode && !hyperVNodeType.multiNode)
+      (clusterDetails.type === "Hyper-V" &&
+        !hyperVNodeType.singleNode &&
+        !hyperVNodeType.multiNode)
     ) {
       toast.error("Please fill all the fields", { transition: Slide });
       return;
@@ -132,7 +134,7 @@ const ClusterCreationForm = () => {
         ]);
         setShowVerificationPanel(true);
 
-        // ── Steps 1 & 2: confirm the agent process is reachable 
+        // ── Steps 1 & 2: confirm the agent process is reachable
         setStepStatus([0, 1], "loading");
         try {
           await pingHyperVAgent(token, {
@@ -279,7 +281,7 @@ const ClusterCreationForm = () => {
       );
       toast.success("InfluxDB integrated successfully");
       dispatch(
-        fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId })
+        fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
       );
       setTimeout(() => navigate("/clusters"), 2000);
     } catch {
