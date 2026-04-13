@@ -36,9 +36,14 @@ export const baseNavigation = [
       },
       {
         name: "HyperV",
-        href: "/hyperv-monitoring",
+        href: "/hyperv",
         componentKey: "HyperV",
-        submenus: [],
+        submenus: [
+          { name: "Overview", href: "/hyperv/overview", componentKey: "HyperV" },
+          { name: "Hosts", href: "/hyperv/hosts", componentKey: "HyperV" },
+          { name: "Data Stores", href: "/hyperv/data-stores", componentKey: "HyperV" },
+          { name: "VMS", href: "/hyperv/vms", componentKey: "HyperV" },
+        ],
       },
     ],
   },
