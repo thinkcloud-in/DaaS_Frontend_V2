@@ -8,7 +8,7 @@ import { getEnv } from "utils/getEnv";
 
 const HVOverview = () => {
   const gc = useContext(GrafanaToolbarContext);
-  const grafanaUrl = "https://devraq.rcvdev.team"; //process.env.REACT_APP_GRAFANA_URL
+  const grafanaUrl = getEnv("GRAFANA_URL");
 
 
   const iframeSrc =

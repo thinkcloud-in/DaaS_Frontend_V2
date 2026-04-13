@@ -8,7 +8,7 @@ import { getEnv } from "utils/getEnv";
 
 const HVDataStores = () => {
   const gc = useContext(GrafanaToolbarContext);
-  const grafanaUrl = "https://devraq.rcvdev.team"; //getEnv("GRAFANA_URL");
+  const grafanaUrl = getEnv("GRAFANA_URL");
 
   const iframeSrc =
     `${grafanaUrl}/grafana/d/hyperv-datastores-001/hyper-v-data-stores` +

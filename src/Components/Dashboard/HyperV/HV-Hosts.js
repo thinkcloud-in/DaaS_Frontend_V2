@@ -8,7 +8,7 @@ import { getEnv } from "utils/getEnv";
 
 const HVHosts = () => {
   const gc = useContext(GrafanaToolbarContext);
-  const grafanaUrl = "https://devraq.rcvdev.team"; //getEnv("GRAFANA_URL");
+  const grafanaUrl = getEnv("GRAFANA_URL");
 
   const iframeSrc =
     `${grafanaUrl}/grafana/d/hyperv-monitoring-002/hyper-v-host-monitoring` +

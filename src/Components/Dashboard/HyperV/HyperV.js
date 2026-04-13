@@ -5,13 +5,11 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { getEnv } from "utils/getEnv";
 
 const HyperV = () => {
   const gc = useContext(GrafanaToolbarContext);
-
-  // You can make this dynamic or use an env variable as needed
-  const grafanaUrl = "https://devraq.rcvdev.team"; //process.env.REACT_APP_GRAFANA_URL
-
+  const grafanaUrl = getEnv("GRAFANA_URL");
 
   const iframeSrc =
     `${grafanaUrl}/grafana/d/hyperv-monitoring-002/hyper-v-host-monitoring` +//`${grafanaUrl}/d/cbcfea7a-2f3f-4150-ab89-8c602bc54b34/hyper-v-wmi` +
