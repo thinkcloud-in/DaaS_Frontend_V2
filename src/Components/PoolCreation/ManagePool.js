@@ -570,7 +570,7 @@ const ManagePool = (props) => {
     if (!selectedVm) return;
     dispatch(setPowerActionLoading("reboot"));
     try {
-      await dispatch(
+      const res = await dispatch(
         rebootVM({
           token,
           userEmail,
@@ -578,10 +578,17 @@ const ManagePool = (props) => {
           poolId,
         }),
       ).unwrap();
-      toast.success("VM reboot triggered");
+      if (
+        res?.data?.error ||
+        res?.data?.msg?.toLowerCase().includes("failed")
+      ) {
+        toast.error(res?.data?.err || res?.data?.msg || "Failed to reboot VM");
+        return;
+      }
+      toast.success(res?.data?.msg || "VM reboot triggered");
       refreshMachines();
     } catch (err) {
-      toast.error(err?.msg || err?.message || "Failed to reboot VM");
+      toast.error(err?.data?.msg || err?.message || "Failed to reboot VM");
     } finally {
       dispatch(setPowerActionLoading(null));
     }

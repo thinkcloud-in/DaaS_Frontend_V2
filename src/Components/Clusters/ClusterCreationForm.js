@@ -244,12 +244,41 @@ const ClusterCreationForm = () => {
     setClusterDetails({ ...clusterDetails, tls: e.target.checked });
   };
 
+  // const handleMonitoringCheckbox = async (e) => {
+  //   const checked = e.target.checked;
+  //   if (checked && createdClusterId) {
+  //     dispatch(
+  //       fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
+  //     ).then(({ payload }) => {
+  //       if (payload && !payload.error && Object.keys(payload).length > 0) {
+  //         setMonitoringEnabled(true);
+  //         setMonitoringData(payload);
+  //         setShowMonitoringConfirm(false);
+  //         setInfluxAlreadyIntegrated(true);
+  //       } else {
+  //         setMonitoringEnabled(false);
+  //         setMonitoringData(null);
+  //         setShowMonitoringConfirm(true);
+  //         setInfluxAlreadyIntegrated(false);
+  //       }
+  //     });
+  //   } else {
+  //     setMonitoringEnabled(false);
+  //     setShowMonitoringConfirm(false);
+  //     setMonitoringData(null);
+  //     setInfluxAlreadyIntegrated(false);
+  //   }
+  // };
+
   const handleMonitoringCheckbox = async (e) => {
     const checked = e.target.checked;
     if (checked && createdClusterId) {
-      dispatch(
-        fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
-      ).then(({ payload }) => {
+      try {
+        // ✅ await + unwrap instead of .then(({ payload }) => ...)
+        const payload = await dispatch(
+          fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
+        ).unwrap();
+
         if (payload && !payload.error && Object.keys(payload).length > 0) {
           setMonitoringEnabled(true);
           setMonitoringData(payload);
@@ -258,10 +287,16 @@ const ClusterCreationForm = () => {
         } else {
           setMonitoringEnabled(false);
           setMonitoringData(null);
-          setShowMonitoringConfirm(true);
+          setShowMonitoringConfirm(true); // ✅ Show confirm modal
           setInfluxAlreadyIntegrated(false);
         }
-      });
+      } catch {
+        // fetch failed — show confirm to add fresh
+        setMonitoringEnabled(false);
+        setMonitoringData(null);
+        setShowMonitoringConfirm(true);
+        setInfluxAlreadyIntegrated(false);
+      }
     } else {
       setMonitoringEnabled(false);
       setShowMonitoringConfirm(false);
@@ -272,20 +307,32 @@ const ClusterCreationForm = () => {
 
   const addInfluxdbWrapper = async (isCustomIntegration) => {
     try {
-      await dispatch(
+      const res = await dispatch(
         addInfluxdbThunk({
           token,
           clusterId: createdClusterId,
           isCustomIntegration,
         }),
       );
-      toast.success("InfluxDB integrated successfully");
+      if (res?.payload?.code !== 200) {
+        toast.error(res?.payload?.data?.msg || "Failed to integrate InfluxDB");
+        setMonitoringEnabled(false);
+        return;
+      }
+      toast.success(
+        res?.payload?.data?.msg || "InfluxDB integrated successfully",
+      );
+
       dispatch(
         fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
       );
       setTimeout(() => navigate("/clusters"), 2000);
-    } catch {
-      toast.error("Failed to integrate InfluxDB");
+    } catch (error) {
+      const message =
+        typeof error === "string"
+          ? error
+          : error?.msg || error?.message || "Failed to integrate InfluxDB";
+      toast.error(message);
       setMonitoringEnabled(false);
       setMonitoringData(null);
     }
