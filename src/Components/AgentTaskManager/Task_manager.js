@@ -4,7 +4,7 @@ import {
   fetchVmDetails,
   fetchBackgroundProcesses,
   fetchHostStats,
-  killProcesses
+  killProcesses,
 } from "Services/TaskManagerService";
 import { toast } from "react-toastify";
 import { getEnv } from "utils/getEnv";
@@ -23,45 +23,49 @@ const TaskManagerPage = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [processData, setProcessData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [hostStats, setHostStats] = useState({ cpu: null, memory: null, diskio: null });
+  const [hostStats, setHostStats] = useState({
+    cpu: null,
+    memory: null,
+    diskio: null,
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const osTypeFromProps = location.state?.os_type; // get os_type from navigation state
   const vmNameFromProps = location.state?.vm_name;
   const vmName = vmNameFromProps; // Prefer API value, fallback to prop
 
-  const DASHBOARD_GRAFANA_URL = getEnv('GRAFANA_URL');
+  const DASHBOARD_GRAFANA_URL = getEnv("GRAFANA_URL");
   // Linux Configuration
-  const INFLUXDB_DATASOURCE_LINUX = getEnv('INFLUXDB_DATASOURCE_LINUX');
-  const BUCKET_LINUX = getEnv('BUCKET_LINUX');
-  const DASHBOARD_UID_LINUX = getEnv('DASHBOARD_UID_LINUX');
-  const DASHBOARD_NAME_LINUX = getEnv('DASHBOARD_NAME_LINUX');
+  const INFLUXDB_DATASOURCE_LINUX = getEnv("INFLUXDB_DATASOURCE_LINUX");
+  const BUCKET_LINUX = getEnv("BUCKET_LINUX");
+  const DASHBOARD_UID_LINUX = getEnv("DASHBOARD_UID_LINUX");
+  const DASHBOARD_NAME_LINUX = getEnv("DASHBOARD_NAME_LINUX");
 
   // Windows Configuration
-  const INFLUXDB_DATASOURCE_WINDOWS = getEnv('INFLUXDB_DATASOURCE_WINDOWS');
-  const BUCKET_WINDOWS = getEnv('BUCKET_WINDOWS');
-  const DASHBOARD_UID_WINDOWS = getEnv('DASHBOARD_UID_WINDOWS');
-  const DASHBOARD_NAME_WINDOWS = getEnv('DASHBOARD_NAME_WINDOWS');
+  const INFLUXDB_DATASOURCE_WINDOWS = getEnv("INFLUXDB_DATASOURCE_WINDOWS");
+  const BUCKET_WINDOWS = getEnv("BUCKET_WINDOWS");
+  const DASHBOARD_UID_WINDOWS = getEnv("DASHBOARD_UID_WINDOWS");
+  const DASHBOARD_NAME_WINDOWS = getEnv("DASHBOARD_NAME_WINDOWS");
 
   // Function to get configuration based on VM OS type (no default, must be provided)
   const getVMConfig = (osType) => {
     if (!osType) return null;
     const normalizedOS = osType.toLowerCase();
-    if (normalizedOS === 'windows') {
+    if (normalizedOS.includes("windows")) {
       return {
         datasource: INFLUXDB_DATASOURCE_WINDOWS,
         bucket: BUCKET_WINDOWS,
         dashboardUid: DASHBOARD_UID_WINDOWS,
         dashboardName: DASHBOARD_NAME_WINDOWS,
-        pidField: "process_id"
+        pidField: "process_id",
       };
-    } else if (normalizedOS === 'linux') {
+    } else if (normalizedOS.includes("linux")) {
       return {
         datasource: INFLUXDB_DATASOURCE_LINUX,
         bucket: BUCKET_LINUX,
         dashboardUid: DASHBOARD_UID_LINUX,
         dashboardName: DASHBOARD_NAME_LINUX,
-        pidField: "pid"
+        pidField: "pid",
       };
     }
     return null;
@@ -72,55 +76,120 @@ const TaskManagerPage = () => {
       .then((data) => setVmDetails(data))
       .catch(() => setVmDetails(null));
   }, [vmId]);
- 
+
   const fetchAll = () => {
-    if (!vmDetails?.name && !vmName) return;
     const osType = osTypeFromProps;
     if (!osType) return;
-    const config = getVMConfig(osType);
+    const config = getVMConfig(osTypeFromProps);
     if (!config) return;
 
-    let hostForApi = vmName?.trim();
+    const normalizedOS = osTypeFromProps.toLowerCase().includes("windows")
+      ? "windows"
+      : "linux";
 
-    fetchBackgroundProcesses(config, hostForApi, osType)
-      .then((data) => setProcessData(data))
-      .catch(() => setProcessData([]));
+    const internalIp = getInternalIp(vmDetails);
+    // Use VM name as primary, IP as fallback
+    let hostName = vmName?.trim();
+    let hostCandidates = [hostName, hostName?.toUpperCase(), internalIp].filter(Boolean);
+    hostCandidates = [...new Set(hostCandidates)]; // Unique candidates
 
-    fetchHostStats(config, hostForApi, osType)
-      .then((data) => setHostStats(data))
-      .catch(() => setHostStats({ cpu: null, memory: null, diskio: null }));
+    if (hostCandidates.length === 0) return;
+
+    const tryFetch = async (index) => {
+      if (index >= hostCandidates.length) {
+        setProcessData([]);
+        return;
+      }
+      const host = hostCandidates[index];
+      try {
+        const data = await fetchBackgroundProcesses(config, host, normalizedOS);
+        if (data && data.length > 0) {
+          setProcessData(data);
+        } else {
+          await tryFetch(index + 1);
+        }
+      } catch (err) {
+        console.warn(`Fetch failed for host ${host}:`, err);
+        await tryFetch(index + 1);
+      }
+    };
+
+    const tryFetchStats = async (index) => {
+      if (index >= hostCandidates.length) {
+        setHostStats({ cpu: null, memory: null, diskio: null });
+        return;
+      }
+      const host = hostCandidates[index];
+      try {
+        const data = await fetchHostStats(config, host, normalizedOS);
+        if (data && (data.cpu !== null || data.memory !== null)) {
+          setHostStats(data);
+        } else {
+          await tryFetchStats(index + 1);
+        }
+      } catch (err) {
+        await tryFetchStats(index + 1);
+      }
+    };
+
+    tryFetch(0);
+    tryFetchStats(0);
   };
 
   useEffect(() => {
     let intervalId;
-    // Use os_type from vmDetails or fallback to osTypeFromProps
-    const osType =  osTypeFromProps;
-    if (activeTab === "processes" && vmName && osType) {
+    const osType = osTypeFromProps;
+    if (activeTab === "processes" && (vmDetails || vmName) && osType) {
       fetchAll();
       intervalId = setInterval(fetchAll, 5000);
     }
     return () => clearInterval(intervalId);
-  }, [activeTab, vmDetails, osTypeFromProps]);
+  }, [activeTab, vmDetails, osTypeFromProps, vmName]);
 
-  const hostCpu = hostStats.cpu !== null ? `${Number(hostStats.cpu).toFixed(1)}%` : "N/A";
-  const hostMemory = hostStats.memory !== null ? `${Number(hostStats.memory).toFixed(1)}%` : "N/A";
-  const hostDiskIO = hostStats.diskio !== null ? `${Number(hostStats.diskio).toFixed(1)}` : "N/A";
+  const getInternalIp = (details) => {
+    if (!details) return null;
+    return (
+      details.ip_addresses?.[0] ||
+      details.ip_address?.[0] ||
+      details.NetworkAdapters?.flatMap((na) => na.IPAddresses || [])?.[0] ||
+      null
+    );
+  };
+
+  const hostCpu =
+    hostStats.cpu !== null ? `${Number(hostStats.cpu).toFixed(1)}%` : "N/A";
+  const hostMemory =
+    hostStats.memory !== null
+      ? `${Number(hostStats.memory).toFixed(1)}%`
+      : "N/A";
+  const hostDiskIO =
+    hostStats.diskio !== null
+      ? `${Number(hostStats.diskio).toFixed(1)}`
+      : "N/A";
   const processesCount = processData.length;
 
   // Helper functions to format process values similar to host stats
   const formatProcessCpu = (cpuValue) => {
-    return cpuValue !== undefined && cpuValue !== null ? `${Number(cpuValue).toFixed(1)}` : "N/A";
+    return cpuValue !== undefined && cpuValue !== null
+      ? `${Number(cpuValue).toFixed(1)}`
+      : "N/A";
   };
   const formatProcessMemory = (memoryValue) => {
-    return memoryValue !== undefined && memoryValue !== null ? `${Number(memoryValue).toFixed(1)}` : "N/A";
+    return memoryValue !== undefined && memoryValue !== null
+      ? `${Number(memoryValue).toFixed(1)}`
+      : "N/A";
   };
   const formatProcessDisk = (diskValue) => {
-    return diskValue !== undefined && diskValue !== null ? `${Number(diskValue).toFixed(1)}` : "N/A";
+    return diskValue !== undefined && diskValue !== null
+      ? `${Number(diskValue).toFixed(1)}`
+      : "N/A";
   };
 
   // Checkbox logic
-  const isAllSelected = selectedRows.length === processesCount && processesCount > 0;
-  const isIndeterminate = selectedRows.length > 0 && selectedRows.length < processesCount;
+  const isAllSelected =
+    selectedRows.length === processesCount && processesCount > 0;
+  const isIndeterminate =
+    selectedRows.length > 0 && selectedRows.length < processesCount;
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -132,7 +201,7 @@ const TaskManagerPage = () => {
 
   const handleSelectRow = (idx) => {
     setSelectedRows((prev) =>
-      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx],
     );
   };
 
@@ -145,57 +214,68 @@ const TaskManagerPage = () => {
     // Use os_type from vmDetails if available, else fallback to osTypeFromProps
     const osType = osTypeFromProps;
     if (!osType) {
-      toast.error("OS type is not available for this VM. Cannot kill processes.");
+      toast.error(
+        "OS type is not available for this VM. Cannot kill processes.",
+      );
       return;
     }
-    const config = getVMConfig(osType);
+    const config = getVMConfig(osTypeFromProps);
     if (!config) {
-      toast.error("Unsupported or missing OS type. Cannot kill processes.");
+      toast.error("Unsupported OS type config.");
       return;
     }
-    // Get correct PID field for the OS
+    const normalizedOS = osTypeFromProps.toLowerCase().includes("windows")
+      ? "windows"
+      : "linux";
+
     let pids = [];
-    if (osType.toLowerCase() === "windows") {
+    if (normalizedOS === "windows") {
       // For Windows, use ID_Process
       pids = selectedRows
-        .map(idx => processData[idx]?.ID_Process)
-        .filter(pid => pid !== undefined && pid !== null && pid !== "-");
+        .map((idx) => processData[idx]?.ID_Process)
+        .filter((pid) => pid !== undefined && pid !== null && pid !== "-");
     } else {
       // For Linux, use pidField (usually "pid")
       const pidField = config.pidField;
       pids = selectedRows
-        .map(idx => processData[idx]?.[pidField])
-        .filter(pid => pid !== undefined && pid !== null && pid !== "-");
+        .map((idx) => processData[idx]?.[pidField])
+        .filter((pid) => pid !== undefined && pid !== null && pid !== "-");
     }
     if (!pids.length) {
       toast.error("No valid process IDs found");
       return;
     }
     const processHost = processData[selectedRows[0]]?.host;
-    
+
     if (!processHost) {
       toast.error("No host information found for selected processes");
       return;
     }
     try {
       if (vmDetails && vmDetails.name === processHost.trim()) {
-        const hostIp = vmDetails.ip_addresses && vmDetails.ip_addresses.length > 0 
-          ? vmDetails.ip_addresses[0] 
-          : null;
+        const hostIp =
+          vmDetails.ip_addresses && vmDetails.ip_addresses.length > 0
+            ? vmDetails.ip_addresses[0]
+            : null;
 
         if (!hostIp) {
-          toast.error("No IP address available for this VM. Cannot kill processes.");
+          toast.error(
+            "No IP address available for this VM. Cannot kill processes.",
+          );
           return;
         }
-        await killProcesses( processHost, hostIp, pids, osType);
+        await killProcesses(processHost, hostIp, pids, osType);
         toast.success(`Successfully killed ${pids.length} process(es)`);
         fetchAll();
         setSelectedRows([]);
       } else {
-        toast.error("VM name doesn't match process host. Cannot kill processes.");
+        toast.error(
+          "VM name doesn't match process host. Cannot kill processes.",
+        );
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || error.message || "Unknown error";
+      const errorMessage =
+        error.response?.data?.detail || error.message || "Unknown error";
       toast.error(`Failed to kill processes: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -215,8 +295,19 @@ const TaskManagerPage = () => {
           className="flex items-center justify-center bg-gray-100 text-sm font-semibold text-gray-700 py-2 rounded-md hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 cursor-pointer"
           style={{ minWidth: 40 }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </div>
         {/* VM ID */}
@@ -251,23 +342,41 @@ const TaskManagerPage = () => {
               </div>
             </div>
             {/* Grafana Dashboard */}
-            {vmName && (osTypeFromProps) ? (
+            {vmName && osTypeFromProps ? (
               <div className="mt-8">
-                <div className="font-semibold text-[16px] mb-2">VM Metrics Dashboard</div>
+                <div className="font-semibold text-[16px] mb-2">
+                  VM Metrics Dashboard
+                </div>
                 {(() => {
                   const osType = osTypeFromProps;
                   const config = getVMConfig(osType);
                   if (!config) {
-                    return <div className="text-red-500">Unsupported or missing OS type for dashboard.</div>;
+                    return (
+                      <div className="text-red-500">
+                        Unsupported or missing OS type for dashboard.
+                      </div>
+                    );
                   }
-                  // Use VM name for Grafana host variable
-                  const hostForGrafana = vmDetails?.name?.trim() || vmName?.trim() || "";
+                  // Use internal IP as fallback for Grafana host variable
+                  const internalIp = getInternalIp(vmDetails);
+                  const hostForGrafana = vmDetails?.name?.trim() || vmName?.trim() || internalIp || "";
                   return (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
-                        Operating System: <span className="font-medium">{osType.toUpperCase()}</span> | 
-                        Datasource: <span className="font-medium">{config.datasource}</span> | 
-                        Bucket: <span className="font-medium">{config.bucket}</span>
+                        Operating System:{" "}
+                        <span className="font-medium">
+                          {osType.toUpperCase()}
+                        </span>{" "}
+                        | Datasource:{" "}
+                        <span className="font-medium">{config.datasource}</span>{" "}
+                        | Bucket:{" "}
+                        <span className="font-medium">{config.bucket}</span>{" "}
+                        {internalIp && (
+                          <>
+                            | Detected IP:{" "}
+                            <span className="font-medium">{internalIp}</span>
+                          </>
+                        )}
                       </div>
                       <iframe
                         title="Grafana Dashboard"
@@ -279,10 +388,12 @@ const TaskManagerPage = () => {
                           `&var-host=${encodeURIComponent(hostForGrafana)}` +
                           `&from=now-1h&to=now&theme=light&disableLazyLoad=true&kiosk`
                         }
-                        
                         width="100%"
                         height="800"
-                        style={{ border: "1px solid #ccc", borderRadius: "8px" }}
+                        style={{
+                          border: "1px solid #ccc",
+                          borderRadius: "8px",
+                        }}
                         allowFullScreen
                       />
                     </>
@@ -290,7 +401,9 @@ const TaskManagerPage = () => {
                 })()}
               </div>
             ) : (
-              <div className="mt-8 font-medium text-gray-600 mb-2">Dashboards are loading....</div>
+              <div className="mt-8 font-medium text-gray-600 mb-2">
+                Dashboards are loading....
+              </div>
             )}
           </div>
         )}
@@ -321,7 +434,7 @@ const TaskManagerPage = () => {
                 onClick={handleKillProcess}
               >
                 {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                            <span>{isLoading ? "Processing" :"End Process"}</span>
+                <span>{isLoading ? "Processing" : "End Process"}</span>
               </button>
             </div>
             {/* Table */}
@@ -333,32 +446,45 @@ const TaskManagerPage = () => {
                       <input
                         type="checkbox"
                         checked={isAllSelected}
-                        ref={el => {
+                        ref={(el) => {
                           if (el) el.indeterminate = isIndeterminate;
                         }}
                         onChange={handleSelectAll}
                         aria-label="Select all processes"
                       />
                       {selectedRows.length > 0 && (
-                        <span
-                          className="inline-flex items-center justify-center ml-2 h-4 px-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-400"
-                        >
+                        <span className="inline-flex items-center justify-center ml-2 h-4 px-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-400">
                           {selectedRows.length}
                         </span>
                       )}
                     </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">Process Name</th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">Process ID</th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">CPU %</th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">Memory %</th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">Disk %</th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">Username</th>
+                    <th className="py-2 px-3 font-semibold text-left border-b">
+                      Process Name
+                    </th>
+                    <th className="py-2 px-3 font-semibold text-left border-b">
+                      Process ID
+                    </th>
+                    <th className="py-2 px-3 font-semibold text-left border-b">
+                      CPU %
+                    </th>
+                    <th className="py-2 px-3 font-semibold text-left border-b">
+                      Memory %
+                    </th>
+                    <th className="py-2 px-3 font-semibold text-left border-b">
+                      Disk %
+                    </th>
+                    <th className="py-2 px-3 font-semibold text-left border-b">
+                      Username
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {processData.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-4 text-gray-400">
+                      <td
+                        colSpan={7}
+                        className="text-center py-4 text-gray-400"
+                      >
                         No process data available.
                       </td>
                     </tr>
@@ -374,8 +500,9 @@ const TaskManagerPage = () => {
                           <tr
                             key={proc.ID_Process || idx}
                             className="hover:bg-gray-50"
-                            onClick={e => {
-                              if (e.target.type !== "checkbox") handleSelectRow(idx);
+                            onClick={(e) => {
+                              if (e.target.type !== "checkbox")
+                                handleSelectRow(idx);
                             }}
                             style={{ cursor: "pointer" }}
                           >
@@ -385,14 +512,17 @@ const TaskManagerPage = () => {
                                 checked={selectedRows.includes(idx)}
                                 onChange={() => handleSelectRow(idx)}
                                 aria-label={`Select process ${proc.ID_Process || idx}`}
-                                onClick={e => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
                               />
                             </td>
                             <td className="py-2 px-3 text-left border-b font-medium break-all">
                               {proc.instance || "-"}
                             </td>
                             <td className="py-2 px-3 text-left border-b">
-                              {proc.ID_Process !== undefined && proc.ID_Process !== null ? proc.ID_Process : "-"}
+                              {proc.ID_Process !== undefined &&
+                              proc.ID_Process !== null
+                                ? proc.ID_Process
+                                : "-"}
                             </td>
                             <td className="py-2 px-3 text-left border-b">
                               {formatProcessCpu(proc.Percent_Processor_Time)}
@@ -415,8 +545,9 @@ const TaskManagerPage = () => {
                           <tr
                             key={proc[pidField] || proc.process_name || idx}
                             className="hover:bg-gray-50"
-                            onClick={e => {
-                              if (e.target.type !== "checkbox") handleSelectRow(idx);
+                            onClick={(e) => {
+                              if (e.target.type !== "checkbox")
+                                handleSelectRow(idx);
                             }}
                             style={{ cursor: "pointer" }}
                           >
@@ -426,7 +557,7 @@ const TaskManagerPage = () => {
                                 checked={selectedRows.includes(idx)}
                                 onChange={() => handleSelectRow(idx)}
                                 aria-label={`Select process ${proc.process_name || idx}`}
-                                onClick={e => e.stopPropagation()}
+                                onClick={(e) => e.stopPropagation()}
                               />
                             </td>
                             <td className="py-2 px-3 text-left border-b font-medium break-all">
@@ -460,7 +591,9 @@ const TaskManagerPage = () => {
 
         {activeTab === "applications" && (
           <div className="flex flex-col items-center py-12">
-            <span className="text-gray-500">Applications view coming soon...</span>
+            <span className="text-gray-500">
+              Applications view coming soon...
+            </span>
           </div>
         )}
       </div>
@@ -469,4 +602,3 @@ const TaskManagerPage = () => {
 };
 
 export default TaskManagerPage;
-

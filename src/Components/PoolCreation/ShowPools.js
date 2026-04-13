@@ -164,7 +164,7 @@ const ShowPools = () => {
                         {item.pool_type}
                       </td>
                       <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
-                        {item.cluster ? item.cluster : "NA"}
+                        {item.cluster ? item.cluster : "fetching..."}
                       </td>
                       <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
                         {item.entitled ? item.entitled : 0}

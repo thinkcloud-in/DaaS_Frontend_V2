@@ -22,7 +22,7 @@ export const fetchClustersThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 // Create a new cluster
@@ -38,7 +38,11 @@ export const createClusterThunk = createAsyncThunk(
 
       // Backend returned a cluster object
       if (res.data?.cluster) {
-        return { cluster: res.data.cluster, message: res.msg || null, warning: false };
+        return {
+          cluster: res.data.cluster,
+          message: res.msg || null,
+          warning: false,
+        };
       }
     } catch (err) {
       const message =
@@ -49,7 +53,7 @@ export const createClusterThunk = createAsyncThunk(
 
       return rejectWithValue(message);
     }
-  }
+  },
 );
 
 // Delete a cluster
@@ -60,9 +64,9 @@ export const deleteClusterThunk = createAsyncThunk(
       await deleteCluster(token, cluster_id, email);
       return cluster_id;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err?.response?.data?.msg || err.message);
     }
-  }
+  },
 );
 
 // Update a cluster
@@ -75,7 +79,7 @@ export const updateClusterThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 // Get cluster by id
@@ -87,7 +91,7 @@ export const fetchClusterByIdThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 // Monitorings related
@@ -99,7 +103,7 @@ export const fetchInfluxdbDetailsThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const fetchEditInfluxdbDetailsThunk = createAsyncThunk(
@@ -110,7 +114,7 @@ export const fetchEditInfluxdbDetailsThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const addInfluxdbThunk = createAsyncThunk(
@@ -121,7 +125,7 @@ export const addInfluxdbThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const deleteInfluxdbThunk = createAsyncThunk(
@@ -132,7 +136,7 @@ export const deleteInfluxdbThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 export const migrateMonitoringDataThunk = createAsyncThunk(
@@ -143,7 +147,7 @@ export const migrateMonitoringDataThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );
 
 // Update Proxmox nodes action (refresh)
@@ -164,5 +168,5 @@ export const updateProxmoxNodesThunk = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.message);
     }
-  }
+  },
 );

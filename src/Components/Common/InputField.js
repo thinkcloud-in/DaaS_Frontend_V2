@@ -14,6 +14,7 @@ const InputField = ({
   required = false,
   className = "flex-1 max-w-[40rem]",
   tooltip,
+  tooltipClass,
   ...rest
 }) => {
   return (
@@ -28,7 +29,9 @@ const InputField = ({
         {tooltip && (
           <div className="relative flex items-center group">
             <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs ml-1" />
-            <span className="invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm whitespace-nowrap z-50">
+            <span
+              className={`invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm z-50 whitespace-pre-line ${tooltipClass || "whitespace-nowrap"}`}
+            >
               {tooltip}
             </span>
           </div>

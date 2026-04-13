@@ -78,7 +78,10 @@ import {
   selectAuthTokenParsed,
 } from "../../redux/features/Auth/AuthSelectors";
 import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
-import { fetchClusterByIdThunk, fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
+import {
+  fetchClusterByIdThunk,
+  fetchClustersThunk,
+} from "../../redux/features/Clusters/ClustersThunks";
 import { RebuildPoolModal } from "./RebuildPoolModal";
 const ManagePool = (props) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -141,7 +144,7 @@ const ManagePool = (props) => {
     const map = {};
     const clusterType = selectedCluster?.type;
     if (clusterType === "Hyper-V" && selectedPoolDetails.pool_vmids) {
-      setPoolType(clusterType)
+      setPoolType(clusterType);
       const sortedVms = [...vmAvailable].sort((a, b) => {
         const nameA = a.name || "";
         const nameB = b.name || "";
@@ -217,7 +220,7 @@ const ManagePool = (props) => {
     dispatch(setSelectedVm(machineId));
     try {
       await dispatch(fetchAssignedUsers({ token, machineId })).unwrap();
-    } catch (err) { }
+    } catch (err) {}
   };
   useEffect(() => {
     if (!Array.isArray(vmAvailable) || vmAvailable.length === 0) return;
@@ -246,7 +249,7 @@ const ManagePool = (props) => {
 
       if (vmidToFetch) {
         dispatch(fetchMachineDetails({ token, vm_id: vmidToFetch })).catch(
-          () => { },
+          () => {},
         );
       }
     });
@@ -255,7 +258,7 @@ const ManagePool = (props) => {
   let loadMachineDetails = async (vm_id) => {
     try {
       await dispatch(fetchMachineDetails({ token, vm_id })).unwrap();
-    } catch (err) { }
+    } catch (err) {}
   };
 
   let handleMachineRowClick = (
@@ -328,7 +331,7 @@ const ManagePool = (props) => {
         await dispatch(
           fetchPoolMachines({ token, poolId: selectedPoolDetails.id }),
         ).unwrap();
-      } catch (err) { }
+      } catch (err) {}
     };
     fetchVMs();
   }, [selectedPoolDetails.id, token, dispatch]);
@@ -424,7 +427,12 @@ const ManagePool = (props) => {
   const handleRebuildPool = async (vhdPath) => {
     try {
       const res = await dispatch(
-        rebuildPool({ token, poolId: selectedPoolDetails.id, userEmail, vhdPath }),
+        rebuildPool({
+          token,
+          poolId: selectedPoolDetails.id,
+          userEmail,
+          vhdPath,
+        }),
       ).unwrap();
       const payload = res || {};
       if (payload.pools) {
@@ -446,7 +454,7 @@ const ManagePool = (props) => {
     } finally {
       setRebuildModalOpen(false);
     }
-  }
+  };
 
   const [cluster, setCluster] = useState(null);
 
@@ -454,7 +462,9 @@ const ManagePool = (props) => {
     const fetchCluster = async () => {
       let clusterId = selectedPoolDetails?.cluster_id;
       const nodeId = Number(clusterId?.split("_")[1]);
-      const res = await dispatch(fetchClusterByIdThunk({ token, clusterId: nodeId })).unwrap();
+      const res = await dispatch(
+        fetchClusterByIdThunk({ token, clusterId: nodeId }),
+      ).unwrap();
       setCluster(res);
     };
 
@@ -470,6 +480,8 @@ const ManagePool = (props) => {
   };
 
   let handleDeleteVM = async (mach) => {
+    console.log("handleDeleteVM triggered. machineIdentifier (mach) is:", mach);
+
     const confirmed = window.confirm(
       "Are you sure you want to delete this machine?",
     );
@@ -512,7 +524,7 @@ const ManagePool = (props) => {
   };
 
   useEffect(() => {
-    dispatch(listGuacamoleUsers(token)).catch(() => { });
+    dispatch(listGuacamoleUsers(token)).catch(() => {});
   }, [token, dispatch]);
   useEffect(() => {
     try {
@@ -862,14 +874,14 @@ const ManagePool = (props) => {
             Edit Pool
           </button>
 
-          {cluster && cluster?.type === "Hyper-V" &&
+          {cluster && cluster?.type === "Hyper-V" && (
             <button
               className="bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] rounded-md px-3 py-2 text-sm font-medium"
               onClick={() => setRebuildModalOpen(true)}
             >
               Rebuild Pool
             </button>
-          }
+          )}
 
           <RebuildPoolModal
             isOpen={rebuildModalOpen}
@@ -877,8 +889,9 @@ const ManagePool = (props) => {
             onConfirm={handleRebuildPool}
           />
           <button
-            className={`bg-red-500 hover:bg-red-600 text-white rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${isLoading ? "cursor-not-allowed opacity-75" : ""
-              }`}
+            className={`bg-red-500 hover:bg-red-600 text-white rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${
+              isLoading ? "cursor-not-allowed opacity-75" : ""
+            }`}
             onClick={handleDeletePool}
             type="button"
             disabled={isLoading}
@@ -888,10 +901,11 @@ const ManagePool = (props) => {
           </button>
 
           <button
-            className={`bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] rounded-md px-3 py-2 text-sm font-medium flex items-center gap-2 ${refreshing || machinesLoading
-              ? "cursor-not-allowed opacity-75"
-              : ""
-              }`}
+            className={`bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] rounded-md px-3 py-2 text-sm font-medium flex items-center gap-2 ${
+              refreshing || machinesLoading
+                ? "cursor-not-allowed opacity-75"
+                : ""
+            }`}
             onClick={handleRefresh}
             title="Refresh"
             disabled={refreshing || machinesLoading}
@@ -1008,10 +1022,11 @@ const ManagePool = (props) => {
                     .map((item) => (
                       <tr
                         key={item.identifier}
-                        className={`text-center border-b border-gray-200 ${selectedVm === item.id
-                          ? "bg-[#F0F8FFCC] cursor-pointer"
-                          : "hover:bg-[#F0F8FFCC] cursor-pointer"
-                          }`}
+                        className={`text-center border-b border-gray-200 ${
+                          selectedVm === item.id
+                            ? "bg-[#F0F8FFCC] cursor-pointer"
+                            : "hover:bg-[#F0F8FFCC] cursor-pointer"
+                        }`}
                         onClick={() =>
                           handleMachineRowClick(
                             item.identifier,
@@ -1034,13 +1049,17 @@ const ManagePool = (props) => {
                         <td className="py-2 px-3">{item.protocol}</td>
                         <td className="py-2 px-3">{item.port}</td>
                         <td className="py-2 px-3">
-                          {vmDetailsMap[machineIdMap[item.identifier]]
-                            ?.ip_address?.join(", ") ||
-                            vmDetailsMap[machineIdMap[item.identifier]]
-                              ?.ip_addresses?.join(", ") ||
-                            vmDetailsMap[machineIdMap[item.identifier]]
-                              ?.NetworkAdapters?.flatMap((na) => na.IPAddresses)
-                              ?.join(", ") ||
+                          {vmDetailsMap[
+                            machineIdMap[item.identifier]
+                          ]?.ip_address?.join(", ") ||
+                            vmDetailsMap[
+                              machineIdMap[item.identifier]
+                            ]?.ip_addresses?.join(", ") ||
+                            vmDetailsMap[
+                              machineIdMap[item.identifier]
+                            ]?.NetworkAdapters?.flatMap(
+                              (na) => na.IPAddresses,
+                            )?.join(", ") ||
                             item.hostname ||
                             "N/A"}
                         </td>
@@ -1057,11 +1076,12 @@ const ManagePool = (props) => {
                         {/* Datastores column (only for non-Manual) */}
                         {selectedPoolDetails.pool_type !== "Manual" && (
                           <td className="py-2 px-3">
-                            {vmDetailsMap[machineIdMap[item.identifier]]
-                              ?.datastores?.join(", ") ||
-                              vmDetailsMap[machineIdMap[item.identifier]]
-                                ?.HardDrives?.map((hd) => hd.Path)
-                                ?.join(", ") ||
+                            {vmDetailsMap[
+                              machineIdMap[item.identifier]
+                            ]?.datastores?.join(", ") ||
+                              vmDetailsMap[
+                                machineIdMap[item.identifier]
+                              ]?.HardDrives?.map((hd) => hd.Path)?.join(", ") ||
                               item.datastore ||
                               "Loading..."}
                           </td>
@@ -1077,7 +1097,7 @@ const ManagePool = (props) => {
                         )}
                         <td className="py-2 px-3">
                           {Array.isArray(item.users_assigned) &&
-                            item.users_assigned.length > 0
+                          item.users_assigned.length > 0
                             ? item.users_assigned.length === 1
                               ? item.users_assigned[0]
                               : `${item.users_assigned[0]}.....`
@@ -1233,13 +1253,13 @@ const ManagePool = (props) => {
                                     disabled={!!deletingMachine}
                                   >
                                     {deletingMachine &&
-                                      deletingMachine === item.identifier ? (
+                                    deletingMachine === item.identifier ? (
                                       <Loader2 className="h-4 w-4 animate-spin text-red-400" />
                                     ) : (
                                       <TrashIcon className="h-4 w-4 text-red-400" />
                                     )}
                                     {deletingMachine &&
-                                      deletingMachine === item.identifier
+                                    deletingMachine === item.identifier
                                       ? "Deleting..."
                                       : "Delete"}
                                   </button>
@@ -1247,11 +1267,12 @@ const ManagePool = (props) => {
                                     "Automated" &&
                                     item.status !== "RUNNING" && (
                                       <button
-                                        className={`px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-left ${powerActionLoading ===
+                                        className={`px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-left ${
+                                          powerActionLoading ===
                                           "rebuild-" + item.identifier
-                                          ? "text-black cursor-not-allowed"
-                                          : "text-black"
-                                          }`}
+                                            ? "text-black cursor-not-allowed"
+                                            : "text-black"
+                                        }`}
                                         onClick={(e) => {
                                           handleRebuildVM(item);
                                         }}
@@ -1261,7 +1282,7 @@ const ManagePool = (props) => {
                                         }
                                       >
                                         {powerActionLoading ===
-                                          "rebuild-" + item.identifier ? (
+                                        "rebuild-" + item.identifier ? (
                                           <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                           <FaRedo className="h-4 w-4" />
@@ -1271,25 +1292,26 @@ const ManagePool = (props) => {
                                     )}
                                   {selectedPoolDetails.pool_type ==
                                     "Automated" && (
-                                      <button
-                                        className={`px-4 py-2 hover:bg-blue-50 text-sm flex items-center gap-2 text-left  border-t border-gray-100`}
-                                        onClick={() => {
-                                          navigate(
-                                            `/pools/${poolId}/vm/${machineIdMap[item.identifier]
-                                            }/task-manager`,
-                                            {
-                                              state: {
-                                                os_type: item.os_type,
-                                                vm_name: item.name,
-                                              },
+                                    <button
+                                      className={`px-4 py-2 hover:bg-blue-50 text-sm flex items-center gap-2 text-left  border-t border-gray-100`}
+                                      onClick={() => {
+                                        navigate(
+                                          `/pools/${poolId}/vm/${
+                                            machineIdMap[item.identifier]
+                                          }/task-manager`,
+                                          {
+                                            state: {
+                                              os_type: item.os_type,
+                                              vm_name: item.name,
                                             },
-                                          );
-                                        }}
-                                      >
-                                        <i className="fa-solid fa-list-check text-blue-500"></i>{" "}
-                                        Task Manager
-                                      </button>
-                                    )}
+                                          },
+                                        );
+                                      }}
+                                    >
+                                      <i className="fa-solid fa-list-check text-blue-500"></i>{" "}
+                                      Task Manager
+                                    </button>
+                                  )}
                                 </div>,
                                 document.body,
                               )}
@@ -1312,20 +1334,22 @@ const ManagePool = (props) => {
             <div className="mb-4">
               <div className="flex gap-3 border-b">
                 <button
-                  className={`pb-2 text-sm relative transition-all duration-300 ${selectedTab === "users"
-                    ? "text-[#1a365d] font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
-                    : "text-gray-600 hover:text-[#1a365d]"
-                    }`}
+                  className={`pb-2 text-sm relative transition-all duration-300 ${
+                    selectedTab === "users"
+                      ? "text-[#1a365d] font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
+                      : "text-gray-600 hover:text-[#1a365d]"
+                  }`}
                   onClick={() => setSelectedTab("users")}
                 >
                   Assigned Users
                 </button>
                 {selectedPoolDetails.pool_type == "Automated" && (
                   <button
-                    className={`pb-2 text-sm relative transition-all duration-300 ${selectedTab === "VM-Details"
-                      ? "text-[#1a365d]  font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
-                      : "text-gray-600 hover:text-[#1a365d]"
-                      }`}
+                    className={`pb-2 text-sm relative transition-all duration-300 ${
+                      selectedTab === "VM-Details"
+                        ? "text-[#1a365d]  font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
+                        : "text-gray-600 hover:text-[#1a365d]"
+                    }`}
                     onClick={() => setSelectedTab("VM-Details")}
                   >
                     Machine Details
@@ -1402,7 +1426,7 @@ const ManagePool = (props) => {
                         {(() => {
                           const details =
                             vmDetailsMap[
-                            machineIdMap[selectedVmObj?.identifier]
+                              machineIdMap[selectedVmObj?.identifier]
                             ];
                           return [
                             {
@@ -1474,11 +1498,12 @@ const ManagePool = (props) => {
                       onClick={handleStart}
                       className={`
               flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${selectedVmObj?.error_message === "power-off" &&
-                          !powerActionLoading
-                          ? "bg-white hover:bg-gray-200 text-green-600"
-                          : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
-                        }
+              ${
+                selectedVmObj?.error_message === "power-off" &&
+                !powerActionLoading
+                  ? "bg-white hover:bg-gray-200 text-green-600"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+              }
             `}
                       disabled={
                         selectedVmObj?.error_message !== "power-off" ||
@@ -1498,11 +1523,12 @@ const ManagePool = (props) => {
                       onClick={handleStop}
                       className={`
               flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${selectedVmObj?.error_message === "power-on" &&
-                          !powerActionLoading
-                          ? "bg-white hover:bg-gray-200 text-red-600"
-                          : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
-                        }
+              ${
+                selectedVmObj?.error_message === "power-on" &&
+                !powerActionLoading
+                  ? "bg-white hover:bg-gray-200 text-red-600"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+              }
             `}
                       disabled={
                         selectedVmObj?.error_message !== "power-on" ||

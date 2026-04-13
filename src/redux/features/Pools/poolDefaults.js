@@ -94,7 +94,7 @@ export const initialPoolDetails = {
   pool_vmids: [],
   cluster_id: "",
   pool_ip_pool_names: [],
-  pool_number_of_vms: null,
+  pool_number_of_vms: 1,
   pool_naming_pattern: "",
   pool_template_vm_id: null,
   pool_selected_nodes: [],
