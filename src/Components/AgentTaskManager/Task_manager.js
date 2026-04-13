@@ -90,7 +90,9 @@ const TaskManagerPage = () => {
     const internalIp = getInternalIp(vmDetails);
     // Use VM name as primary, IP as fallback
     let hostName = vmName?.trim();
-    let hostCandidates = [hostName, hostName?.toUpperCase(), internalIp].filter(Boolean);
+    let hostCandidates = [hostName, hostName?.toUpperCase(), internalIp].filter(
+      Boolean,
+    );
     hostCandidates = [...new Set(hostCandidates)]; // Unique candidates
 
     if (hostCandidates.length === 0) return;
@@ -251,12 +253,15 @@ const TaskManagerPage = () => {
       toast.error("No host information found for selected processes");
       return;
     }
+    // console.log("getInternalIp(vmDetails)----------------", getInternalIp(vmDetails));
     try {
-      if (vmDetails && vmDetails.name === processHost.trim()) {
+      if (vmDetails && vmDetails.VMName === processHost.trim()) {
         const hostIp =
-          vmDetails.ip_addresses && vmDetails.ip_addresses.length > 0
-            ? vmDetails.ip_addresses[0]
-            : null;
+          vmDetails?.ip_addresses?.[0] ||
+          vmDetails?.NetworkAdapters?.flatMap((na) => na.IPAddresses || [])?.find(
+            (ip) => ip && !ip.startsWith("169.254") && !ip.startsWith("fe80")
+          ) ||
+          null;
 
         if (!hostIp) {
           toast.error(
@@ -359,7 +364,11 @@ const TaskManagerPage = () => {
                   }
                   // Use internal IP as fallback for Grafana host variable
                   const internalIp = getInternalIp(vmDetails);
-                  const hostForGrafana = vmDetails?.name?.trim() || vmName?.trim() || internalIp || "";
+                  const hostForGrafana =
+                    vmDetails?.name?.trim() ||
+                    vmName?.trim() ||
+                    internalIp ||
+                    "";
                   return (
                     <>
                       <div className="text-sm text-gray-600 mb-2">
