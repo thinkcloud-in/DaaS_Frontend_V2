@@ -12,7 +12,7 @@ const HVOverview = () => {
 
 
   const iframeSrc =
-    `${grafanaUrl}/grafana/d/hyperv-overview-main/hyper-v-overview` +//`${grafanaUrl}/d/cbcfea7a-2f3f-4150-ab89-8c602bc54b34/hyper-v-wmi` +
+    `${grafanaUrl}/d/hyperv-overview-main/hyper-v-overview` +//`${grafanaUrl}/d/cbcfea7a-2f3f-4150-ab89-8c602bc54b34/hyper-v-wmi` +
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +

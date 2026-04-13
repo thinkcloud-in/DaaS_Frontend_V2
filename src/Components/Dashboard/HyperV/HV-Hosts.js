@@ -11,7 +11,7 @@ const HVHosts = () => {
   const grafanaUrl = getEnv("GRAFANA_URL");
 
   const iframeSrc =
-    `${grafanaUrl}/grafana/d/hyperv-monitoring-002/hyper-v-host-monitoring` +
+    `${grafanaUrl}/d/hyperv-monitoring-002/hyper-v-host-monitoring` +
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +

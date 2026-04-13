@@ -11,7 +11,7 @@ const HVVMs = () => {
   const grafanaUrl = getEnv("GRAFANA_URL");
 
   const iframeSrc =
-    `${grafanaUrl}/grafana/d/hyperv-vms-001/hyper-v-vms` +
+    `${grafanaUrl}/d/hyperv-vms-001/hyper-v-vms` +
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
