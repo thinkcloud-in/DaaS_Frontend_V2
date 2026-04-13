@@ -179,7 +179,7 @@ const Sidebar = ({ tokenParsed }) => {
             >
               <span className="flex items-center gap-2">
                 <FontAwesomeIcon icon={getIcon(item.name, level, parent)} className="mr-2" />
-                <span className={["VCenter", "Proxmox"].includes(item.name) && level === 0 ? "font-bold" : ""}>
+                <span className={["VCenter", "Proxmox", "HyperV"].includes(item.name) && level === 0 ? "font-bold" : ""}>
                   {item.name}
                 </span>
               </span>

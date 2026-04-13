@@ -82,6 +82,10 @@ const ChangePassword = React.lazy(
   () => import("./Components/Login/ChangePassword"),
 );
 const HyperV = React.lazy(() => import("./Components/Dashboard/HyperV/HyperV"));
+const HVOverview = React.lazy(() => import("./Components/Dashboard/HyperV/HV-Overview"));
+const HVHosts = React.lazy(() => import("./Components/Dashboard/HyperV/HV-Hosts"));
+const HVDataStores = React.lazy(() => import("./Components/Dashboard/HyperV/HV-DataStores"));
+const HVVMs = React.lazy(() => import("./Components/Dashboard/HyperV/HV-VMs"));
 
 function App() {
   const [workflowId, setWorkflowId] = useState("");
@@ -305,10 +309,46 @@ function App() {
                     }
                   />
                   <Route
-                    path="/hyperv-monitoring"
+                    path="/hyperv"
                     element={
                       <ProtectedRoute
-                        component={HyperV}
+                        component={HVOverview}
+                        componentKey="HyperV"
+                      />
+                    }
+                  />
+                  <Route
+                    path="/hyperv/overview"
+                    element={
+                      <ProtectedRoute
+                        component={HVOverview}
+                        componentKey="HyperV"
+                      />
+                    }
+                  />
+                  <Route
+                    path="/hyperv/hosts"
+                    element={
+                      <ProtectedRoute
+                        component={HVHosts}
+                        componentKey="HyperV"
+                      />
+                    }
+                  />
+                  <Route
+                    path="/hyperv/data-stores"
+                    element={
+                      <ProtectedRoute
+                        component={HVDataStores}
+                        componentKey="HyperV"
+                      />
+                    }
+                  />
+                  <Route
+                    path="/hyperv/vms"
+                    element={
+                      <ProtectedRoute
+                        component={HVVMs}
                         componentKey="HyperV"
                       />
                     }
@@ -665,6 +705,11 @@ function FooterWrapper({ workflowId, tokenParsed }) {
     "/proxmox/px-storage",
     "/proxmox/px-vms",
     "/ipmi-dashboard",
+    "/hyperv/overview",
+    "/hyperv/hosts",
+    "/hyperv/data-stores",
+    "/hyperv/vms",
+    "/hyperv",
     "/vcenter",
     "/landingpage",
     "/",

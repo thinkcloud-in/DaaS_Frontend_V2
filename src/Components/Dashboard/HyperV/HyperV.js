@@ -10,7 +10,7 @@ const HyperV = () => {
   const gc = useContext(GrafanaToolbarContext);
 
   // You can make this dynamic or use an env variable as needed
-  const grafanaUrl = process.env.REACT_APP_GRAFANA_URL
+  const grafanaUrl = "https://devraq.rcvdev.team"; //process.env.REACT_APP_GRAFANA_URL
 
 
   const iframeSrc =
