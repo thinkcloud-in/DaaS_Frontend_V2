@@ -253,13 +253,19 @@ const TaskManagerPage = () => {
       toast.error("No host information found for selected processes");
       return;
     }
-    // console.log("getInternalIp(vmDetails)----------------", getInternalIp(vmDetails));
     try {
-      if (vmDetails && vmDetails.VMName === processHost.trim()) {
+      const vmNameToMatch = vmDetails?.VMName?.trim() || vmName?.trim();
+
+      if (
+        vmDetails &&
+        vmNameToMatch?.toLowerCase() === processHost?.trim().toLowerCase()
+      ) {
         const hostIp =
           vmDetails?.ip_addresses?.[0] ||
-          vmDetails?.NetworkAdapters?.flatMap((na) => na.IPAddresses || [])?.find(
-            (ip) => ip && !ip.startsWith("169.254") && !ip.startsWith("fe80")
+          vmDetails?.NetworkAdapters?.flatMap(
+            (na) => na.IPAddresses || [],
+          )?.find(
+            (ip) => ip && !ip.startsWith("169.254") && !ip.startsWith("fe80"),
           ) ||
           null;
 
