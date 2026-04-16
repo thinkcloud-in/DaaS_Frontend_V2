@@ -401,7 +401,11 @@ const PoolCreationForm = () => {
     ];
 
     if (poolDetails.pool_type === "Automated") {
-      checks.push([!poolDetails.cluster_id || String(poolDetails.cluster_id).toLowerCase() === "nan", "Cluster"]);
+      checks.push([
+        !poolDetails.cluster_id ||
+          String(poolDetails.cluster_id).toLowerCase() === "nan",
+        "Cluster",
+      ]);
       checks.push([
         !poolDetails.pool_os_type && !poolDetails.pool_template_vm_id?.os_type,
         "Pool OS Type",
@@ -477,7 +481,8 @@ const PoolCreationForm = () => {
       navigate("/pools");
       dispatch(resetPoolCreation());
     } catch (err) {
-      const message = err?.msg || err?.message || "Pool creation failed";
+      const message =
+        err?.data?.msg || err?.msg || err?.message || "Pool creation failed";
       toast.error(message, { position: "top-right", autoClose: 5000 });
       navigate("/pools/pool-creation-form");
     }
