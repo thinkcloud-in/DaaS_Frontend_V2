@@ -77,7 +77,6 @@ const PoolCreationForm = () => {
     }
   }, [dispatch, token]);
 
-  // Selected cluster object, derived from poolDetails.cluster_id
   const selectedCluster =
     (poolDetails?.cluster_id &&
       clusters.find((c) => String(c.id) === String(poolDetails.cluster_id))) ||
@@ -147,7 +146,6 @@ const PoolCreationForm = () => {
     poolDetails.pool_template_vm_id,
   ]);
 
-  // Handler when cluster is selected - fetch cluster-specific data
   const handleClusterSelect = async (e) => {
     const clusterId = e.target.value;
     const cluster = clusters.find((c) => String(c.id) === clusterId);
@@ -179,20 +177,17 @@ const PoolCreationForm = () => {
 
     try {
       setError(null);
-
       if (cluster?.type === "Hyper-V") {
         await Promise.all([
           dispatch(fetchSwitches({ token, clusterId })).unwrap(),
         ]);
       }
-
       if (cluster?.type === "Proxmox") {
         await Promise.all([
           dispatch(fetchClusterNodes({ token, clusterId })).unwrap(),
           dispatch(fetchTemplates({ token, clusterId })).unwrap(),
         ]);
       }
-
       if (cluster?.type === "VMware") {
         await Promise.all([
           dispatch(fetchVmwareDCs({ token, clusterId })).unwrap(),
@@ -209,25 +204,20 @@ const PoolCreationForm = () => {
     if (name === "pool_os_type" && isHyperVCluster) {
       const prev = poolDetails.pool_template_vm_id || {};
       const hyperVOS = value;
-
       let guacOS = "";
-      if (value.includes("Windows")) {
-        guacOS = "Windows";
-      } else if (value.includes("Linux") || value.includes("Ubuntu")) {
+      if (value.includes("Windows")) guacOS = "Windows";
+      else if (value.includes("Linux") || value.includes("Ubuntu"))
         guacOS = "Linux";
-      }
-
       dispatch(
         setPoolCreationDetails({
           pool_os_type: guacOS,
-          pool_template_vm_id: {
-            ...prev,
-            os_type: hyperVOS,
-          },
+          pool_template_vm_id: { ...prev, os_type: hyperVOS },
         }),
       );
       return;
     }
+
+    // All hyperv_ prefixed fields + vmid → go into pool_template_vm_id
     if (
       [
         "hyperv_generation",
@@ -238,12 +228,18 @@ const PoolCreationForm = () => {
         "vmid",
         "hyperv_HostPassword",
         "hyperv_OSType",
+        "hyperv_dynamic_memory",
+        "hyperv_minimum_memory",
+        "hyperv_maximum_memory",
+        "hyperv_buffer_memory",
+        "hyperv_processor_count",
       ].includes(name) &&
       isHyperVCluster
     ) {
       const prev = poolDetails.pool_template_vm_id || {};
       let fieldValue;
       let keyName;
+
       if (name === "hyperv_memory") {
         fieldValue = value ? parseInt(value, 10) : "";
         keyName = "memory";
@@ -262,16 +258,45 @@ const PoolCreationForm = () => {
       } else if (name === "hyperv_OSType") {
         fieldValue = value;
         keyName = "pool_os_type";
+      } else if (name === "hyperv_dynamic_memory") {
+        // checkbox — use checked, and clear sub-fields when unchecked
+        fieldValue = checked;
+        keyName = "dynamic_memory";
+        dispatch(
+          setPoolCreationDetails({
+            pool_template_vm_id: {
+              ...prev,
+              dynamic_memory: checked,
+              // reset sub-fields when toggled off
+              ...(!checked && {
+                minimum_memory: "",
+                maximum_memory: "",
+                buffer_memory: "",
+              }),
+            },
+          }),
+        );
+        return;
+      } else if (name === "hyperv_minimum_memory") {
+        fieldValue = value ? parseInt(value, 10) : "";
+        keyName = "minimum_memory";
+      } else if (name === "hyperv_maximum_memory") {
+        fieldValue = value ? parseInt(value, 10) : "";
+        keyName = "maximum_memory";
+      } else if (name === "hyperv_buffer_memory") {
+        fieldValue = value ? parseInt(value, 10) : "";
+        keyName = "buffer_memory";
+      } else if (name === "hyperv_processor_count") {
+        fieldValue = value ? parseInt(value, 10) : "";
+        keyName = "processor_count";
       } else {
         fieldValue = value;
         keyName = name.replace("hyperv_", "");
       }
+
       dispatch(
         setPoolCreationDetails({
-          pool_template_vm_id: {
-            ...prev,
-            [keyName]: fieldValue,
-          },
+          pool_template_vm_id: { ...prev, [keyName]: fieldValue },
         }),
       );
     } else {
@@ -321,18 +346,12 @@ const PoolCreationForm = () => {
 
   const handleNodesChange = (selectedOptions) => {
     const selectedNodes = (selectedOptions || [])?.map((opt) => opt?.value);
-    dispatch(
-      setPoolCreationDetails({
-        pool_selected_nodes: selectedNodes,
-      }),
-    );
+    dispatch(setPoolCreationDetails({ pool_selected_nodes: selectedNodes }));
   };
 
   const handleStorageChange = (selectedOption) => {
     dispatch(
-      setPoolCreationDetails({
-        pool_storage: selectedOption?.value || null,
-      }),
+      setPoolCreationDetails({ pool_storage: selectedOption?.value || null }),
     );
   };
 
@@ -359,7 +378,6 @@ const PoolCreationForm = () => {
   ]);
 
   const handleTemplateChange = (e) => {
-    // Always set as array for backend JSON compatibility
     const value = e.target.value;
     dispatch(
       setPoolCreationDetails({
@@ -373,6 +391,7 @@ const PoolCreationForm = () => {
       setPoolCreationDetails({ pool_naming_pattern: e.target.value.trim() }),
     );
   };
+
   const handleCountChange = (e) => {
     dispatch(
       setPoolCreationDetails({
@@ -380,28 +399,28 @@ const PoolCreationForm = () => {
       }),
     );
   };
+
   const handleVmwareDCChange = (e) => {
     dispatch(setPoolCreationDetails({ pool_vmware_dc: e.target.value }));
   };
+
   const handleVmwareFolderChange = (e) => {
     dispatch(setPoolCreationDetails({ pool_vmware_folder: e.target.value }));
   };
 
-  // Submit
   const handleOnClick = async () => {
-    // JS validation is required because the button uses type="button" (onClick),
-    // so native HTML `required` attribute doesn't trigger browser validation.
-
-    // Build an ordered list of [condition, fieldLabel] checks
     const checks = [
-      // Always required
       [!poolDetails.pool_type, "Pool Type"],
       [!poolDetails.pool_protocol, "Protocol"],
       [!poolDetails.pool_name, "Pool Name"],
     ];
 
     if (poolDetails.pool_type === "Automated") {
-      checks.push([!poolDetails.cluster_id || String(poolDetails.cluster_id).toLowerCase() === "nan", "Cluster"]);
+      checks.push([
+        !poolDetails.cluster_id ||
+          String(poolDetails.cluster_id).toLowerCase() === "nan",
+        "Cluster",
+      ]);
       checks.push([
         !poolDetails.pool_os_type && !poolDetails.pool_template_vm_id?.os_type,
         "Pool OS Type",
@@ -437,9 +456,27 @@ const PoolCreationForm = () => {
         ]);
         checks.push([!poolDetails.pool_template_vm_id?.memory, "Memory (GB)"]);
         checks.push([!poolDetails.pool_template_vm_id?.switch, "Switch"]);
+        checks.push([
+          !poolDetails.pool_template_vm_id?.processor_count,
+          "Processor Count",
+        ]);
+        // Validate dynamic memory sub-fields only when enabled
+        if (poolDetails.pool_template_vm_id?.dynamic_memory) {
+          checks.push([
+            !poolDetails.pool_template_vm_id?.minimum_memory,
+            "Minimum Memory",
+          ]);
+          checks.push([
+            !poolDetails.pool_template_vm_id?.maximum_memory,
+            "Maximum Memory",
+          ]);
+          checks.push([
+            !poolDetails.pool_template_vm_id?.buffer_memory,
+            "Buffer Memory (%)",
+          ]);
+        }
       }
 
-      // AD Join fields (if join_ad is checked)
       if (poolDetails.join_ad) {
         checks.push([!poolDetails.pool_ad_domain, "AD Domain"]);
         checks.push([!poolDetails.pool_ad_path, "AD Path"]);
@@ -468,6 +505,7 @@ const PoolCreationForm = () => {
         poolDetails.pool_number_of_vms || initialPoolDetails.pool_number_of_vms,
       email: userEmail,
     };
+
     try {
       const payload = await dispatch(
         createPool({ token, requestData }),
@@ -500,6 +538,8 @@ const PoolCreationForm = () => {
       ?.map((s) => ({ label: s.storage, value: s.storage }))
       ?.find((opt) => opt.value === poolDetails?.pool_storage) || null;
 
+  const isDynamicMemory = !!poolDetails.pool_template_vm_id?.dynamic_memory;
+
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
       <div className="flex justify-start mt-5">
@@ -523,6 +563,7 @@ const PoolCreationForm = () => {
           </svg>
         </div>
       </div>
+
       <div
         className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${isLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
       >
@@ -598,14 +639,8 @@ const PoolCreationForm = () => {
                 />
               )}
 
-              {/* The cluster-specific fields for Automated pools.
-                  - VMware: show OS type, pool name (already shown), select DC, select Folder
-                  - Proxmox: pool name, os type, select ip pools, template, node, naming pattern, number of vms
-                  - Hyper-V: pool name, os type, select ip pools, node (disabled), parent disk path, generation, memory, switch, naming pattern, number of vms
-              */}
               {poolDetails.pool_type === "Automated" && selectedCluster && (
                 <>
-                  {/* OS Type - shown for all cluster types in the mapping */}
                   {poolDetails.cluster_id && (
                     <SelectField
                       label="Pool OS Type"
@@ -942,6 +977,7 @@ const PoolCreationForm = () => {
                         ]}
                       />
 
+                      {/* ── Memory & Processor Group ────────────────────────── */}
                       <InputField
                         label="Memory (GB)"
                         name="hyperv_memory"
@@ -954,6 +990,99 @@ const PoolCreationForm = () => {
                         min="2"
                         step="1"
                         max="64"
+                      />
+
+                      {/* Dynamic Memory Checkbox */}
+                      <div className="mb-4 flex items-center">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                          <span>
+                            <i className="fas fa-sliders mr-2"></i>
+                          </span>
+                          Enable Dynamic Memory
+                        </label>
+                        <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
+                          <input
+                            type="checkbox"
+                            name="hyperv_dynamic_memory"
+                            className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-pointer"
+                            checked={isDynamicMemory}
+                            onChange={handleOnChange}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dynamic Memory sub-fields — appear as a card when checked */}
+                      {isDynamicMemory && (
+                        <div className="mb-5 ml-[188px] mr-0 max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-1 shadow-sm">
+                          <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                            Dynamic Memory Settings
+                          </p>
+                          <InputField
+                            label="Min Memory (MB)"
+                            name="hyperv_minimum_memory"
+                            type="number"
+                            iconClass="fa-memory"
+                            value={
+                              poolDetails.pool_template_vm_id?.minimum_memory ||
+                              512
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Minimum memory (MB)"
+                            required={true}
+                            min="32"
+                            step="2"
+                            max={poolDetails.pool_template_vm_id?.memory * 1024}
+                          />
+                          <InputField
+                            label="Max Memory (MB)"
+                            name="hyperv_maximum_memory"
+                            type="number"
+                            iconClass="fa-memory"
+                            value={
+                              poolDetails.pool_template_vm_id?.maximum_memory ||
+                              2048
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Maximum memory (MB)"
+                            required={true}
+                            min={poolDetails.pool_template_vm_id?.memory * 1024}
+                            step="1"
+                            max={128 * 1024}
+                          />
+                          <InputField
+                            label="Buffer Memory (%)"
+                            name="hyperv_buffer_memory"
+                            type="number"
+                            iconClass="fa-percent"
+                            value={
+                              poolDetails.pool_template_vm_id?.buffer_memory ||
+                              ""
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Buffer percentage (e.g. 20)"
+                            required={true}
+                            min="5"
+                            step="1"
+                            max="2000"
+                          />
+                        </div>
+                      )}
+
+                      {/* Processor Count */}
+                      <InputField
+                        label="Processor Count"
+                        name="hyperv_processor_count"
+                        type="number"
+                        iconClass="fa-microchip"
+                        value={
+                          poolDetails.pool_template_vm_id?.processor_count || ""
+                        }
+                        onChange={handleOnChange}
+                        placeholder="Enter number of processors"
+                        required={true}
+                        min="1"
+                        step="1"
+                        max="1024"
                       />
 
                       <SelectField
@@ -985,6 +1114,7 @@ const PoolCreationForm = () => {
                           (where 3 means number of digits after the name)`}
                         tooltipClass="w-40"
                       />
+
                       <InputField
                         label="Number of VMs"
                         type="number"
@@ -997,15 +1127,19 @@ const PoolCreationForm = () => {
                       />
                     </>
                   )}
+
                   {/* Join AD Checkbox - visible for Proxmox and Hyper-V */}
                   {(isProxmoxCluster || isHyperVCluster) && (
                     <>
-                      <div className="mb-6 flex items-center">
+                      <div className="mb-4 flex items-center">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
                           <span>
                             <i className="fas fa-sitemap mr-2"></i>
                           </span>
-                          Join AD (For Windows Only)
+                          Join AD{" "}
+                          <span className="text-xs font-normal text-gray-400 ml-1">
+                            (Windows only)
+                          </span>
                         </label>
                         <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
                           <input
@@ -1019,17 +1153,19 @@ const PoolCreationForm = () => {
                       </div>
 
                       {poolDetails.join_ad && (
-                        <>
+                        <div className="mb-5 ml-[188px] mr-0 max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-1 shadow-sm">
+                          <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                            Active Directory Settings
+                          </p>
                           <InputField
                             label="Domain"
                             name="pool_ad_domain"
                             iconClass="fa-globe"
                             value={poolDetails.pool_ad_domain || ""}
                             onChange={handleOnChange}
-                            placeholder="Domain"
+                            placeholder="e.g. corp.example.com"
                             required={true}
                           />
-
                           <InputField
                             label="Path"
                             name="pool_ad_path"
@@ -1039,27 +1175,25 @@ const PoolCreationForm = () => {
                             placeholder="OU=OU11,OU=OU1"
                             required={true}
                           />
-
                           <InputField
                             label="Username"
                             name="pool_ad_username"
                             iconClass="fa-user"
                             value={poolDetails.pool_ad_username || ""}
                             onChange={handleOnChange}
-                            placeholder="Username"
+                            placeholder="AD Username"
                             required={true}
                           />
-
                           <PasswordField
                             label="Password"
                             name="pool_ad_password"
                             iconClass="fa-key"
                             value={poolDetails.pool_ad_password || ""}
                             onChange={handleOnChange}
-                            placeholder="Password"
+                            placeholder="AD Password"
                             required={true}
                           />
-                        </>
+                        </div>
                       )}
                     </>
                   )}
@@ -1068,7 +1202,7 @@ const PoolCreationForm = () => {
             </div>
           </div>
 
-          <div className="w-full rounded-md bg-white ">
+          <div className="w-full rounded-md bg-white">
             {selectedProtocol && (
               <CustomTabs
                 tablist={["RDP", "SSH", "VNC"].filter(
@@ -1110,8 +1244,7 @@ const PoolCreationForm = () => {
               isLoading
                 ? "bg-[#1a365d]/80 cursor-not-allowed"
                 : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
-            }
-          `}
+            }`}
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             <span>{isLoading ? "Submitting..." : "Submit"}</span>
