@@ -154,6 +154,8 @@ const PoolCreationForm = () => {
     if (cluster?.type === "Hyper-V") {
       let genStr = poolDetails.pool_template_vm_id?.generation || "";
       let generation = genStr === "Gen2" ? 2 : genStr === "Gen1" ? 1 : "";
+      const is_cluster =
+        cluster.node_type?.toLowerCase().replace(/\s/g, "") === "multinode";
       templateVmId = {
         generation,
         memory: poolDetails.pool_template_vm_id?.memory || "",
@@ -161,6 +163,7 @@ const PoolCreationForm = () => {
         switch: poolDetails.pool_template_vm_id?.switch || "",
         password: poolDetails.pool_template_vm_id?.password || "",
         os_type: poolDetails.pool_os_type || "",
+        is_cluster: is_cluster,
       };
     }
 
@@ -233,6 +236,8 @@ const PoolCreationForm = () => {
         "hyperv_maximum_memory",
         "hyperv_buffer_memory",
         "hyperv_processor_count",
+        "hyperv_priority",
+        "hyperv_is_cluster",
       ].includes(name) &&
       isHyperVCluster
     ) {
@@ -289,6 +294,12 @@ const PoolCreationForm = () => {
       } else if (name === "hyperv_processor_count") {
         fieldValue = value ? parseInt(value, 10) : "";
         keyName = "processor_count";
+      } else if (name === "hyperv_priority") {
+        fieldValue = value ? parseInt(value, 10) : "";
+        keyName = "priority";
+      } else if (name === "hyperv_is_cluster") {
+        fieldValue = checked;
+        keyName = "is_cluster";
       } else {
         fieldValue = value;
         keyName = name.replace("hyperv_", "");
@@ -1084,6 +1095,43 @@ const PoolCreationForm = () => {
                         step="1"
                         max="1024"
                       />
+                      {/* Priority Field — appears only if cluster is multi node and pool type is Automated */}
+                      {poolDetails.pool_type === "Automated" &&
+                        selectedCluster?.node_type
+                          ?.toLowerCase()
+                          .replace(/\s/g, "") === "multinode" && (
+                          <SelectField
+                            label="Priority"
+                            name="hyperv_priority"
+                            iconClass="fa-arrow-up-9-1"
+                            value={
+                              poolDetails.pool_template_vm_id?.priority ?? 2000
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Select Priority"
+                            options={[
+                              { label: "High Priority", value: 3000 },
+                              { label: "Medium Priority", value: 2000 },
+                              { label: "Low Priority", value: 1000 },
+                              { label: "No Auto Start", value: 0 },
+                            ]}
+                            tooltip={`1. High Priority (3000)
+What it is: These VMs are moved and started first.
+Behavior: If a node is low on resources, the cluster may even "pre-empt" (shut down) Lower Priority VMs to make room for these.
+
+2. Medium Priority (2000) - Default
+What it is: The standard priority level for most virtual machines.
+Behavior: These start only after the "High Priority" queue has been cleared.
+
+3. Low Priority (1000)
+What it is: These VMs are started last.
+Behavior: These are the first to be saved or paused if the cluster nodes become overloaded.
+
+4. No Auto Start (0)
+What it is: The VM is part of the cluster, but the cluster will not automatically start it after a failure.`}
+                            tooltipClass="w-96"
+                          />
+                        )}
 
                       <SelectField
                         label="Switch"
@@ -1172,7 +1220,7 @@ const PoolCreationForm = () => {
                             iconClass="fa-folder-tree"
                             value={poolDetails.pool_ad_path || ""}
                             onChange={handleOnChange}
-                            placeholder="OU=OU11,OU=OU1"
+                            placeholder="OU=department,OU=HR OR department/HR"
                             required={true}
                           />
                           <InputField

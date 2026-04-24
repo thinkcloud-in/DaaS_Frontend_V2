@@ -1,4 +1,5 @@
 import React from "react";
+import { FaInfoCircle } from "react-icons/fa";
 
 const SelectField = ({
   label,
@@ -11,6 +12,8 @@ const SelectField = ({
   placeholder = "Select an option",
   required = false,
   className = "flex-1 max-w-[40rem]",
+  tooltip,
+  tooltipClass,
 }) => {
   return (
     <div className="mb-6 flex items-center">
@@ -21,6 +24,16 @@ const SelectField = ({
           </span>
         )}
         {label} {required && <span className="text-red-500">*</span>}
+        {tooltip && (
+          <div className="relative flex items-center group">
+            <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs ml-1" />
+            <span
+              className={`invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm z-50 whitespace-pre-line ${tooltipClass || "whitespace-nowrap"}`}
+            >
+              {tooltip}
+            </span>
+          </div>
+        )}
       </label>
       <select
         name={name}

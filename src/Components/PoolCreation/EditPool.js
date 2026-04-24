@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   selectAuthToken,
@@ -19,6 +19,8 @@ import {
   fetchVmwareFolders,
   fetchIpPoolNames,
 } from "../../redux/features/Pools/PoolsThunks";
+import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
+import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
 import {
   selectCreationNodes,
   selectCreationTemplates,
@@ -44,18 +46,26 @@ const EditPool = (props) => {
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState("RDP");
-  const [showPassword, setShowPassword] = useState(false);
   const nodes = useSelector(selectCreationNodes) || [];
   const templates = useSelector(selectCreationTemplates) || [];
   const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
   const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
   const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
-  const [selectedCluster, setSelectedCluster] = useState(null);
   const poolSaveLoading = useSelector(selectPoolSaveLoading);
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
   const userEmail = tokenParsed?.preferred_username || tokenParsed?.email || "";
+  const clusters = useSelector(selectAllClusters) || [];
   const dispatch = useDispatch();
+
+  const selectedCluster = useMemo(() => {
+    if (!poolDetails.cluster_id || clusters.length === 0) return null;
+    const clusterIdStr = String(poolDetails.cluster_id);
+    const targetId = clusterIdStr.includes("_")
+      ? clusterIdStr.split("_").pop()
+      : clusterIdStr;
+    return clusters.find((c) => String(c.id) === String(targetId));
+  }, [poolDetails.cluster_id, clusters]);
 
   const selectStyles = {
     container: (base) => ({ ...base, width: "100%" }),
@@ -94,6 +104,33 @@ const EditPool = (props) => {
       .catch(() => setPoolDetails({}))
       .finally(() => setLoading(false));
   }, [poolId, dispatch, token]);
+
+  useEffect(() => {
+    if (token && clusters.length === 0) {
+      dispatch(fetchClustersThunk(token));
+    }
+  }, [token, clusters.length, dispatch]);
+
+  useEffect(() => {
+    if (poolDetails.cluster_id && clusters.length > 0) {
+      const clusterIdStr = String(poolDetails.cluster_id);
+      const targetId = clusterIdStr.includes("_")
+        ? clusterIdStr.split("_").pop()
+        : clusterIdStr;
+      const cluster = clusters.find((c) => String(c.id) === String(targetId));
+      if (cluster && cluster.type === "Hyper-V") {
+        const isCluster =
+          cluster.node_type.toLowerCase().replace(/\s/g, "") === "multinode";
+        if (poolDetails.pool_template_vm_id?.is_cluster !== isCluster) {
+          setTemplateField("is_cluster", isCluster);
+        }
+      }
+    }
+  }, [
+    poolDetails.cluster_id,
+    clusters,
+    poolDetails.pool_template_vm_id?.is_cluster,
+  ]);
 
   // Helper to update a nested field inside pool_template_vm_id
   const setTemplateField = (key, value) => {
@@ -159,11 +196,17 @@ const EditPool = (props) => {
   };
 
   const handleNamingPatternChange = (e) => {
-    setPoolDetails((prev) => ({ ...prev, pool_naming_pattern: e.target.value }));
+    setPoolDetails((prev) => ({
+      ...prev,
+      pool_naming_pattern: e.target.value,
+    }));
   };
 
   const handleCountChange = (e) => {
-    setPoolDetails((prev) => ({ ...prev, pool_number_of_vms: Number(e.target.value) }));
+    setPoolDetails((prev) => ({
+      ...prev,
+      pool_number_of_vms: Number(e.target.value),
+    }));
   };
 
   const handleVmwareDCChange = (e) => {
@@ -198,12 +241,20 @@ const EditPool = (props) => {
   };
 
   const securityMode = [
-    "None", "Any", "NLA", "RDP encryption", "TLS encryption", "Hyper-V / VMConnect",
+    "None",
+    "Any",
+    "NLA",
+    "RDP encryption",
+    "TLS encryption",
+    "Hyper-V / VMConnect",
   ];
 
   const Goback = () => navigate(-1);
 
-  const nodeOptions = nodes.map((node) => ({ label: node.name, value: node.name }));
+  const nodeOptions = nodes.map((node) => ({
+    label: node.name,
+    value: node.name,
+  }));
 
   const isHyperV = poolDetails.cluster_type === "Hyper-V";
   const isDynamicMemory = !!poolDetails.pool_template_vm_id?.dynamic_memory;
@@ -216,8 +267,19 @@ const EditPool = (props) => {
           onClick={Goback}
           className="ml-4 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-opacity-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </div>
       </div>
@@ -226,11 +288,15 @@ const EditPool = (props) => {
         {loading ? (
           <SkeletonEditPool />
         ) : (
-          <div className={`space-y-5 m-2 ${isLoading ? "opacity-60 pointer-events-none select-none" : ""}`}>
+          <div
+            className={`space-y-5 m-2 ${isLoading ? "opacity-60 pointer-events-none select-none" : ""}`}
+          >
             <div className="w-full mx-auto p-3 rounded-md bg-white">
               <h2 className="font-semibold leading-7 text-gray-900">
                 <span className="text-[#1a365d] text-xl">Edit </span>:{" "}
-                <span className="text-[#00000099] text-xl">{poolDetails.pool_name}</span>
+                <span className="text-[#00000099] text-xl">
+                  {poolDetails.pool_name}
+                </span>
               </h2>
 
               <div className="ml-5 mt-4">
@@ -279,7 +345,9 @@ const EditPool = (props) => {
                     {/* IP Pools */}
                     <div className="mb-6 flex items-start">
                       <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                        <span><i className="fas fa-network-wired mr-2"></i></span>
+                        <span>
+                          <i className="fas fa-network-wired mr-2"></i>
+                        </span>
                         Select IP Pools
                       </label>
                       <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
@@ -288,10 +356,17 @@ const EditPool = (props) => {
                           isDisabled={true}
                           name="pool_ip_pool_names"
                           value={ipPoolNames
-                            .filter((name) => (poolDetails.pool_ip_pool_names || []).includes(name))
+                            .filter((name) =>
+                              (poolDetails.pool_ip_pool_names || []).includes(
+                                name,
+                              ),
+                            )
                             .map((name) => ({ label: name, value: name }))}
                           onChange={handleIpPoolsChange}
-                          options={ipPoolNames.map((name) => ({ label: name, value: name }))}
+                          options={ipPoolNames.map((name) => ({
+                            label: name,
+                            value: name,
+                          }))}
                           className="basic-multi-select bg-white"
                           classNamePrefix="select"
                           placeholder="Select IP Pools"
@@ -302,7 +377,9 @@ const EditPool = (props) => {
                     {/* Node */}
                     <div className="mb-6 flex items-start">
                       <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
-                        <span><i className="fas fa-server mr-2"></i></span>
+                        <span>
+                          <i className="fas fa-server mr-2"></i>
+                        </span>
                         Node
                       </label>
                       <div className="flex-1 w-[40%] max-w-[40rem] ml-2">
@@ -310,7 +387,9 @@ const EditPool = (props) => {
                           isMulti
                           name="pool_selected_nodes"
                           value={nodeOptions.filter((opt) =>
-                            (poolDetails.pool_selected_nodes || []).includes(opt.value),
+                            (poolDetails.pool_selected_nodes || []).includes(
+                              opt.value,
+                            ),
                           )}
                           onChange={handleNodesChange}
                           options={nodeOptions}
@@ -329,7 +408,9 @@ const EditPool = (props) => {
                       iconClass="fa-file-invoice"
                       value={(() => {
                         const template = templates.find(
-                          (t) => String(t.vmid) === String(poolDetails.pool_template_vm_id),
+                          (t) =>
+                            String(t.vmid) ===
+                            String(poolDetails.pool_template_vm_id),
                         );
                         return template
                           ? `${template.vmid} (${template.name})`
@@ -363,9 +444,13 @@ const EditPool = (props) => {
                     {/* ── Join AD (read-only indicator + card) ──────────────── */}
                     <div className="mb-4 flex items-center">
                       <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                        <span><i className="fas fa-sitemap mr-2"></i></span>
+                        <span>
+                          <i className="fas fa-sitemap mr-2"></i>
+                        </span>
                         Join AD{" "}
-                        <span className="text-xs font-normal text-gray-400 ml-1">(Windows only)</span>
+                        <span className="text-xs font-normal text-gray-400 ml-1">
+                          (Windows only)
+                        </span>
                       </label>
                       <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
                         <input
@@ -397,7 +482,7 @@ const EditPool = (props) => {
                           iconClass="fa-folder-tree"
                           value={poolDetails.pool_ad_path || ""}
                           onChange={handleOnChange}
-                          placeholder="OU=OU11,OU=OU1"
+                          placeholder="OU=OU1,OU=OU11"
                         />
                         <InputField
                           label="Username"
@@ -428,7 +513,9 @@ const EditPool = (props) => {
                           name="hyperv_vhdPath"
                           iconClass="fa-hard-drive"
                           value={poolDetails.pool_template_vm_id?.vhdPath || ""}
-                          onChange={(e) => setTemplateField("vhdPath", e.target.value)}
+                          onChange={(e) =>
+                            setTemplateField("vhdPath", e.target.value)
+                          }
                           placeholder="Enter Child Disk Path"
                           required={true}
                         />
@@ -436,16 +523,24 @@ const EditPool = (props) => {
                           label="Parent Disk Path"
                           name="hyperv_PvhdPath"
                           iconClass="fa-folder-open"
-                          value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
-                          onChange={(e) => setTemplateField("PvhdPath", e.target.value)}
+                          value={
+                            poolDetails.pool_template_vm_id?.PvhdPath || ""
+                          }
+                          onChange={(e) =>
+                            setTemplateField("PvhdPath", e.target.value)
+                          }
                           placeholder="Enter Parent Disk Path"
                         />
                         <PasswordField
                           label="Host Password"
                           name="hyperv_HostPassword"
                           iconClass="fa-key"
-                          value={poolDetails.pool_template_vm_id?.password || ""}
-                          onChange={(e) => setTemplateField("password", e.target.value)}
+                          value={
+                            poolDetails.pool_template_vm_id?.password || ""
+                          }
+                          onChange={(e) =>
+                            setTemplateField("password", e.target.value)
+                          }
                           placeholder="Enter Host password"
                         />
                         <SelectField
@@ -455,16 +550,26 @@ const EditPool = (props) => {
                           value={
                             poolDetails.pool_template_vm_id?.generation === 1
                               ? "Gen1"
-                              : poolDetails.pool_template_vm_id?.generation === 2
+                              : poolDetails.pool_template_vm_id?.generation ===
+                                  2
                                 ? "Gen2"
                                 : ""
                           }
                           onChange={(e) => {
-                            const gen = e.target.value === "Gen2" ? 2 : e.target.value === "Gen1" ? 1 : "";
+                            const gen =
+                              e.target.value === "Gen2"
+                                ? 2
+                                : e.target.value === "Gen1"
+                                  ? 1
+                                  : "";
                             setTemplateField("generation", gen);
                           }}
                           options={[
-                            { value: "", label: "Select Generation", disabled: true },
+                            {
+                              value: "",
+                              label: "Select Generation",
+                              disabled: true,
+                            },
                             { value: "Gen1", label: "Gen1" },
                             { value: "Gen2", label: "Gen2" },
                           ]}
@@ -478,7 +583,12 @@ const EditPool = (props) => {
                           iconClass="fa-memory"
                           value={poolDetails.pool_template_vm_id?.memory || ""}
                           onChange={(e) =>
-                            setTemplateField("memory", e.target.value ? parseInt(e.target.value, 10) : "")
+                            setTemplateField(
+                              "memory",
+                              e.target.value
+                                ? parseInt(e.target.value, 10)
+                                : "",
+                            )
                           }
                           placeholder="Enter memory size (GB)"
                           min="2"
@@ -489,7 +599,9 @@ const EditPool = (props) => {
                         {/* ── Enable Dynamic Memory checkbox ────────────────── */}
                         <div className="mb-4 flex items-center">
                           <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                            <span><i className="fas fa-sliders mr-2"></i></span>
+                            <span>
+                              <i className="fas fa-sliders mr-2"></i>
+                            </span>
                             Enable Dynamic Memory
                           </label>
                           <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
@@ -529,9 +641,17 @@ const EditPool = (props) => {
                               name="hyperv_minimum_memory"
                               type="number"
                               iconClass="fa-memory"
-                              value={poolDetails.pool_template_vm_id?.minimum_memory || ""}
+                              value={
+                                poolDetails.pool_template_vm_id
+                                  ?.minimum_memory || ""
+                              }
                               onChange={(e) =>
-                                setTemplateField("minimum_memory", e.target.value ? parseInt(e.target.value, 10) : "")
+                                setTemplateField(
+                                  "minimum_memory",
+                                  e.target.value
+                                    ? parseInt(e.target.value, 10)
+                                    : "",
+                                )
                               }
                               placeholder="Minimum memory (GB)"
                               required={true}
@@ -544,9 +664,17 @@ const EditPool = (props) => {
                               name="hyperv_maximum_memory"
                               type="number"
                               iconClass="fa-memory"
-                              value={poolDetails.pool_template_vm_id?.maximum_memory || ""}
+                              value={
+                                poolDetails.pool_template_vm_id
+                                  ?.maximum_memory || ""
+                              }
                               onChange={(e) =>
-                                setTemplateField("maximum_memory", e.target.value ? parseInt(e.target.value, 10) : "")
+                                setTemplateField(
+                                  "maximum_memory",
+                                  e.target.value
+                                    ? parseInt(e.target.value, 10)
+                                    : "",
+                                )
                               }
                               placeholder="Maximum memory (GB)"
                               required={true}
@@ -559,9 +687,17 @@ const EditPool = (props) => {
                               name="hyperv_buffer_memory"
                               type="number"
                               iconClass="fa-percent"
-                              value={poolDetails.pool_template_vm_id?.buffer_memory || ""}
+                              value={
+                                poolDetails.pool_template_vm_id
+                                  ?.buffer_memory || ""
+                              }
                               onChange={(e) =>
-                                setTemplateField("buffer_memory", e.target.value ? parseInt(e.target.value, 10) : "")
+                                setTemplateField(
+                                  "buffer_memory",
+                                  e.target.value
+                                    ? parseInt(e.target.value, 10)
+                                    : "",
+                                )
                               }
                               placeholder="Buffer percentage (e.g. 20)"
                               required={true}
@@ -578,9 +714,17 @@ const EditPool = (props) => {
                           name="hyperv_processor_count"
                           type="number"
                           iconClass="fa-microchip"
-                          value={poolDetails.pool_template_vm_id?.processor_count || ""}
+                          value={
+                            poolDetails.pool_template_vm_id?.processor_count ||
+                            ""
+                          }
                           onChange={(e) =>
-                            setTemplateField("processor_count", e.target.value ? parseInt(e.target.value, 10) : "")
+                            setTemplateField(
+                              "processor_count",
+                              e.target.value
+                                ? parseInt(e.target.value, 10)
+                                : "",
+                            )
                           }
                           placeholder="Enter number of processors"
                           min="1"
@@ -588,12 +732,39 @@ const EditPool = (props) => {
                           max="64"
                         />
 
+                        {/* Priority Field — appears only if cluster is multi node */}
+                        {selectedCluster?.node_type === "multi node" && (
+                          <InputField
+                            label="Priority"
+                            name="hyperv_priority"
+                            type="number"
+                            iconClass="fa-arrow-up-9-1"
+                            value={
+                              poolDetails.pool_template_vm_id?.priority || 2000
+                            }
+                            onChange={(e) =>
+                              setTemplateField(
+                                "priority",
+                                e.target.value
+                                  ? parseInt(e.target.value, 10)
+                                  : 2000,
+                              )
+                            }
+                            placeholder="Enter priority (default 2000)"
+                            required={true}
+                            min="0"
+                            step="100"
+                          />
+                        )}
+
                         <InputField
                           label="Switch"
                           name="hyperv_switch"
                           iconClass="fa-network-wired"
                           value={poolDetails.pool_template_vm_id?.switch || ""}
-                          onChange={(e) => setTemplateField("switch", e.target.value)}
+                          onChange={(e) =>
+                            setTemplateField("switch", e.target.value)
+                          }
                           placeholder="Enter Switch Name"
                         />
                       </>
@@ -610,7 +781,10 @@ const EditPool = (props) => {
                           onChange={handleVmwareDCChange}
                           options={[
                             { value: "", label: "Select DC", disabled: true },
-                            ...vmwareDCs.map((dc) => ({ value: dc.name, label: dc.name })),
+                            ...vmwareDCs.map((dc) => ({
+                              value: dc.name,
+                              label: dc.name,
+                            })),
                           ]}
                         />
                         <SelectField
@@ -620,8 +794,15 @@ const EditPool = (props) => {
                           value={poolDetails.pool_vmware_folder || ""}
                           onChange={handleVmwareFolderChange}
                           options={[
-                            { value: "", label: "Select Folder", disabled: true },
-                            ...vmwareFolders.map((folder) => ({ value: folder.name, label: folder.name })),
+                            {
+                              value: "",
+                              label: "Select Folder",
+                              disabled: true,
+                            },
+                            ...vmwareFolders.map((folder) => ({
+                              value: folder.name,
+                              label: folder.name,
+                            })),
                           ]}
                         />
                       </>
@@ -633,19 +814,33 @@ const EditPool = (props) => {
 
             <div className="w-full rounded-md bg-white">
               <CustomTabs
-                tablist={["RDP", "SSH", "VNC"].filter((tab) => tab === poolDetails.pool_protocol)}
+                tablist={["RDP", "SSH", "VNC"].filter(
+                  (tab) => tab === poolDetails.pool_protocol,
+                )}
                 selectedTab={selectedTab}
                 setSelectedTab={setSelectedTab}
                 handleTabSelection={setSelectedTab}
               />
               {selectedTab === "RDP" && poolDetails.pool_protocol === "RDP" && (
-                <RDPsettings onChange={handleOnChange} poolDetails={poolDetails} securityMode={securityMode} />
+                <RDPsettings
+                  onChange={handleOnChange}
+                  poolDetails={poolDetails}
+                  securityMode={securityMode}
+                />
               )}
               {poolDetails.pool_protocol === "SSH" && (
-                <SSHsettings onChange={handleOnChange} poolDetails={poolDetails} securityMode={securityMode} />
+                <SSHsettings
+                  onChange={handleOnChange}
+                  poolDetails={poolDetails}
+                  securityMode={securityMode}
+                />
               )}
               {poolDetails.pool_protocol === "VNC" && (
-                <VNCsettings onChange={handleOnChange} poolDetails={poolDetails} securityMode={securityMode} />
+                <VNCsettings
+                  onChange={handleOnChange}
+                  poolDetails={poolDetails}
+                  securityMode={securityMode}
+                />
               )}
             </div>
           </div>
@@ -657,13 +852,18 @@ const EditPool = (props) => {
             type="button"
             disabled={isLoading || poolSaveLoading}
             className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
-              ${isLoading || poolSaveLoading
-                ? "bg-[#1a365d] cursor-not-allowed"
-                : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
+              ${
+                isLoading || poolSaveLoading
+                  ? "bg-[#1a365d] cursor-not-allowed"
+                  : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
               }`}
           >
-            {(isLoading || poolSaveLoading) && <Loader2 className="h-4 w-4 animate-spin" />}
-            <span>{isLoading || poolSaveLoading ? "Updating..." : "Update"}</span>
+            {(isLoading || poolSaveLoading) && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+            <span>
+              {isLoading || poolSaveLoading ? "Updating..." : "Update"}
+            </span>
           </button>
         </div>
       </div>

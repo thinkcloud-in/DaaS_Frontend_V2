@@ -87,11 +87,9 @@ export const rebuildPoolService = async (token, poolId, userEmail, vhdPath) => {
 export const deleteVMService = async (token, mach, userEmail) => {
 	return axiosInstance.request({
 		method: "DELETE",
-		url: `${backendUrl}/v1/delete_machine/${mach}`,
-		data: { email: userEmail },
+		url: `${backendUrl}/v1/delete_machine/${mach}?email=${userEmail}`,
 		headers: {
 			Authorization: `Bearer ${token}`,
-			"Content-Type": "application/json",
 		},
 	});
 };
