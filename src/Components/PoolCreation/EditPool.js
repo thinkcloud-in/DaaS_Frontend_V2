@@ -18,6 +18,7 @@ import {
   fetchVmwareDCs,
   fetchVmwareFolders,
   fetchIpPoolNames,
+  fetchSwitches,
 } from "../../redux/features/Pools/PoolsThunks";
 import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
 import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
@@ -28,6 +29,7 @@ import {
   selectCreationVmwareDCs,
   selectCreationVmwareFolders,
   selectPoolSaveLoading,
+  selectCreationSwitches,
 } from "../../redux/features/Pools/PoolsSelectors";
 import { Loader2 } from "lucide-react";
 import { Slide, toast } from "react-toastify";
@@ -51,6 +53,7 @@ const EditPool = (props) => {
   const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
   const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
   const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
+  const switches = useSelector(selectCreationSwitches) || [];
   const poolSaveLoading = useSelector(selectPoolSaveLoading);
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
@@ -82,7 +85,18 @@ const EditPool = (props) => {
     setLoading(true);
     getPoolByIdService(token, poolId)
       .then((res) => {
-        setPoolDetails(res.data.data.pool);
+        const pool = res.data.data.pool;
+        if (
+          typeof pool.pool_template_vm_id === "string" &&
+          pool.pool_template_vm_id.trim().startsWith("{")
+        ) {
+          try {
+            pool.pool_template_vm_id = JSON.parse(pool.pool_template_vm_id);
+          } catch (e) {
+            console.error("Failed to parse pool_template_vm_id", e);
+          }
+        }
+        setPoolDetails(pool);
         let clusterId = "";
         if (res.data.data.pool.cluster_id) {
           if (typeof res.data.data.pool.cluster_id === "string") {
@@ -95,6 +109,9 @@ const EditPool = (props) => {
           if (res.data.data.pool.cluster_type === "VMware") {
             dispatch(fetchVmwareDCs({ token, clusterId }));
             dispatch(fetchVmwareFolders({ token, clusterId }));
+          }
+          if (res.data.data.pool.cluster_type === "Hyper-V") {
+            dispatch(fetchSwitches({ token, clusterId }));
           }
         }
         if (res.data.data.pool.pool_type === "Automated") {
@@ -120,7 +137,7 @@ const EditPool = (props) => {
       const cluster = clusters.find((c) => String(c.id) === String(targetId));
       if (cluster && cluster.type === "Hyper-V") {
         const isCluster =
-          cluster.node_type.toLowerCase().replace(/\s/g, "") === "multinode";
+          ["multinode", "cluster"].includes(cluster.node_type.toLowerCase().replace(/\s/g, ""));
         if (poolDetails.pool_template_vm_id?.is_cluster !== isCluster) {
           setTemplateField("is_cluster", isCluster);
         }
@@ -256,7 +273,7 @@ const EditPool = (props) => {
     value: node.name,
   }));
 
-  const isHyperV = poolDetails.cluster_type === "Hyper-V";
+  const isHyperV = poolDetails.cluster_type?.toLowerCase() === "hyper-v";
   const isDynamicMemory = !!poolDetails.pool_template_vm_id?.dynamic_memory;
   const hasJoinAD = !!poolDetails.pool_ad_username;
 
@@ -324,13 +341,29 @@ const EditPool = (props) => {
                   />
                 )}
 
+                {poolDetails.cluster_id && (
+                  <InputField
+                    label="Cluster"
+                    name="cluster_name"
+                    iconClass="fa-sitemap"
+                    value={selectedCluster?.name || "N/A"}
+                    disabled={true}
+                  />
+                )}
+
                 {poolDetails.pool_type === "Automated" && (
                   <>
                     <SelectField
                       label="Pool OS Type"
                       name="pool_os_type"
                       iconClass="fa-desktop"
-                      value={poolDetails.pool_os_type || ""}
+                      value={
+                        isHyperV
+                          ? poolDetails.pool_template_vm_id?.os_type ||
+                            poolDetails.pool_os_type ||
+                            ""
+                          : poolDetails.pool_os_type || ""
+                      }
                       onChange={handleOnChange}
                       required={true}
                       disabled={true}
@@ -395,30 +428,38 @@ const EditPool = (props) => {
                           options={nodeOptions}
                           className="basic-multi-select bg-white"
                           classNamePrefix="select"
-                          placeholder="Select Nodes"
-                          isDisabled={nodes.length === 0}
-                          noOptionsMessage={() => "No nodes available"}
+                          placeholder={
+                            isHyperV
+                              ? "Not applicable for Hyper-V"
+                              : "Select Nodes"
+                          }
+                          isDisabled={isHyperV || nodes.length === 0}
+                          noOptionsMessage={() =>
+                            isHyperV ? "Not applicable" : "No nodes available"
+                          }
                         />
                       </div>
                     </div>
 
-                    <InputField
-                      label="Template"
-                      name="pool_template_vm_id"
-                      iconClass="fa-file-invoice"
-                      value={(() => {
-                        const template = templates.find(
-                          (t) =>
-                            String(t.vmid) ===
-                            String(poolDetails.pool_template_vm_id),
-                        );
-                        return template
-                          ? `${template.vmid} (${template.name})`
-                          : poolDetails.pool_template_vm_id?.vmid || "N/A";
-                      })()}
-                      onChange={handleOnChange}
-                      disabled={true}
-                    />
+                    {!isHyperV && (
+                      <InputField
+                        label="Template"
+                        name="pool_template_vm_id"
+                        iconClass="fa-file-invoice"
+                        value={(() => {
+                          const template = templates.find(
+                            (t) =>
+                              String(t.vmid) ===
+                              String(poolDetails.pool_template_vm_id),
+                          );
+                          return template
+                            ? `${template.vmid} (${template.name})`
+                            : poolDetails.pool_template_vm_id?.vmid || "N/A";
+                        })()}
+                        onChange={handleOnChange}
+                        disabled={true}
+                      />
+                    )}
 
                     <InputField
                       label="Naming Pattern"
@@ -508,6 +549,26 @@ const EditPool = (props) => {
                     {/* ── Hyper-V specific fields ───────────────────────────── */}
                     {isHyperV && (
                       <>
+                        <div className="mb-4 flex items-center">
+                          <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                            <span>
+                              <i className="fas fa-sitemap mr-2"></i>
+                            </span>
+                            Is Cluster
+                          </label>
+                          <div className="flex-1 w-[40%] max-w-[40rem] ml-2 flex items-center">
+                            <input
+                              type="checkbox"
+                              name="hyperv_is_cluster"
+                              className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-not-allowed"
+                              checked={
+                                !!poolDetails.pool_template_vm_id?.is_cluster
+                              }
+                              disabled
+                            />
+                          </div>
+                        </div>
+
                         <InputField
                           label="Child Disk Path"
                           name="hyperv_vhdPath"
@@ -518,6 +579,7 @@ const EditPool = (props) => {
                           }
                           placeholder="Enter Child Disk Path"
                           required={true}
+                          disabled={true}
                         />
                         <InputField
                           label="Parent Disk Path"
@@ -530,6 +592,7 @@ const EditPool = (props) => {
                             setTemplateField("PvhdPath", e.target.value)
                           }
                           placeholder="Enter Parent Disk Path"
+                          disabled={true}
                         />
                         <PasswordField
                           label="Host Password"
@@ -564,6 +627,7 @@ const EditPool = (props) => {
                                   : "";
                             setTemplateField("generation", gen);
                           }}
+                          disabled={true}
                           options={[
                             {
                               value: "",
@@ -637,7 +701,7 @@ const EditPool = (props) => {
                               Dynamic Memory Settings
                             </p>
                             <InputField
-                              label="Min Memory (GB)"
+                              label="Min Memory (MB)"
                               name="hyperv_minimum_memory"
                               type="number"
                               iconClass="fa-memory"
@@ -653,14 +717,16 @@ const EditPool = (props) => {
                                     : "",
                                 )
                               }
-                              placeholder="Minimum memory (GB)"
+                              placeholder="Minimum memory (MB)"
                               required={true}
-                              min="1"
-                              step="1"
-                              max="64"
+                              min="32"
+                              step="2"
+                              max={
+                                poolDetails.pool_template_vm_id?.memory * 1024
+                              }
                             />
                             <InputField
-                              label="Max Memory (GB)"
+                              label="Max Memory (MB)"
                               name="hyperv_maximum_memory"
                               type="number"
                               iconClass="fa-memory"
@@ -676,11 +742,13 @@ const EditPool = (props) => {
                                     : "",
                                 )
                               }
-                              placeholder="Maximum memory (GB)"
+                              placeholder="Maximum memory (MB)"
                               required={true}
-                              min="1"
+                              min={
+                                poolDetails.pool_template_vm_id?.memory * 1024
+                              }
                               step="1"
-                              max="64"
+                              max={128 * 1024}
                             />
                             <InputField
                               label="Buffer Memory (%)"
@@ -703,7 +771,7 @@ const EditPool = (props) => {
                               required={true}
                               min="5"
                               step="1"
-                              max="100"
+                              max="2000"
                             />
                           </div>
                         )}
@@ -729,18 +797,17 @@ const EditPool = (props) => {
                           placeholder="Enter number of processors"
                           min="1"
                           step="1"
-                          max="64"
+                          max="1024"
                         />
 
                         {/* Priority Field — appears only if cluster is multi node */}
-                        {selectedCluster?.node_type === "multi node" && (
-                          <InputField
+                        {poolDetails.pool_template_vm_id?.is_cluster && (
+                          <SelectField
                             label="Priority"
                             name="hyperv_priority"
-                            type="number"
                             iconClass="fa-arrow-up-9-1"
                             value={
-                              poolDetails.pool_template_vm_id?.priority || 2000
+                              poolDetails.pool_template_vm_id?.priority ?? 2000
                             }
                             onChange={(e) =>
                               setTemplateField(
@@ -750,14 +817,32 @@ const EditPool = (props) => {
                                   : 2000,
                               )
                             }
-                            placeholder="Enter priority (default 2000)"
-                            required={true}
-                            min="0"
-                            step="100"
+                            placeholder="Select Priority"
+                            options={[
+                              { label: "High Priority", value: 3000 },
+                              { label: "Medium Priority", value: 2000 },
+                              { label: "Low Priority", value: 1000 },
+                              { label: "No Auto Start", value: 0 },
+                            ]}
+                            tooltip={`1. High Priority (3000)
+What it is: These VMs are moved and started first.
+Behavior: If a node is low on resources, the cluster may even "pre-empt" (shut down) Lower Priority VMs to make room for these.
+
+2. Medium Priority (2000) - Default
+What it is: The standard priority level for most virtual machines.
+Behavior: These start only after the "High Priority" queue has been cleared.
+
+3. Low Priority (1000)
+What it is: These VMs are started last.
+Behavior: These are the first to be saved or paused if the cluster nodes become overloaded.
+
+4. No Auto Start (0)
+What it is: The VM is part of the cluster, but the cluster will not automatically start it after a failure.`}
+                            tooltipClass="w-96"
                           />
                         )}
 
-                        <InputField
+                        <SelectField
                           label="Switch"
                           name="hyperv_switch"
                           iconClass="fa-network-wired"
@@ -765,7 +850,19 @@ const EditPool = (props) => {
                           onChange={(e) =>
                             setTemplateField("switch", e.target.value)
                           }
-                          placeholder="Enter Switch Name"
+                          placeholder="Select Switch"
+                          disabled={true}
+                          options={[
+                            {
+                              value: "",
+                              label: "Select Switch",
+                              disabled: true,
+                            },
+                            ...(switches || []).map((sw) => ({
+                              value: sw.Name,
+                              label: sw.Name,
+                            })),
+                          ]}
                         />
                       </>
                     )}

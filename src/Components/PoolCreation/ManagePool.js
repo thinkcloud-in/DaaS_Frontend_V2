@@ -480,7 +480,6 @@ const ManagePool = (props) => {
   };
 
   let handleDeleteVM = async (mach) => {
-    console.log("handleDeleteVM triggered. machineIdentifier (mach) is:", mach);
 
     const confirmed = window.confirm(
       "Are you sure you want to delete this machine?",

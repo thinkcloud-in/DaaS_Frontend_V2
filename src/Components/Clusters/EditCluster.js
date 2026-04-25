@@ -69,8 +69,8 @@ const EditCluster = () => {
   const [monitoringChecked, setMonitoringChecked] = useState(false);
   const [showMonitoringConfirm, setShowMonitoringConfirm] = useState(false);
   const [hyperVNodeType, setHyperVNodeType] = useState({
-    singleNode: false,
-    multiNode: false,
+    standalone: false,
+    cluster: false,
   });
 
   useEffect(() => {
@@ -80,8 +80,8 @@ const EditCluster = () => {
     setFormCluster(cluster);
     if (cluster?.type === "Hyper-V") {
       setHyperVNodeType({
-        singleNode: cluster.node_type === "Single Node",
-        multiNode: cluster.node_type === "Multi Node",
+        standalone: cluster.node_type === "Standalone",
+        cluster: cluster.node_type === "Cluster",
       });
     }
 
@@ -155,10 +155,10 @@ const EditCluster = () => {
       };
 
       if (formCluster.type === "Hyper-V") {
-        payload.node_type = hyperVNodeType.singleNode
-          ? "Single Node"
-          : hyperVNodeType.multiNode
-          ? "Multi Node"
+        payload.node_type = hyperVNodeType.standalone
+          ? "Standalone"
+          : hyperVNodeType.cluster
+          ? "Cluster"
           : null;
       }
 
@@ -465,7 +465,7 @@ const EditCluster = () => {
                       <label className="flex items-center gap-2 whitespace-nowrap">
                         <input
                           type="checkbox"
-                          checked={formCluster.node_type === "Single Node"}
+                          checked={formCluster.node_type === "Standalone"}
                           disabled
                         />
                         <span>Standalone</span>
@@ -473,10 +473,10 @@ const EditCluster = () => {
                       <label className="flex items-center gap-2 whitespace-nowrap">
                         <input
                           type="checkbox"
-                          checked={formCluster.node_type === "Multi Node"}
+                          checked={formCluster.node_type === "Cluster"}
                           disabled
                         />
-                        <span>Multi Node</span>
+                        <span>Cluster</span>
                       </label>
                     </div>
                   </div>

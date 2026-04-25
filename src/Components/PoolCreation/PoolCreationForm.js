@@ -155,7 +155,7 @@ const PoolCreationForm = () => {
       let genStr = poolDetails.pool_template_vm_id?.generation || "";
       let generation = genStr === "Gen2" ? 2 : genStr === "Gen1" ? 1 : "";
       const is_cluster =
-        cluster.node_type?.toLowerCase().replace(/\s/g, "") === "multinode";
+        ["multinode", "cluster"].includes(cluster.node_type?.toLowerCase().replace(/\s/g, ""));
       templateVmId = {
         generation,
         memory: poolDetails.pool_template_vm_id?.memory || "",
