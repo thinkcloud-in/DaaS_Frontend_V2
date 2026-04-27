@@ -257,7 +257,7 @@ const ClusterCreationForm = () => {
         type: isStandalone ? "Standalone" : "Cluster",
       });
       const agentData = verifyResult?.data;
-      if (!agentData?.is_verify_hyper_v && !agentData?.is_cluster) {
+      if (!agentData?.is_hyper_v) {
         setStepStatus([2], "error");
         toast.error("Hyper-V role is not enabled on this host.");
         return false;
@@ -450,7 +450,9 @@ const ClusterCreationForm = () => {
               ...node,
               displayHealth: "Down",
               steps: node.steps.map((s, si) =>
-                si === 2 ? { ...s, label: `Hyper-V: ${hvStatus}`, status: "error" } : s
+                si === 2
+                  ? { ...s, label: `Hyper-V: ${hvStatus}`, status: "error" }
+                  : s,
               ),
             };
           }),

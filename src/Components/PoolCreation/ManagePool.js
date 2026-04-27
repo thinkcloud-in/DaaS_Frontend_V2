@@ -480,7 +480,6 @@ const ManagePool = (props) => {
   };
 
   let handleDeleteVM = async (mach) => {
-
     const confirmed = window.confirm(
       "Are you sure you want to delete this machine?",
     );
@@ -682,7 +681,11 @@ const ManagePool = (props) => {
         refreshMachines();
       }
     } catch (err) {
-      toast.error(err?.msg || err?.message || "Failed to rebuild VM");
+      const errorMessage =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.message || "Failed to rebuild VM";
+      toast.error(errorMessage);
     } finally {
       dispatch(setPowerActionLoading(null));
     }
