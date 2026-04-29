@@ -179,8 +179,8 @@ export const rebuildVMService = async (token, userEmail, vmid, poolId) => {
       params: { vmid, pool_id: poolId },
     },
   );
-  if (response.data.data.code !== 200) {
-    throw new Error(response.data.data.data);
+  if (response.data?.data?.code !== 200) {
+    throw new Error(response.data?.data?.data);
   }
   return response.data.msg;
 };

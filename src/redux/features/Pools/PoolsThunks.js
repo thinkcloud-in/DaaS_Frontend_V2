@@ -12,9 +12,18 @@ import {
   createPool as createPoolService,
   updatePoolService,
   deletePoolService,
-  rebootVMService, shutdownVMService, startVMService, stopVMService, rebuildVMService,
-  getIpPoolNames, getClusterNodes, getTemplates, getVmwareDCs, getVmwareFolders,
-  getPoolByIdService, updateMachineService,
+  rebootVMService,
+  shutdownVMService,
+  startVMService,
+  stopVMService,
+  rebuildVMService,
+  getIpPoolNames,
+  getClusterNodes,
+  getTemplates,
+  getVmwareDCs,
+  getVmwareFolders,
+  getPoolByIdService,
+  updateMachineService,
   getSwitches,
   getProxmoxStorages,
   rebuildPoolService,
@@ -28,22 +37,30 @@ export const fetchPoolById = createAsyncThunk(
       const payload = res.data?.data?.pool || res.data?.data || res.data || {};
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch pool by id");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch pool by id",
+      );
     }
-  }
+  },
 );
 
 export const updateMachine = createAsyncThunk(
   "pools/updateMachine",
   async ({ token, machineIdentifier, requestData }, { rejectWithValue }) => {
     try {
-      const res = await updateMachineService(token, machineIdentifier, requestData);
+      const res = await updateMachineService(
+        token,
+        machineIdentifier,
+        requestData,
+      );
       const payload = res.data?.data || res.data || {};
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to update machine");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to update machine",
+      );
     }
-  }
+  },
 );
 
 export const fetchPools = createAsyncThunk(
@@ -56,7 +73,7 @@ export const fetchPools = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err?.message || "Failed to fetch pools");
     }
-  }
+  },
 );
 
 export const createPool = createAsyncThunk(
@@ -67,9 +84,11 @@ export const createPool = createAsyncThunk(
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to create pool");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to create pool",
+      );
     }
-  }
+  },
 );
 
 export const updatePool = createAsyncThunk(
@@ -80,9 +99,11 @@ export const updatePool = createAsyncThunk(
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to update pool");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to update pool",
+      );
     }
-  }
+  },
 );
 
 export const deletePool = createAsyncThunk(
@@ -93,9 +114,11 @@ export const deletePool = createAsyncThunk(
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to delete pool");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to delete pool",
+      );
     }
-  }
+  },
 );
 
 export const rebuildPool = createAsyncThunk(
@@ -106,9 +129,11 @@ export const rebuildPool = createAsyncThunk(
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to rebuild pool");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to rebuild pool",
+      );
     }
-  }
+  },
 );
 
 export const createMachine = createAsyncThunk(
@@ -120,9 +145,11 @@ export const createMachine = createAsyncThunk(
       // payload expected to include { machine, pools }
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to create machine");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to create machine",
+      );
     }
-  }
+  },
 );
 
 export const fetchPoolMachines = createAsyncThunk(
@@ -133,9 +160,11 @@ export const fetchPoolMachines = createAsyncThunk(
       // return machines array
       return { poolId, machines: Array.isArray(data) ? data : [] };
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch pool machines");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch pool machines",
+      );
     }
-  }
+  },
 );
 
 export const fetchAssignedUsers = createAsyncThunk(
@@ -145,9 +174,11 @@ export const fetchAssignedUsers = createAsyncThunk(
       const data = await fetchAssignedUsersService(token, machineId);
       return { machineId, assignedUsers: Array.isArray(data) ? data : [] };
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch assigned users");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch assigned users",
+      );
     }
-  }
+  },
 );
 
 export const fetchMachineDetails = createAsyncThunk(
@@ -157,9 +188,13 @@ export const fetchMachineDetails = createAsyncThunk(
       const data = await fetchMachineDetailsService(token, vm_id);
       return { vm_id, details: data || null };
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch machine details");
+      return rejectWithValue(
+        err?.response?.data ||
+          err?.message ||
+          "Failed to fetch machine details",
+      );
     }
-  }
+  },
 );
 
 export const listGuacamoleUsers = createAsyncThunk(
@@ -170,9 +205,11 @@ export const listGuacamoleUsers = createAsyncThunk(
       const data = res.data?.data || [];
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to list users");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to list users",
+      );
     }
-  }
+  },
 );
 
 export const addUserToMachine = createAsyncThunk(
@@ -183,22 +220,30 @@ export const addUserToMachine = createAsyncThunk(
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to add user to machine");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to add user to machine",
+      );
     }
-  }
+  },
 );
 
 export const deleteAssignedUser = createAsyncThunk(
   "pools/deleteAssignedUser",
   async ({ token, machineIdentifier, user }, { rejectWithValue }) => {
     try {
-      const res = await deleteAssignedUserService(token, machineIdentifier, user);
+      const res = await deleteAssignedUserService(
+        token,
+        machineIdentifier,
+        user,
+      );
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to delete assigned user");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to delete assigned user",
+      );
     }
-  }
+  },
 );
 
 export const deleteVM = createAsyncThunk(
@@ -209,9 +254,11 @@ export const deleteVM = createAsyncThunk(
       const payload = res.data?.data || res.data;
       return payload;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to delete VM");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to delete VM",
+      );
     }
-  }
+  },
 );
 
 export const rebootVM = createAsyncThunk(
@@ -222,9 +269,11 @@ export const rebootVM = createAsyncThunk(
       // service may return data directly
       return res?.data || res || {};
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to reboot VM");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to reboot VM",
+      );
     }
-  }
+  },
 );
 
 export const shutdownVM = createAsyncThunk(
@@ -234,9 +283,11 @@ export const shutdownVM = createAsyncThunk(
       const res = await shutdownVMService(token, userEmail, vm_id, poolId);
       return res?.data || res || {};
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to shutdown VM");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to shutdown VM",
+      );
     }
-  }
+  },
 );
 
 export const startVM = createAsyncThunk(
@@ -246,9 +297,11 @@ export const startVM = createAsyncThunk(
       const res = await startVMService(token, userEmail, vm_id, poolId);
       return res?.data || res || {};
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to start VM");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to start VM",
+      );
     }
-  }
+  },
 );
 
 export const stopVM = createAsyncThunk(
@@ -258,9 +311,11 @@ export const stopVM = createAsyncThunk(
       const res = await stopVMService(token, userEmail, vm_id, poolId);
       return res?.data || res || {};
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to stop VM");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to stop VM",
+      );
     }
-  }
+  },
 );
 
 export const rebuildVM = createAsyncThunk(
@@ -268,11 +323,13 @@ export const rebuildVM = createAsyncThunk(
   async ({ token, userEmail, vm_id, poolId }, { rejectWithValue }) => {
     try {
       const res = await rebuildVMService(token, userEmail, vm_id, poolId);
-      return res?.data || res || {};
+      return res;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to rebuild VM");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to rebuild VM",
+      );
     }
-  }
+  },
 );
 
 export const fetchIpPoolNames = createAsyncThunk(
@@ -282,9 +339,11 @@ export const fetchIpPoolNames = createAsyncThunk(
       const data = await getIpPoolNames(token);
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch ip pools");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch ip pools",
+      );
     }
-  }
+  },
 );
 
 export const fetchClusterNodes = createAsyncThunk(
@@ -294,9 +353,11 @@ export const fetchClusterNodes = createAsyncThunk(
       const data = await getClusterNodes(token, clusterId);
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch cluster nodes");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch cluster nodes",
+      );
     }
-  }
+  },
 );
 
 export const fetchProxmoxStorages = createAsyncThunk(
@@ -306,9 +367,11 @@ export const fetchProxmoxStorages = createAsyncThunk(
       const data = await getProxmoxStorages(token, clusterId, nodes);
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch cluster nodes");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch cluster nodes",
+      );
     }
-  }
+  },
 );
 
 export const fetchTemplates = createAsyncThunk(
@@ -318,9 +381,11 @@ export const fetchTemplates = createAsyncThunk(
       const data = await getTemplates(token, clusterId);
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch templates");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch templates",
+      );
     }
-  }
+  },
 );
 
 export const fetchVmwareDCs = createAsyncThunk(
@@ -330,9 +395,11 @@ export const fetchVmwareDCs = createAsyncThunk(
       const data = await getVmwareDCs(token, clusterId);
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch vmware dcs");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch vmware dcs",
+      );
     }
-  }
+  },
 );
 
 export const fetchVmwareFolders = createAsyncThunk(
@@ -342,9 +409,11 @@ export const fetchVmwareFolders = createAsyncThunk(
       const data = await getVmwareFolders(token, clusterId);
       return Array.isArray(data) ? data : [];
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch vmware folders");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch vmware folders",
+      );
     }
-  }
+  },
 );
 
 export const fetchSwitches = createAsyncThunk(
@@ -355,9 +424,11 @@ export const fetchSwitches = createAsyncThunk(
       // getSwitches now handles the array conversion internally
       return data;
     } catch (err) {
-      return rejectWithValue(err?.response?.data || err?.message || "Failed to fetch switches");
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch switches",
+      );
     }
-  }
+  },
 );
 // export const fetchSwitches = createAsyncThunk(
 //   "pools/fetchSwitches",

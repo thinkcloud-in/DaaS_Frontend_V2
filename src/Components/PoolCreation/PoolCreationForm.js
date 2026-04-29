@@ -1095,11 +1095,11 @@ const PoolCreationForm = () => {
                         step="1"
                         max="1024"
                       />
-                      {/* Priority Field — appears only if cluster is multi node and pool type is Automated */}
+                      {/* Priority Field — appears only if cluster and pool type is Automated */}
                       {poolDetails.pool_type === "Automated" &&
-                        selectedCluster?.node_type
-                          ?.toLowerCase()
-                          .replace(/\s/g, "") === "multinode" && (
+                        ["multinode", "cluster"].includes(
+                          selectedCluster?.node_type?.toLowerCase().replace(/\s/g, "")
+                        ) && (
                           <SelectField
                             label="Priority"
                             name="hyperv_priority"
