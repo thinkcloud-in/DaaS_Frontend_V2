@@ -136,8 +136,9 @@ const EditPool = (props) => {
         : clusterIdStr;
       const cluster = clusters.find((c) => String(c.id) === String(targetId));
       if (cluster && cluster.type === "Hyper-V") {
-        const isCluster =
-          ["multinode", "cluster"].includes(cluster.node_type.toLowerCase().replace(/\s/g, ""));
+        const isCluster = ["multinode", "cluster"].includes(
+          cluster.node_type.toLowerCase().replace(/\s/g, ""),
+        );
         if (poolDetails.pool_template_vm_id?.is_cluster !== isCluster) {
           setTemplateField("is_cluster", isCluster);
         }
@@ -274,7 +275,8 @@ const EditPool = (props) => {
   }));
 
   const isHyperV = poolDetails.cluster_type?.toLowerCase() === "hyper-v";
-  const isDynamicMemory = !!poolDetails.pool_template_vm_id?.dynamic_memory;
+  const isDynamicMemory = poolDetails.pool_template_vm_id?.dynamic_memory;
+  console.log("isDynamicMemory", isDynamicMemory);
   const hasJoinAD = !!poolDetails.pool_ad_username;
 
   return (
@@ -374,7 +376,6 @@ const EditPool = (props) => {
                         { value: "MacOS", label: "MacOS" },
                       ]}
                     />
-
                     {/* IP Pools */}
                     <div className="mb-6 flex items-start">
                       <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
@@ -724,6 +725,7 @@ const EditPool = (props) => {
                               max={
                                 poolDetails.pool_template_vm_id?.memory * 1024
                               }
+                              disabled={true}
                             />
                             <InputField
                               label="Max Memory (MB)"
@@ -867,7 +869,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
                       </>
                     )}
 
-                    {/* ── VMware specific fields ────────────────────────────── */}
+                    {/* ── VMware specific fields ──────────────────────────────
                     {poolDetails.cluster_type === "VMware" && (
                       <>
                         <SelectField
@@ -903,7 +905,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
                           ]}
                         />
                       </>
-                    )}
+                    )} */}
                   </>
                 )}
               </div>

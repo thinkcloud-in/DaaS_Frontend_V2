@@ -15,8 +15,8 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { useDispatch, useSelector } from 'react-redux';
-import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { useDispatch, useSelector } from "react-redux";
+import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import {
   selectUsers,
   selectRoles,
@@ -26,7 +26,7 @@ import {
   selectComponentsLoading,
   selectUserRolesLoading,
   selectActionsLoading,
-} from '../../redux/features/UserManagement/UserManagementSelectors';
+} from "../../redux/features/UserManagement/UserManagementSelectors";
 import {
   fetchUsers,
   fetchRoles,
@@ -37,8 +37,8 @@ import {
   getUserPermission,
   assignUserRole,
   removeRoleFromUser as removeRoleFromUserThunk,
-} from '../../redux/features/UserManagement/UserManagementThunks';
-import { clearUserRoles } from '../../redux/features/UserManagement/UserManagementSlice';
+} from "../../redux/features/UserManagement/UserManagementThunks";
+import { clearUserRoles } from "../../redux/features/UserManagement/UserManagementSlice";
 import {
   RolesSkeleton,
   UsersSkeleton,
@@ -53,7 +53,7 @@ const componentCategories = {
     IPMI: ["IpmiDashboard"],
     HyperV: ["HyperV"],
   },
-  Reports: ["Template", "Horizon Reports", "Vamanit Dass Reports"],
+  Reports: ["Template", "DevRaQ Reports"],
   Schedule: ["Schedule"],
   Pools: ["Pools"],
   IpPools: ["IpPools"],
@@ -128,8 +128,10 @@ const UserManagement = () => {
   const handleSearch = (term) => {
     setSearchTerm(term);
     const results = term
-      ? (users || []).filter((user) => user.toLowerCase().includes(term.toLowerCase()))
-      : (users || []);
+      ? (users || []).filter((user) =>
+          user.toLowerCase().includes(term.toLowerCase()),
+        )
+      : users || [];
     setFilteredUsers(results);
   };
 
@@ -151,7 +153,7 @@ const UserManagement = () => {
     setRole(selectedRole);
     setSelectedCategory(null);
     setSelectedSubCategory(null);
-  loadRoleComponents(selectedRole);
+    loadRoleComponents(selectedRole);
   };
   const handleCategorySelect = (category) => {
     setSelectedCategory(category === selectedCategory ? null : category);
@@ -211,37 +213,43 @@ const UserManagement = () => {
       const res = await dispatch(addRole({ token, role })).unwrap();
       const code = res?.data?.code;
       // In this API, 'msg' is often generic while 'data' contains the specific error detail
-      const message = res?.data?.data && typeof res?.data?.data === 'string' 
-        ? res.data.data 
-        : (res?.data?.msg || 'Failed to add role');
+      const message =
+        res?.data?.data && typeof res?.data?.data === "string"
+          ? res.data.data
+          : res?.data?.msg || "Failed to add role";
 
       if ([20, 200, 201].includes(code)) {
-        showSuccess(res?.data?.msg || 'Role created successfully');
+        showSuccess(res?.data?.msg || "Role created successfully");
         dispatch(fetchRoles({ token }));
-        setRole('');
+        setRole("");
       } else if (code === 400) {
-        showError(message || 'Role already exists');
+        showError(message || "Role already exists");
       } else {
-        showError(message || 'Failed to add role');
+        showError(message || "Failed to add role");
       }
     } catch (err) {
-      showError(err || 'Failed to add role');
+      showError(err || "Failed to add role");
     }
   };
 
   const handleDelete = async (roleToDelete) => {
     try {
-      const res = await dispatch(deleteRole({ token, role: roleToDelete })).unwrap();
+      const res = await dispatch(
+        deleteRole({ token, role: roleToDelete }),
+      ).unwrap();
       const code = res?.data?.code || res?.status;
       const message = res?.data?.msg || res?.data?.data;
 
       if ([200, 204].includes(code)) {
-        showSuccess(message || 'Role deleted successfully!');
+        showSuccess(message || "Role deleted successfully!");
       } else {
-        showError(message || 'Failed to delete role');
+        showError(message || "Failed to delete role");
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to delete role');
+      const errorMsg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.message || "Failed to delete role";
       showError(errorMsg);
     }
   };
@@ -252,22 +260,27 @@ const UserManagement = () => {
       return;
     }
     try {
-      const res = await dispatch(submitRoleComponents({ token, role, components })).unwrap();
+      const res = await dispatch(
+        submitRoleComponents({ token, role, components }),
+      ).unwrap();
       const code = res?.data?.code || res?.status;
       const message = res?.data?.msg || res?.data?.data;
 
       if (code === 200) {
-        showSuccess(message || 'Role and components saved successfully');
+        showSuccess(message || "Role and components saved successfully");
         dispatch(fetchRoles({ token }));
         setComponents([]);
-        setRole('');
+        setRole("");
         setSelectedCategory(null);
         setSelectedSubCategory(null);
       } else {
-        showError(message || 'Failed to save role and components');
+        showError(message || "Failed to save role and components");
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to save role and components');
+      const errorMsg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.message || "Failed to save role and components";
       showError(errorMsg);
     }
   };
@@ -281,19 +294,24 @@ const UserManagement = () => {
       return;
     }
     try {
-      const res = await dispatch(assignUserRole({ token, username: selectedUser, role: selectedRole })).unwrap();
+      const res = await dispatch(
+        assignUserRole({ token, username: selectedUser, role: selectedRole }),
+      ).unwrap();
       const code = res?.data?.code || res?.status;
       const message = res?.data?.msg || res?.data?.data;
 
       if (code === 200) {
-        showSuccess(message || 'Role assigned successfully');
+        showSuccess(message || "Role assigned successfully");
         setShowRoleDialog(false);
-        setSelectedRole('');
+        setSelectedRole("");
       } else {
-        showError(message || 'Failed to assign role');
+        showError(message || "Failed to assign role");
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to assign role');
+      const errorMsg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.message || "Failed to assign role";
       showError(errorMsg);
     }
   };
@@ -308,29 +326,40 @@ const UserManagement = () => {
 
   const removeRoleFromUser = async (username, roleToRemove) => {
     try {
-      const res = await dispatch(removeRoleFromUserThunk({ token, username, role: roleToRemove })).unwrap();
+      const res = await dispatch(
+        removeRoleFromUserThunk({ token, username, role: roleToRemove }),
+      ).unwrap();
       const code = res?.data?.code || res?.status;
       const message = res?.data?.msg || res?.data?.data;
 
       if ([200, 204].includes(code)) {
-        showSuccess(message || 'Role removed successfully');
+        showSuccess(message || "Role removed successfully");
         dispatch(getUserPermission({ token, username }));
       } else {
-        showError(message || 'Failed to remove role');
+        showError(message || "Failed to remove role");
       }
     } catch (err) {
-      const errorMsg = typeof err === 'string' ? err : (err?.msg || err?.message || 'Failed to remove role');
+      const errorMsg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.message || "Failed to remove role";
       showError(errorMsg);
     }
   };
   const renderComponentsPanel = () => {
     const visible = getVisibleComponents();
-    const isListMode = !(!selectedCategory === false && !selectedSubCategory && typeof componentCategories[selectedCategory] === "object" && !Array.isArray(componentCategories[selectedCategory]));
-    
+    const isListMode = !(
+      !selectedCategory === false &&
+      !selectedSubCategory &&
+      typeof componentCategories[selectedCategory] === "object" &&
+      !Array.isArray(componentCategories[selectedCategory])
+    );
+
     // Determine if we should show the "Select All" checkbox
     // True if we are showing a list of components (not subcategory buttons)
     const showSelectAll = visible.length > 0;
-    const areAllVisibleSelected = showSelectAll && visible.every(c => components.includes(c));
+    const areAllVisibleSelected =
+      showSelectAll && visible.every((c) => components.includes(c));
 
     if (!selectedCategory) {
       return (
@@ -345,7 +374,10 @@ const UserManagement = () => {
                 className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
                 disabled={!role}
               />
-              <label htmlFor="select-all-components" className="font-semibold text-[#1a365d] cursor-pointer">
+              <label
+                htmlFor="select-all-components"
+                className="font-semibold text-[#1a365d] cursor-pointer"
+              >
                 Select All ({visible.length})
               </label>
             </div>
@@ -363,7 +395,10 @@ const UserManagement = () => {
                 className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
                 disabled={!role}
               />
-              <label htmlFor={`component-${idx}`} className="select-none mt-1 cursor-pointer">
+              <label
+                htmlFor={`component-${idx}`}
+                className="select-none mt-1 cursor-pointer"
+              >
                 {component}
               </label>
             </div>
@@ -371,7 +406,7 @@ const UserManagement = () => {
         </>
       );
     }
-    
+
     if (
       typeof componentCategories[selectedCategory] === "object" &&
       !Array.isArray(componentCategories[selectedCategory])
@@ -392,12 +427,12 @@ const UserManagement = () => {
                 >
                   {subcat}
                 </button>
-              )
+              ),
             )}
           </div>
         );
       }
-      
+
       return (
         <>
           {showSelectAll && (
@@ -410,7 +445,10 @@ const UserManagement = () => {
                 className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
                 disabled={!role}
               />
-              <label htmlFor="select-all-subcomponents" className="font-semibold text-[#1a365d] cursor-pointer">
+              <label
+                htmlFor="select-all-subcomponents"
+                className="font-semibold text-[#1a365d] cursor-pointer"
+              >
                 Select All in {selectedSubCategory} ({visible.length})
               </label>
             </div>
@@ -439,7 +477,7 @@ const UserManagement = () => {
         </>
       );
     }
-    
+
     if (Array.isArray(componentCategories[selectedCategory])) {
       return (
         <>
@@ -453,7 +491,10 @@ const UserManagement = () => {
                 className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
                 disabled={!role}
               />
-              <label htmlFor="select-all-catcomponents" className="font-semibold text-[#1a365d] cursor-pointer">
+              <label
+                htmlFor="select-all-catcomponents"
+                className="font-semibold text-[#1a365d] cursor-pointer"
+              >
                 Select All in {selectedCategory} ({visible.length})
               </label>
             </div>
@@ -845,9 +886,11 @@ const UserManagement = () => {
             <Button
               onClick={handleRoleAssignment}
               disabled={actionsLoading?.assignRole}
-              startIcon={actionsLoading?.assignRole ? (
-                <CircularProgress sx={{ color: "#f5f5f5" }} size={20} />
-              ) : null}
+              startIcon={
+                actionsLoading?.assignRole ? (
+                  <CircularProgress sx={{ color: "#f5f5f5" }} size={20} />
+                ) : null
+              }
               sx={{
                 backgroundColor: "#1a365dcc",
                 color: actionsLoading?.assignRole ? "#fff" : "#f5f5f5",

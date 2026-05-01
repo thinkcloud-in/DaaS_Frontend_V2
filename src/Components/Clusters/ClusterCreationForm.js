@@ -130,7 +130,7 @@ const ClusterCreationForm = () => {
   const [isDisabled] = useState(false);
   const checkboxRef = useRef(null);
 
-  let clusterType = ["VMware", "Proxmox", "Hyper-V"];
+  let clusterType = ["Proxmox", "Hyper-V"];
 
   const [clusterDetails, setClusterDetails] = useState({
     type: "",
@@ -572,7 +572,7 @@ const ClusterCreationForm = () => {
         toast.success("Cluster created!", { transition: Slide });
         setCreatedClusterId(res.cluster.id);
         setIsClusterCreated(true);
-        if (res.cluster.type === "VMware" || res.cluster.type === "Hyper-V") {
+        if (res.cluster.type === "Hyper-V") {
           setTimeout(() => navigate("/clusters"), 1000);
         }
       }
@@ -812,7 +812,7 @@ const ClusterCreationForm = () => {
                   required={true}
                 />
 
-                {clusterDetails.type === "VMware" && (
+                {/* {clusterDetails.type === "VMware" && (
                   <InputField
                     label="Vcenter IP / FQDN"
                     name="ip"
@@ -823,7 +823,7 @@ const ClusterCreationForm = () => {
                     placeholder="Enter Vcenter IP or FQDN"
                     required={true}
                   />
-                )}
+                )} */}
                 {clusterDetails.type === "Proxmox" && (
                   <InputField
                     label="Proxmox IP / FQDN"

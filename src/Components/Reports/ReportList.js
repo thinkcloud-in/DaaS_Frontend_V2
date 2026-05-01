@@ -2,9 +2,15 @@ import React, { useState, useEffect } from "react";
 import "./ReportList.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { ToggleButton, ToggleButtonGroup, Typography, CircularProgress, Box } from "@mui/material";
+import {
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+  CircularProgress,
+  Box,
+} from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import {selectAuthToken} from "../../redux/features/Auth/AuthSelectors";
+import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import {
   fetchReportsList,
   fetchScheduleStatus,
@@ -22,7 +28,7 @@ const ReportList = () => {
   const navigate = useNavigate();
   const token = useSelector(selectAuthToken);
 
-  const [alignment, setAlignment] = useState("Vamanit");
+  const [alignment, setAlignment] = useState("DevRaQ");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportDetails, setReportDetails] = useState({});
@@ -48,12 +54,15 @@ const ReportList = () => {
   const loadList = async () => {
     if (!token) return;
     try {
-      const result = await dispatch(fetchReportsList({ token, alignment, page: currentPage, itemsPerPage })).unwrap();
+      const result = await dispatch(
+        fetchReportsList({ token, alignment, page: currentPage, itemsPerPage }),
+      ).unwrap();
       const list = result?.items || [];
       // request status for each schedule (non-blocking)
       list.forEach((r) => {
         const scheduleId = r.schedule_id || r.id;
-        if (scheduleId) dispatch(fetchScheduleStatus({ token, schedule_id: scheduleId }));
+        if (scheduleId)
+          dispatch(fetchScheduleStatus({ token, schedule_id: scheduleId }));
       });
     } catch (err) {
       toast.error("Data Not Found. Please try again.");
@@ -88,7 +97,10 @@ const ReportList = () => {
     }
     setSelectedReport(report);
     if (!reportDetails[report.id]) {
-      setReportDetails((prev) => ({ ...prev, [report.id]: { status: report.status } }));
+      setReportDetails((prev) => ({
+        ...prev,
+        [report.id]: { status: report.status },
+      }));
     }
   };
 
@@ -101,7 +113,9 @@ const ReportList = () => {
       case "FAILED":
         return <i className="fa-solid fa-times-circle status-icon failure"></i>;
       default:
-        return <i className="fa-solid fa-circle-question status-icon default"></i>;
+        return (
+          <i className="fa-solid fa-circle-question status-icon default"></i>
+        );
     }
   };
 
@@ -118,46 +132,50 @@ const ReportList = () => {
   return (
     <div className="table-container p-2 md:p-4 h-full">
       <div className="report-list flex flex-col h-full overflow-hidden">
-        <div className="header-item flex flex-wrap justify-between items-center gap-4 mb-4">
-          <button className="refresh-button" onClick={handleRefresh} title="Refresh">
-            <i className={`fa-solid fa-rotate-right icon${isLoading ? " rotating" : ""}`}></i>
-          </button>
-          <div className="report_container">
-            <h1>Reports</h1>
-            <ToggleButtonGroup value={alignment} exclusive onChange={handleChange} aria-label="Platform">
-              <ToggleButton value="Vamanit" sx={{
-                backgroundColor: alignment === "Vamanit",
-                border: "1px solid #1a365dcc",
-                color: "#1a365dcc",
-                height: "2.2rem",
-                borderRadius: "5px",
-                textTransform: "capitalize",
-                "&:hover": { backgroundColor: "transparent" },
-                "&.Mui-selected": {
-                  color: "#f5f5f5",
-                  backgroundColor: "#1a365dcc",
-                  "&:hover": { backgroundColor: "#1a365d" },
-                },
-              }}>
-                <Typography sx={{ fontWeight: "600" }}>Vamanit Reports</Typography>
-              </ToggleButton>
-              <ToggleButton value="Horizon" sx={{
-                backgroundColor: alignment === "Horizon",
-                color: "#1a365dcc",
-                border: "1px solid #1a365dcc",
-                height: "2.2rem",
-                borderRadius: "5px",
-                textTransform: "capitalize",
-                "&:hover": { backgroundColor: "transparent" },
-                "&.Mui-selected": {
-                  color: "#f5f5f5",
-                  backgroundColor: "#1a365dcc",
-                  "&:hover": { backgroundColor: "#1a365d" },
-                },
-              }}>
-                <Typography sx={{ fontWeight: "600" }}>Horizon Reports</Typography>
+        <div className="header-item">
+          <div className="left-spacer"></div>
+
+          <h1 className="header-title">Scheduled Reports</h1>
+
+          <div className="right-controls">
+            <ToggleButtonGroup
+              value={alignment}
+              exclusive
+              onChange={handleChange}
+              aria-label="Platform"
+            >
+              <ToggleButton
+                value="DevRaQ"
+                sx={{
+                  border: "1px solid #1a365dcc",
+                  color: "#1a365dcc",
+                  height: "2.5rem",
+                  width: "10rem",
+                  borderRadius: "5px",
+                  textTransform: "capitalize",
+                  "&:hover": { backgroundColor: "transparent" },
+                  "&.Mui-selected": {
+                    color: "#f5f5f5",
+                    backgroundColor: "#1a365dcc",
+                    "&:hover": { backgroundColor: "#1a365d" },
+                  },
+                }}
+              >
+                <Typography sx={{ fontWeight: "600" }}>
+                  DevRaQ Reports
+                </Typography>
               </ToggleButton>
             </ToggleButtonGroup>
+
+            <button
+              className="refresh-button"
+              onClick={handleRefresh}
+              title="Refresh"
+            >
+              <i
+                className={`fa-solid fa-rotate-right icon${isLoading ? " rotating" : ""}`}
+              ></i>
+            </button>
           </div>
         </div>
 
@@ -181,7 +199,7 @@ const ReportList = () => {
           </Box>
         ) : (
           <>
-            <table className="tableRow custom-scrollbar">
+            <table className="tableRow custom-scrollbar bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
               <thead>
                 <tr>
                   <th>S.No</th>
@@ -195,9 +213,11 @@ const ReportList = () => {
                 </tr>
               </thead>
               <tbody>
-                {(!reports || reports.length === 0) ? (
+                {!reports || reports.length === 0 ? (
                   <tr>
-                    <td colSpan={8}>No Reports Found</td>
+                    <td colSpan={8} className="h-64 text-xl text-center ">
+                      No Reports Found
+                    </td>
                   </tr>
                 ) : (
                   reports.map((report, index) => (
@@ -206,8 +226,12 @@ const ReportList = () => {
                         <td>{index + 1 + (currentPage - 1) * itemsPerPage}</td>
                         <td>
                           <span className="user_tooltip">
-                            <div className="user_circle">{report.userEmail?.charAt(0).toUpperCase()}</div>
-                            <span className="user_tooltiptext">{report.userEmail || "N/A"}</span>
+                            <div className="user_circle">
+                              {report.userEmail?.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="user_tooltiptext">
+                              {report.userEmail || "N/A"}
+                            </span>
                           </span>
                         </td>
                         <td>{report.reportName}</td>
@@ -215,17 +239,36 @@ const ReportList = () => {
                         <td>{report.schedule_type}</td>
                         <td>
                           <span className="tooltip">
-                            <div className="circle">{report.receiverEmail?.charAt(0).toUpperCase()}</div>
+                            <div className="circle">
+                              {report.receiverEmail?.charAt(0).toUpperCase()}
+                            </div>
                           </span>
                         </td>
                         <td>{renderStatusIcon(report.status)}</td>
                         <td>
-                          <button className="edit-button" onClick={(e) => { e.stopPropagation(); handleEdit(report); }}>
+                          <button
+                            className="edit-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(report);
+                            }}
+                          >
                             <i className="fa-solid fa-pen-to-square"></i>
                           </button>
-                          <button className="delete-button" onClick={(e) => { e.stopPropagation(); handleDelete(report.id); }} disabled={!!deleteLoading[report.id]}>
+                          <button
+                            className="delete-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(report.id);
+                            }}
+                            disabled={!!deleteLoading[report.id]}
+                          >
                             {deleteLoading[report.id] ? (
-                              <CircularProgress size={16} color="inherit" sx={{ color: "red" }} />
+                              <CircularProgress
+                                size={16}
+                                color="inherit"
+                                sx={{ color: "red" }}
+                              />
                             ) : (
                               <i className="fa-solid fa-trash"></i>
                             )}
@@ -253,11 +296,27 @@ const ReportList = () => {
             </table>
             <div className="footer-container">
               <div className="pagination">
-                <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>Prev</button>
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Prev
+                </button>
                 {Array.from({ length: totalPages }, (_, index) => (
-                  <button key={index + 1} onClick={() => paginate(index + 1)} className={currentPage === index + 1 ? "active" : ""}>{index + 1}</button>
+                  <button
+                    key={index + 1}
+                    onClick={() => paginate(index + 1)}
+                    className={currentPage === index + 1 ? "active" : ""}
+                  >
+                    {index + 1}
+                  </button>
                 ))}
-                <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
               </div>
               <div className="add-report-container">
                 <button onClick={handleAdd} className="add-report-button">

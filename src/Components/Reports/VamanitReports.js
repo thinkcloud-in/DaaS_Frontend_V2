@@ -182,7 +182,7 @@ const VamanitReports = () => {
         <div className="Reports_name">
           <div className="reports_title">
             <button className="report_type" type="button">
-              Vamanit Daas Reports
+              DevRaQ Reports
             </button>
           </div>
         </div>

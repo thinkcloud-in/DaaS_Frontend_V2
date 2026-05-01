@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Skeleton from '@mui/material/Skeleton';
+import Skeleton from "@mui/material/Skeleton";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronRightIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronRightIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Navbar from "./Navbar";
 import {
@@ -39,49 +43,57 @@ function classNames(...classes) {
 
 const getIcon = (name, level = 0, parent = "") => {
   if (level === 0) {
-    return {
-      Dashboard: faTachometerAlt,
-      Reports: faTable,
-      Recordings: faVideo,
-      ActiveSessions: faUserShield,
-      Schedule: faCalendarAlt,
-      "VDI Pools": faLayerGroup,
-      "IP Pools": faNetworkWired,
-      Pools: faLayerGroup,
-      IpPools: faNetworkWired,
-      Tasks: faListAlt,
-      Settings: faCog,
-    }[name] || faAngleRight;
+    return (
+      {
+        Dashboard: faTachometerAlt,
+        Reports: faTable,
+        Recordings: faVideo,
+        ActiveSessions: faUserShield,
+        Schedule: faCalendarAlt,
+        "VDI Pools": faLayerGroup,
+        "IP Pools": faNetworkWired,
+        Pools: faLayerGroup,
+        IpPools: faNetworkWired,
+        Tasks: faListAlt,
+        Settings: faCog,
+      }[name] || faAngleRight
+    );
   }
 
   if (level === 1) {
     if (parent === "Reports") {
-      return {
-        Template: faFileAlt,
-        "Horizon Reports": faChartBar,
-        "Vamanit Dass Reports": faChartPie,
-      }[name] || faAngleRight;
+      return (
+        {
+          Template: faFileAlt,
+          // "Horizon Reports": faChartBar,
+          "DevRaQ Reports": faChartPie,
+        }[name] || faAngleRight
+      );
     }
 
     if (parent === "Settings") {
-      return {
-        TOTP: faKey,
-        Domain: faDatabase,
-        IPMI: faServer,
-        Cluster: faLayerGroup,
-        SSL: faLock,
-        SMTP: faEnvelopeOpenText,
-        RBAC: faUserCog,
-        "Retention Period": faCalendarAlt,
-      }[name] || faAngleRight;
+      return (
+        {
+          TOTP: faKey,
+          Domain: faDatabase,
+          IPMI: faServer,
+          Cluster: faLayerGroup,
+          SSL: faLock,
+          SMTP: faEnvelopeOpenText,
+          RBAC: faUserCog,
+          "Retention Period": faCalendarAlt,
+        }[name] || faAngleRight
+      );
     }
 
-    return {
-      VCenter: faServer,
-      Proxmox: faCloud,
-      "IPMI Dashboard": faServer,
-      "HyperV": faServer,
-    }[name] || faAngleRight;
+    return (
+      {
+        VCenter: faServer,
+        Proxmox: faCloud,
+        "IPMI Dashboard": faServer,
+        HyperV: faServer,
+      }[name] || faAngleRight
+    );
   }
 
   if (level === 2) {
@@ -105,12 +117,12 @@ const getIcon = (name, level = 0, parent = "") => {
 const Sidebar = ({ tokenParsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isToggled, setIsToggled] = useState(true); 
+  const [isToggled, setIsToggled] = useState(true);
   const [openSubMenus, setOpenSubMenus] = useState({});
   const [navState, setNavState] = useState([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { navigation, loading } = useRbac();
-  
+
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1200px)");
 
@@ -118,9 +130,9 @@ const Sidebar = ({ tokenParsed }) => {
     if (isMobile) {
       setIsToggled(false);
     } else if (isTablet) {
-      setIsToggled(false); 
+      setIsToggled(false);
     } else {
-      setIsToggled(true); 
+      setIsToggled(true);
     }
   }, [isMobile, isTablet]);
 
@@ -129,7 +141,13 @@ const Sidebar = ({ tokenParsed }) => {
       return items.map((item) => {
         let isCurrent = item.href === location.pathname;
         let submenus = item.submenus ? markCurrent(item.submenus) : [];
-        if (submenus.some((sub) => sub.current || (sub.submenus && sub.submenus.some((ssub) => ssub.current)))) {
+        if (
+          submenus.some(
+            (sub) =>
+              sub.current ||
+              (sub.submenus && sub.submenus.some((ssub) => ssub.current)),
+          )
+        ) {
           isCurrent = false;
         }
         return { ...item, current: isCurrent, submenus };
@@ -154,9 +172,9 @@ const Sidebar = ({ tokenParsed }) => {
         }
         return newOpen;
       });
-    } else if (item.href && item.href!=="/") {
+    } else if (item.href && item.href !== "/") {
       navigate(item.href);
-      if (isMobile) setMobileOpen(false); 
+      if (isMobile) setMobileOpen(false);
     }
   };
 
@@ -174,12 +192,22 @@ const Sidebar = ({ tokenParsed }) => {
                   ? "bg-[#f5f5f5] text-[#1a365d] font-bold"
                   : "hover:bg-[#f5f5f5ab] hover:text-[#1a365d]",
                 "menu-item rounded-md px-3 py-2 flex items-center justify-between cursor-pointer",
-                level === 0 ? "text-base font-medium" : "text-sm"
+                level === 0 ? "text-base font-medium" : "text-sm",
               )}
             >
               <span className="flex items-center gap-2">
-                <FontAwesomeIcon icon={getIcon(item.name, level, parent)} className="mr-2" />
-                <span className={["VCenter", "Proxmox", "HyperV"].includes(item.name) && level === 0 ? "font-bold" : ""}>
+                <FontAwesomeIcon
+                  icon={getIcon(item.name, level, parent)}
+                  className="mr-2"
+                />
+                <span
+                  className={
+                    ["VCenter", "Proxmox", "HyperV"].includes(item.name) &&
+                    level === 0
+                      ? "font-bold"
+                      : ""
+                  }
+                >
                   {item.name}
                 </span>
               </span>
@@ -203,13 +231,23 @@ const Sidebar = ({ tokenParsed }) => {
     </ul>
   );
 
-  const renderCollapsedMenu = (items, level = 0, parent = "", parentPos = {left: '100%', top: 0}) => (
-    <ul className="sidebar-popout" style={{...parentPos, position: level === 0 ? undefined : 'absolute'}}>
+  const renderCollapsedMenu = (
+    items,
+    level = 0,
+    parent = "",
+    parentPos = { left: "100%", top: 0 },
+  ) => (
+    <ul
+      className="sidebar-popout"
+      style={{ ...parentPos, position: level === 0 ? undefined : "absolute" }}
+    >
       {items.map((item) => {
         const hasSubmenu = item.submenus && item.submenus.length > 0;
         const isOpen = openSubMenus[level] === item.name;
         return (
-          <li key={item.name} className="relative"
+          <li
+            key={item.name}
+            className="relative"
             onMouseEnter={() => hasSubmenu && handleMenuItemClick(item, level)}
             onMouseLeave={() => {
               if (hasSubmenu) {
@@ -230,21 +268,29 @@ const Sidebar = ({ tokenParsed }) => {
                   ? "bg-[#f5f5f5] text-[#1a365d] font-bold"
                   : "hover:bg-[#f5f5f5ab] hover:text-[#1a365d]",
                 "menu-item rounded-md px-3 py-2 flex items-center justify-between cursor-pointer",
-                level === 0 ? "text-base font-medium" : "text-sm"
+                level === 0 ? "text-base font-medium" : "text-sm",
               )}
-              style={{minWidth: 150, whiteSpace: 'nowrap'}}
+              style={{ minWidth: 150, whiteSpace: "nowrap" }}
             >
               <span className="flex items-center gap-2">
-                <FontAwesomeIcon icon={getIcon(item.name, level, parent)} className="mr-2" />
+                <FontAwesomeIcon
+                  icon={getIcon(item.name, level, parent)}
+                  className="mr-2"
+                />
                 <span>{item.name}</span>
               </span>
-              {hasSubmenu && (
-                <ChevronRightIcon className="menu-icon h-5 w-5" />
-              )}
+              {hasSubmenu && <ChevronRightIcon className="menu-icon h-5 w-5" />}
               {item.beta && <Beta />}
             </div>
             {hasSubmenu && isOpen && (
-              <div style={{position: 'absolute', left: '100%', top: 0, zIndex: 100 + level}} >
+              <div
+                style={{
+                  position: "absolute",
+                  left: "100%",
+                  top: 0,
+                  zIndex: 100 + level,
+                }}
+              >
                 {renderCollapsedMenu(item.submenus, level + 1, item.name)}
               </div>
             )}
@@ -275,7 +321,9 @@ const Sidebar = ({ tokenParsed }) => {
       );
     }
     return (
-      <div className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? 'w-64' : 'w-20'} transition-all duration-300`}>
+      <div
+        className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? "w-64" : "w-20"} transition-all duration-300`}
+      >
         <div className="flex-1 px-4 py-8 space-y-4">
           <Skeleton variant="rectangular" height={40} className="bg-white/10" />
           <Skeleton variant="rectangular" height={40} className="bg-white/10" />
@@ -291,18 +339,31 @@ const Sidebar = ({ tokenParsed }) => {
       <>
         <div className="mobile-header w-full bg-[#1a365d] flex items-center justify-between px-4 py-3 shrink-0 z-[1001] shadow-md">
           <span className="font-bold text-lg text-white">Thinkcloud</span>
-          <button onClick={handleMobileSidebar} className="text-white p-1 hover:bg-white/10 rounded transition-colors">
-            {mobileOpen ? <XMarkIcon className="h-7 w-7" /> : <Bars3Icon className="h-7 w-7" />}
+          <button
+            onClick={handleMobileSidebar}
+            className="text-white p-1 hover:bg-white/10 rounded transition-colors"
+          >
+            {mobileOpen ? (
+              <XMarkIcon className="h-7 w-7" />
+            ) : (
+              <Bars3Icon className="h-7 w-7" />
+            )}
           </button>
         </div>
-        
+
         {mobileOpen && (
           <div className="fixed inset-0 z-[1000] flex">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleMobileSidebar} />
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={handleMobileSidebar}
+            />
             <div className="relative w-64 h-full bg-[#1a365d] text-[#afb8c4] shadow-2xl flex flex-col animate-slide-in">
               <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
                 <span className="font-bold text-lg">Menu</span>
-                <button onClick={handleMobileSidebar} className="text-[#afb8c4]">
+                <button
+                  onClick={handleMobileSidebar}
+                  className="text-[#afb8c4]"
+                >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
@@ -321,7 +382,9 @@ const Sidebar = ({ tokenParsed }) => {
 
   // Desktop/Tablet View
   return (
-    <div className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? 'w-64' : 'w-20'} transition-all duration-300 shrink-0`}>
+    <div
+      className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? "w-64" : "w-20"} transition-all duration-300 shrink-0`}
+    >
       <div className="flex items-center justify-between px-4 py-3 bg-[#1a365d] shrink-0 border-b border-white/10">
         <div className="flex items-center gap-2">
           {isToggled ? (
@@ -352,12 +415,14 @@ const Sidebar = ({ tokenParsed }) => {
           </button>
         )}
       </div>
-      
+
       {isToggled ? (
         <>
           <div className="flex-1 sidebar_scrollbar">
             <div className="py-7 px-2">
-              <nav className="flex flex-col gap-2">{renderMenuItems(navState)}</nav>
+              <nav className="flex flex-col gap-2">
+                {renderMenuItems(navState)}
+              </nav>
             </div>
           </div>
           <div className="shrink-0 p-4 border-t border-white/10">
@@ -377,14 +442,21 @@ const Sidebar = ({ tokenParsed }) => {
                     item.current
                       ? "bg-[#f5f5f5] text-[#1a365d] font-small"
                       : "hover:bg-[#f5f5f5ab] hover:text-[#1a365d]",
-                    "menu-item rounded-md p-2 flex flex-col items-center cursor-pointer relative"
+                    "menu-item rounded-md p-2 flex flex-col items-center cursor-pointer relative",
                   )}
                   title={item.name}
                 >
                   <FontAwesomeIcon icon={getIcon(item.name, 0)} size="lg" />
                   {item.beta && <Beta />}
                   {hasSubmenu && openSubMenus[0] === item.name && (
-                    <div style={{position: 'absolute', left: '100%', top: 0, zIndex: 100}}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "100%",
+                        top: 0,
+                        zIndex: 100,
+                      }}
+                    >
                       {renderCollapsedMenu(item.submenus, 1, item.name)}
                     </div>
                   )}

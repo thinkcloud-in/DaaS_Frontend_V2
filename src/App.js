@@ -82,9 +82,15 @@ const ChangePassword = React.lazy(
   () => import("./Components/Login/ChangePassword"),
 );
 const HyperV = React.lazy(() => import("./Components/Dashboard/HyperV/HyperV"));
-const HVOverview = React.lazy(() => import("./Components/Dashboard/HyperV/HV-Overview"));
-const HVHosts = React.lazy(() => import("./Components/Dashboard/HyperV/HV-Hosts"));
-const HVDataStores = React.lazy(() => import("./Components/Dashboard/HyperV/HV-DataStores"));
+const HVOverview = React.lazy(
+  () => import("./Components/Dashboard/HyperV/HV-Overview"),
+);
+const HVHosts = React.lazy(
+  () => import("./Components/Dashboard/HyperV/HV-Hosts"),
+);
+const HVDataStores = React.lazy(
+  () => import("./Components/Dashboard/HyperV/HV-DataStores"),
+);
 const HVVMs = React.lazy(() => import("./Components/Dashboard/HyperV/HV-VMs"));
 
 function App() {
@@ -347,10 +353,7 @@ function App() {
                   <Route
                     path="/hyperv/vms"
                     element={
-                      <ProtectedRoute
-                        component={HVVMs}
-                        componentKey="HyperV"
-                      />
+                      <ProtectedRoute component={HVVMs} componentKey="HyperV" />
                     }
                   />
                   {/* Domain Routes */}
@@ -410,7 +413,7 @@ function App() {
                       <ProtectedRoute
                         tokenParsed={tokenParsed}
                         component={VamanitReports}
-                        componentKey="Vamanit Dass Reports"
+                        componentKey="DevRaQ Reports"
                       />
                     }
                   />

@@ -85,7 +85,7 @@ const PoolCreationForm = () => {
   const isHyperVCluster = selectedCluster && selectedCluster.type === "Hyper-V";
   const isProxmoxCluster =
     selectedCluster && selectedCluster.type === "Proxmox";
-  const isVmwareCluster = selectedCluster && selectedCluster.type === "VMware";
+  // const isVmwareCluster = selectedCluster && selectedCluster.type === "VMware";
 
   useEffect(() => {
     if ((!clusters || clusters.length === 0) && token) {
@@ -191,12 +191,12 @@ const PoolCreationForm = () => {
           dispatch(fetchTemplates({ token, clusterId })).unwrap(),
         ]);
       }
-      if (cluster?.type === "VMware") {
-        await Promise.all([
-          dispatch(fetchVmwareDCs({ token, clusterId })).unwrap(),
-          dispatch(fetchVmwareFolders({ token, clusterId })).unwrap(),
-        ]);
-      }
+      // if (cluster?.type === "VMware") {
+      //   await Promise.all([
+      //     dispatch(fetchVmwareDCs({ token, clusterId })).unwrap(),
+      //     dispatch(fetchVmwareFolders({ token, clusterId })).unwrap(),
+      //   ]);
+      // }
     } catch (err) {}
   };
 
@@ -688,7 +688,7 @@ const PoolCreationForm = () => {
                   )}
 
                   {/* VMware-specific fields */}
-                  {isVmwareCluster && (
+                  {/* {isVmwareCluster && (
                     <>
                       <SelectField
                         label="Select DC"
@@ -719,7 +719,7 @@ const PoolCreationForm = () => {
                         ]}
                       />
                     </>
-                  )}
+                  )} */}
 
                   {/* Proxmox-specific fields */}
                   {isProxmoxCluster && (

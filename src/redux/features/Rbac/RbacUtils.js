@@ -1,4 +1,3 @@
-
 export const baseNavigation = [
   {
     name: "Dashboard",
@@ -10,9 +9,17 @@ export const baseNavigation = [
         href: "/vcenter",
         componentKey: "vCenter",
         submenus: [
-          { name: "Overview", href: "/vcenter/overview", componentKey: "Overview" },
+          {
+            name: "Overview",
+            href: "/vcenter/overview",
+            componentKey: "Overview",
+          },
           { name: "Hosts", href: "/vcenter/hosts", componentKey: "Hosts" },
-          { name: "Data Stores", href: "/vcenter/data-stores", componentKey: "Data Stores" },
+          {
+            name: "Data Stores",
+            href: "/vcenter/data-stores",
+            componentKey: "Data Stores",
+          },
           { name: "VMS", href: "/vcenter/vms", componentKey: "VMS" },
         ],
       },
@@ -21,10 +28,26 @@ export const baseNavigation = [
         href: "/proxmox",
         componentKey: "Proxmox",
         submenus: [
-          { name: "PX-Hosts", href: "/proxmox/px-hosts", componentKey: "PX-Hosts" },
-          { name: "PX-Overview", href: "/proxmox/px-overview", componentKey: "PX-Overview" },
-          { name: "PX-Nodes", href: "/proxmox/px-nodes", componentKey: "PX-Nodes" },
-          { name: "PX-Storage", href: "/proxmox/px-storage", componentKey: "PX-Storage" },
+          {
+            name: "PX-Hosts",
+            href: "/proxmox/px-hosts",
+            componentKey: "PX-Hosts",
+          },
+          {
+            name: "PX-Overview",
+            href: "/proxmox/px-overview",
+            componentKey: "PX-Overview",
+          },
+          {
+            name: "PX-Nodes",
+            href: "/proxmox/px-nodes",
+            componentKey: "PX-Nodes",
+          },
+          {
+            name: "PX-Storage",
+            href: "/proxmox/px-storage",
+            componentKey: "PX-Storage",
+          },
           { name: "PX-VMs", href: "/proxmox/px-vms", componentKey: "PX-VMs" },
         ],
       },
@@ -39,9 +62,17 @@ export const baseNavigation = [
         href: "/hyperv",
         componentKey: "HyperV",
         submenus: [
-          { name: "Overview", href: "/hyperv/overview", componentKey: "HyperV" },
+          {
+            name: "Overview",
+            href: "/hyperv/overview",
+            componentKey: "HyperV",
+          },
           { name: "Hosts", href: "/hyperv/hosts", componentKey: "HyperV" },
-          { name: "Data Stores", href: "/hyperv/data-stores", componentKey: "HyperV" },
+          {
+            name: "Data Stores",
+            href: "/hyperv/data-stores",
+            componentKey: "HyperV",
+          },
           { name: "VMS", href: "/hyperv/vms", componentKey: "HyperV" },
         ],
       },
@@ -53,12 +84,19 @@ export const baseNavigation = [
     componentKey: "Reports",
     submenus: [
       { name: "Template", href: "/template", componentKey: "Template" },
-      // { name: "Horizon Reports", href: "/reports/horizon", componentKey: "Horizon Reports" },
-      { name: "Vamanit Dass Reports", href: "/reports/vamanit", componentKey: "Vamanit Dass Reports" },
+      {
+        name: "DevRaQ Reports",
+        href: "/reports/vamanit",
+        componentKey: "DevRaQ Reports",
+      },
     ],
   },
   { name: "Recordings", href: "/recordings", componentKey: "Recordings" },
-  { name: "ActiveSessions", href: "/active-sessions", componentKey: "ActiveSessions" },
+  {
+    name: "ActiveSessions",
+    href: "/active-sessions",
+    componentKey: "ActiveSessions",
+  },
   { name: "Schedule", href: "/Reportlist", componentKey: "Schedule" },
   { name: "VDI Pools", href: "/pools", componentKey: "Pools" },
   { name: "IP Pools", href: "/ip-pools", componentKey: "IpPools" },
@@ -76,7 +114,6 @@ export const baseNavigation = [
       { name: "SMTP", href: "/SmtpConfig", componentKey: "SMTP" },
       { name: "RBAC", href: "/user_management", componentKey: "RBAC" },
       // { name: "Retention Period", href: "/retention-period", componentKey: "Retention Period" },
-    
     ],
   },
 ];
@@ -85,10 +122,14 @@ export const filterNavigation = (navItems, allowedComponents) => {
     .map((item) => {
       let filteredItem = { ...item };
       if (item.submenus && item.submenus.length > 0) {
-        filteredItem.submenus = filterNavigation(item.submenus, allowedComponents);
+        filteredItem.submenus = filterNavigation(
+          item.submenus,
+          allowedComponents,
+        );
       }
       const isAccessible = allowedComponents.includes(item.componentKey);
-      const hasAccessibleSubmenus = filteredItem.submenus && filteredItem.submenus.length > 0;
+      const hasAccessibleSubmenus =
+        filteredItem.submenus && filteredItem.submenus.length > 0;
       if (isAccessible || hasAccessibleSubmenus) {
         return filteredItem;
       }

@@ -4,7 +4,7 @@ import { getEnv } from "utils/getEnv";
 const backendUrl = getEnv("BACKEND_URL");
 const HorizonReportsUrl = getEnv("HORIZON_REPORT_URL");
 
-// Vamanit Reports APIs
+// Devraq Reports APIs
 export const fetchVamanitAllUsers = async (token, start, end) => {
   const response = await axiosInstance.get(
     `${backendUrl}/v1/guacamole/vamanit_allusers/${start}/${end}`,

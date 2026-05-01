@@ -1,8 +1,11 @@
 import { updatePoolStatus } from "../../Services/PoolService";
 import React, { useState } from "react";
-import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
+import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import { useSelector } from "react-redux";
-import { selectAvailablePools, selectIsPoolAvailable } from "../../redux/features/Pools/PoolsSelectors";
+import {
+  selectAvailablePools,
+  selectIsPoolAvailable,
+} from "../../redux/features/Pools/PoolsSelectors";
 import "./css/ShowPools.css";
 import { useNavigate } from "react-router-dom";
 
@@ -27,30 +30,39 @@ const ShowPools = () => {
     navigate("/");
   };
 
-
-
- const handleStatusAction = async (action) => {
-  if (selectedPools.length === 0) return;
-  const status = action === "enable" ? "enabled" : "disabled";
-  try {
-    const data = await updatePoolStatus(selectedPools, status);
-    alert(`Pools updated: ${data.updated_pools.join(", ")}`);
-    setShowStatusDropdown(false);
-  } catch (error) {
-    alert("Error updating pool status");
-  }
-};
+  const handleStatusAction = async (action) => {
+    if (selectedPools.length === 0) return;
+    const status = action === "enable" ? "enabled" : "disabled";
+    try {
+      const data = await updatePoolStatus(selectedPools, status);
+      alert(`Pools updated: ${data.updated_pools.join(", ")}`);
+      setShowStatusDropdown(false);
+    } catch (error) {
+      alert("Error updating pool status");
+    }
+  };
 
   return (
     <div className="w-[98%] min-h-[75vh] m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
       <div className="flex justify-between items-center mb-4">
-         <div
+        <div
           onClick={Goback}
           className="ml-2 bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </div>
         <h2 className="text-lg font-semibold text-gray-700">Available Pools</h2>
         <div className="flex gap-2 items-center ">
@@ -95,7 +107,6 @@ const ShowPools = () => {
           >
             + New Pool
           </button>
-          
         </div>
       </div>
 
@@ -129,7 +140,7 @@ const ShowPools = () => {
                     >
                       {header}
                     </th>
-                  )
+                  ),
                 )}
               </tr>
             </thead>
@@ -163,13 +174,22 @@ const ShowPools = () => {
                       >
                         {item.pool_type}
                       </td>
-                      <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
+                      <td
+                        className="py-2 px-3 cursor-pointer"
+                        onClick={() => handlePoolSelection(item)}
+                      >
                         {item.cluster ? item.cluster : "fetching..."}
                       </td>
-                      <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
+                      <td
+                        className="py-2 px-3 cursor-pointer"
+                        onClick={() => handlePoolSelection(item)}
+                      >
                         {item.entitled ? item.entitled : 0}
                       </td>
-                      <td className="py-2 px-3 cursor-pointer" onClick={() => handlePoolSelection(item)}>
+                      <td
+                        className="py-2 px-3 cursor-pointer"
+                        onClick={() => handlePoolSelection(item)}
+                      >
                         {Array.isArray(item.pool_machines) &&
                         item.pool_machines.length > 0
                           ? `${item.pool_machines.length} machine${

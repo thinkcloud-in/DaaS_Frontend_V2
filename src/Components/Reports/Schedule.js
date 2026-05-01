@@ -211,8 +211,7 @@ export default function Auto_Mail() {
                 onChange={(e) => setFormData({ ...formData, report: e.target.value })}
                 required={true}
                 options={[
-                  { value: 'Vamanit', label: 'Vamanit Daas Reports' },
-                  { value: 'Horizon', label: 'Horizon Reports' }
+                  { value: 'Vamanit', label: 'DevRaQ Reports' }
                 ]}
               />
 
