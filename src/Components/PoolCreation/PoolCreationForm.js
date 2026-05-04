@@ -54,17 +54,12 @@ const PoolCreationForm = () => {
   const isLoading = useSelector(selectPoolSaveLoading);
   const clustersRaw = useSelector(selectAllClusters);
   const clusters = useMemo(() => clustersRaw || [], [clustersRaw]);
-
   const poolDetails = useSelector(selectPoolCreationDetails) || {};
   const dispatch = useDispatch();
-
   const nodes = useSelector(selectCreationNodes) || [];
   const templates = useSelector(selectCreationTemplates) || [];
   const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
-  const vmwareDCs = useSelector(selectCreationVmwareDCs) || [];
-  const vmwareFolders = useSelector(selectCreationVmwareFolders) || [];
   const switches = useSelector(selectCreationSwitches) || [];
-  const ispoolloading = useSelector(selectPoolsLoading);
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
   const storages = useSelector((state) => state.pools.proxmoxStorages);
@@ -145,6 +140,30 @@ const PoolCreationForm = () => {
     dispatch,
     poolDetails.pool_template_vm_id,
   ]);
+  
+  useEffect(() => {
+    if (
+      isHyperVCluster &&
+      poolDetails.pool_template_vm_id?.is_cluster &&
+      nodes.length > 0
+    ) {
+      const allNodeValues = nodes.map(
+        (n) => n.Node_name || n.name || n.IP || "Unknown Node",
+      );
+      if (
+        JSON.stringify(poolDetails.pool_selected_nodes || []) !==
+        JSON.stringify(allNodeValues)
+      ) {
+        dispatch(setPoolCreationDetails({ pool_selected_nodes: allNodeValues }));
+      }
+    }
+  }, [
+    isHyperVCluster,
+    poolDetails.pool_template_vm_id?.is_cluster,
+    nodes,
+    dispatch,
+    poolDetails.pool_selected_nodes,
+  ]);
 
   const handleClusterSelect = async (e) => {
     const clusterId = e.target.value;
@@ -183,6 +202,9 @@ const PoolCreationForm = () => {
       if (cluster?.type === "Hyper-V") {
         await Promise.all([
           dispatch(fetchSwitches({ token, clusterId })).unwrap(),
+          dispatch(
+            fetchClusterNodes({ token, clusterId, type: "Hyper-V" }),
+          ).unwrap(),
         ]);
       }
       if (cluster?.type === "Proxmox") {
@@ -540,8 +562,8 @@ const PoolCreationForm = () => {
   };
 
   const nodeOptions = nodes.map((node) => ({
-    label: node.name,
-    value: node.name,
+    label: node.Node_name || node.name || node.IP || "Unknown Node",
+    value: node.Node_name || node.name || node.IP || "Unknown Node",
   }));
 
   const selectedStorageOption =
@@ -721,7 +743,6 @@ const PoolCreationForm = () => {
                     </>
                   )} */}
 
-                  {/* Proxmox-specific fields */}
                   {isProxmoxCluster && (
                     <>
                       <div className="mb-6 flex items-start">
@@ -910,25 +931,29 @@ const PoolCreationForm = () => {
                           <Select
                             isMulti
                             name="pool_selected_nodes"
-                            value={nodeOptions.filter((opt) =>
-                              (poolDetails.pool_selected_nodes || []).includes(
-                                opt.value,
-                              ),
-                            )}
+                            value={
+                              isHyperVCluster &&
+                              poolDetails.pool_template_vm_id?.is_cluster
+                                ? nodeOptions
+                                : nodeOptions.filter((opt) =>
+                                    (
+                                      poolDetails.pool_selected_nodes || []
+                                    ).includes(opt.value),
+                                  )
+                            }
                             onChange={handleNodesChange}
                             options={nodeOptions}
                             className="basic-multi-select bg-white"
                             classNamePrefix="select"
-                            placeholder="Now not applicable for Hyper-V"
+                            placeholder={
+                              isHyperVCluster &&
+                              poolDetails.pool_template_vm_id?.is_cluster
+                                ? "All cluster nodes"
+                                : "Select Nodes"
+                            }
                             isDisabled={true}
-                            noOptionsMessage={() => "Not applicable"}
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                cursor: "not-allowed",
-                                backgroundColor: "#f3f4f6",
-                              }),
-                            }}
+                            noOptionsMessage={() => "No nodes available"}
+                            required
                           />
                         </div>
                       </div>
@@ -988,7 +1013,6 @@ const PoolCreationForm = () => {
                         ]}
                       />
 
-                      {/* ── Memory & Processor Group ────────────────────────── */}
                       <InputField
                         label="Memory (GB)"
                         name="hyperv_memory"
@@ -1003,7 +1027,6 @@ const PoolCreationForm = () => {
                         max="64"
                       />
 
-                      {/* Dynamic Memory Checkbox */}
                       <div className="mb-4 flex items-center">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
                           <span>

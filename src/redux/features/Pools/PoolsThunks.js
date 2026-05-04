@@ -19,6 +19,7 @@ import {
   rebuildVMService,
   getIpPoolNames,
   getClusterNodes,
+  getHyperVNodes,
   getTemplates,
   getVmwareDCs,
   getVmwareFolders,
@@ -348,9 +349,14 @@ export const fetchIpPoolNames = createAsyncThunk(
 
 export const fetchClusterNodes = createAsyncThunk(
   "pools/fetchClusterNodes",
-  async ({ token, clusterId }, { rejectWithValue }) => {
+  async ({ token, clusterId, type }, { rejectWithValue }) => {
     try {
-      const data = await getClusterNodes(token, clusterId);
+      let data;
+      if (type === "Hyper-V") {
+        data = await getHyperVNodes(token, clusterId);
+      } else {
+        data = await getClusterNodes(token, clusterId);
+      }
       return Array.isArray(data) ? data : [];
     } catch (err) {
       return rejectWithValue(

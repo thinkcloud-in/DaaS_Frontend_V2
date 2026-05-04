@@ -150,6 +150,28 @@ const EditPool = (props) => {
     poolDetails.pool_template_vm_id?.is_cluster,
   ]);
 
+  useEffect(() => {
+    if (isHyperV && poolDetails.pool_template_vm_id?.is_cluster && nodes.length > 0) {
+      const allNodeValues = nodes.map(
+        (n) => n.Node_name || n.name || n.IP || "Unknown Node",
+      );
+      if (
+        JSON.stringify(poolDetails.pool_selected_nodes || []) !==
+        JSON.stringify(allNodeValues)
+      ) {
+        setPoolDetails((prev) => ({
+          ...prev,
+          pool_selected_nodes: allNodeValues,
+        }));
+      }
+    }
+  }, [
+    isHyperV,
+    poolDetails.pool_template_vm_id?.is_cluster,
+    nodes,
+    poolDetails.pool_selected_nodes,
+  ]);
+
   // Helper to update a nested field inside pool_template_vm_id
   const setTemplateField = (key, value) => {
     setPoolDetails((prev) => ({
@@ -270,8 +292,8 @@ const EditPool = (props) => {
   const Goback = () => navigate(-1);
 
   const nodeOptions = nodes.map((node) => ({
-    label: node.name,
-    value: node.name,
+    label: node.Node_name || node.name || node.IP || "Unknown Node",
+    value: node.Node_name || node.name || node.IP || "Unknown Node",
   }));
 
   const isHyperV = poolDetails.cluster_type?.toLowerCase() === "hyper-v";
@@ -420,23 +442,34 @@ const EditPool = (props) => {
                         <Select
                           isMulti
                           name="pool_selected_nodes"
-                          value={nodeOptions.filter((opt) =>
-                            (poolDetails.pool_selected_nodes || []).includes(
-                              opt.value,
-                            ),
-                          )}
+                          value={
+                            isHyperV && poolDetails.pool_template_vm_id?.is_cluster
+                              ? nodeOptions
+                              : nodeOptions.filter((opt) =>
+                                  (poolDetails.pool_selected_nodes || []).includes(
+                                    opt.value,
+                                  ),
+                                )
+                          }
                           onChange={handleNodesChange}
                           options={nodeOptions}
                           className="basic-multi-select bg-white"
                           classNamePrefix="select"
                           placeholder={
-                            isHyperV
-                              ? "Not applicable for Hyper-V"
+                            isHyperV && poolDetails.pool_template_vm_id?.is_cluster
+                              ? "All cluster nodes"
                               : "Select Nodes"
                           }
-                          isDisabled={isHyperV || nodes.length === 0}
+                          isDisabled={
+                            (isHyperV &&
+                              !!poolDetails.pool_template_vm_id?.is_cluster) ||
+                            nodes.length === 0
+                          }
                           noOptionsMessage={() =>
-                            isHyperV ? "Not applicable" : "No nodes available"
+                            isHyperV &&
+                            poolDetails.pool_template_vm_id?.is_cluster
+                              ? "All nodes selected"
+                              : "No nodes available"
                           }
                         />
                       </div>

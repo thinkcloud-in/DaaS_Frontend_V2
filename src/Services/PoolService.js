@@ -224,6 +224,17 @@ export const getClusterNodes = async (token, cluster_id) => {
   return response.data?.data;
 };
 
+export const getHyperVNodes = async (token, cluster_id) => {
+  const response = await axiosInstance.get(
+    `${backendUrl}/v1/hyper_v/get_node_status_from_cluster`,
+    {
+      params: { cluster_id },
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  return response.data?.data;
+};
+
 export const getProxmoxStorages = async (token, cluster_id, nodes) => {
   const response = await axiosInstance.post(
     `${backendUrl}/v1/get_proxmox_storages`,
