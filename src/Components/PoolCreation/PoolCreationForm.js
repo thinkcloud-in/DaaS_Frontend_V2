@@ -11,8 +11,6 @@ import {
   fetchIpPoolNames,
   fetchClusterNodes,
   fetchTemplates,
-  fetchVmwareDCs,
-  fetchVmwareFolders,
   fetchSwitches,
   fetchProxmoxStorages,
 } from "../../redux/features/Pools/PoolsThunks";
@@ -26,11 +24,9 @@ import {
   selectCreationNodes,
   selectCreationTemplates,
   selectCreationIpPoolNames,
-  selectCreationVmwareDCs,
-  selectCreationVmwareFolders,
   selectPoolSaveLoading,
   selectCreationSwitches,
-  selectPoolsLoading,
+  selectCreationNodesLoading,
 } from "../../redux/features/Pools/PoolsSelectors";
 import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
 import VNCsettings from "./VNCsettings";
@@ -65,6 +61,14 @@ const PoolCreationForm = () => {
   const storages = useSelector((state) => state.pools.proxmoxStorages);
   const userEmail = tokenParsed?.preferred_username;
   const pools = useSelector(selectIpPools);
+  const isNodesLoading = useSelector(selectCreationNodesLoading);
+
+  const selectStyles = {
+    loadingIndicator: (base) => ({
+      ...base,
+      color: "#1a365d",
+    }),
+  };
 
   useEffect(() => {
     if (token) {
@@ -564,6 +568,7 @@ const PoolCreationForm = () => {
   const nodeOptions = nodes.map((node) => ({
     label: node.Node_name || node.name || node.IP || "Unknown Node",
     value: node.Node_name || node.name || node.IP || "Unknown Node",
+    status: node.Status,
   }));
 
   const selectedStorageOption =
@@ -954,6 +959,17 @@ const PoolCreationForm = () => {
                             isDisabled={true}
                             noOptionsMessage={() => "No nodes available"}
                             required
+                            isLoading={isHyperVCluster && isNodesLoading}
+                            styles={selectStyles}
+                            formatOptionLabel={({ label, status }) => (
+                              <div className="flex items-center gap-2">
+                                <span>{label}</span>
+                                {isHyperVCluster &&
+                                  status?.toLowerCase() === "up" && (
+                                    <i className="fas fa-check-circle text-green-500 text-xs"></i>
+                                  )}
+                              </div>
+                            )}
                           />
                         </div>
                       </div>

@@ -98,8 +98,6 @@ export const initialPoolDetails = {
   pool_naming_pattern: "",
   pool_template_vm_id: null,
   pool_selected_nodes: [],
-  pool_vmware_dc: "",
-  pool_vmware_folder: "",
   gateway: "",
   subnet: "",
   dns: "",

@@ -24,4 +24,5 @@ export const selectCreationVmwareFolders = (state) => state.pools?.creationVmwar
 export const selectPoolCreationError = (state) => state.pools?.poolCreationError || null;
 export const selectCurrentPoolDetails = (state) => state.pools?.currentPoolDetails || {};
 export const selectCreationSwitches = (state) => state.pools?.creationSwitches || [];
+export const selectCreationNodesLoading = (state) => !!state.pools?.creationNodesLoading;
 

@@ -30,6 +30,7 @@ import {
   selectCreationVmwareFolders,
   selectPoolSaveLoading,
   selectCreationSwitches,
+  selectCreationNodesLoading,
 } from "../../redux/features/Pools/PoolsSelectors";
 import { Loader2 } from "lucide-react";
 import { Slide, toast } from "react-toastify";
@@ -60,6 +61,7 @@ const EditPool = (props) => {
   const userEmail = tokenParsed?.preferred_username || tokenParsed?.email || "";
   const clusters = useSelector(selectAllClusters) || [];
   const dispatch = useDispatch();
+  const isNodesLoading = useSelector(selectCreationNodesLoading);
 
   const selectedCluster = useMemo(() => {
     if (!poolDetails.cluster_id || clusters.length === 0) return null;
@@ -78,6 +80,10 @@ const EditPool = (props) => {
       borderColor: state.isFocused ? "#3b82f6" : "#d1d5db",
       boxShadow: state.isFocused ? "0 0 0 1px #3b82f6" : "none",
       "&:hover": { borderColor: "#3b82f6" },
+    }),
+    loadingIndicator: (base) => ({
+      ...base,
+      color: "#1a365d",
     }),
   };
 
@@ -471,6 +477,8 @@ const EditPool = (props) => {
                               ? "All nodes selected"
                               : "No nodes available"
                           }
+                          isLoading={isHyperV && isNodesLoading}
+                          styles={selectStyles}
                         />
                       </div>
                     </div>

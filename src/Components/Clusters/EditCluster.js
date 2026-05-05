@@ -95,7 +95,7 @@ const EditCluster = () => {
         monitoring.monitoringData &&
         (monitoring.monitoringData.monitoring ||
           monitoring.monitoringData.organization)
-      )
+      ),
     );
   }, [cluster, token, clusterId, dispatch]);
 
@@ -105,7 +105,7 @@ const EditCluster = () => {
     setMonitoringChecked(checked);
     if (checked) {
       const action = await dispatch(
-        fetchInfluxdbDetailsThunk({ token, clusterId })
+        fetchInfluxdbDetailsThunk({ token, clusterId }),
       );
       const influxdb = action?.payload;
       if (!influxdb || influxdb.error) {
@@ -123,7 +123,7 @@ const EditCluster = () => {
     if (confirm) {
       try {
         await dispatch(
-          addInfluxdbThunk({ token, clusterId, isCustomIntegration: true })
+          addInfluxdbThunk({ token, clusterId, isCustomIntegration: true }),
         );
         dispatch(fetchEditInfluxdbDetailsThunk({ token, clusterId }));
         toast.success("Monitoring integration added successfully");
@@ -158,8 +158,8 @@ const EditCluster = () => {
         payload.node_type = hyperVNodeType.standalone
           ? "Standalone"
           : hyperVNodeType.cluster
-          ? "Cluster"
-          : null;
+            ? "Cluster"
+            : null;
       }
 
       await dispatch(updateClusterThunk({ token, clusterId, payload }));
@@ -212,7 +212,9 @@ const EditCluster = () => {
         </div>
       </div>
       <div className="cluster-creation-form overflow-y-auto rounded-md bg-white custom-scrollbar ">
-        <div className={`space-y-5 m-2 ${isLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}>
+        <div
+          className={`space-y-5 m-2 ${isLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}
+        >
           <div className="mx-10 p-3 rounded-md w-3/4">
             <h2 className="font-bold leading-7 text-gray-900 text-left">
               Edit Cluster
@@ -343,26 +345,36 @@ const EditCluster = () => {
                   </div>
                 </div>
               )}
-              {<div className="tr">
-                <div className="th">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
-                    {formCluster.type === "Hyper-V" ? "Agent Port" : "Port"}
-                  </label>
-                </div>
-                <div className="td">
-                  <div className="mt-2  border-0">
-                    <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
-                      <input
-                        onChange={handleOnChange}
-                        value={formCluster.type === "Hyper-V" ? formCluster.agent_port || "": formCluster.port || ""}
-                        type="number"
-                        name={formCluster.type === "Hyper-V" ? "agent_port" : "port"}
-                        className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
-                      />
+              {
+                <div className="tr">
+                  <div className="th">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+                      {formCluster.type === "Hyper-V" ? "Agent Port" : "Port"}
+                    </label>
+                  </div>
+                  <div className="td">
+                    <div className="mt-2  border-0">
+                      <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
+                        <input
+                          onChange={handleOnChange}
+                          value={
+                            formCluster.type === "Hyper-V"
+                              ? formCluster.agent_port || ""
+                              : formCluster.port || ""
+                          }
+                          type="number"
+                          name={
+                            formCluster.type === "Hyper-V"
+                              ? "agent_port"
+                              : "port"
+                          }
+                          className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>}
+              }
               <div className="tr">
                 <div className="th">
                   <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
@@ -483,26 +495,28 @@ const EditCluster = () => {
                 </div>
               )}
 
-              <div className="tr">
-                <div className="th">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
-                    Insecure Skip Verify
-                  </label>
-                </div>
-                <div className="td">
-                  <div className="mt-2 border-0">
-                    <label className="switch">
-                      <input
-                        type="checkbox"
-                        onChange={handleChange}
-                        name="tls"
-                        checked={!!formCluster.tls}
-                      />
-                      <span className="slider round"></span>
+              {formCluster.type.toLowerCase() !== "hyper-v" && (
+                <div className="tr">
+                  <div className="th">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      Insecure Skip Verify
                     </label>
                   </div>
+                  <div className="td">
+                    <div className="mt-2 border-0">
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          onChange={handleChange}
+                          name="tls"
+                          checked={!!formCluster.tls}
+                        />
+                        <span className="slider round"></span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -563,7 +577,7 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.organization || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400  focus:ring-indigo-600 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400  focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
@@ -580,7 +594,7 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.bucket || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
@@ -596,7 +610,7 @@ const EditCluster = () => {
                         type="text"
                         value={monitoring.monitoringData.token || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                         readOnly
                       />
@@ -614,7 +628,7 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.server || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
@@ -631,7 +645,7 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.port || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
@@ -652,7 +666,7 @@ const EditCluster = () => {
                           ""
                         }
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2"
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>

@@ -934,27 +934,29 @@ const ClusterCreationForm = () => {
                   </div>
                 )}
 
-                <div className="mb-6 flex items-center">
-                  <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
-                    <span>
-                      <i className="fas fa-shield-halved mr-2"></i>
-                    </span>{" "}
-                    Insecure Skip Verify
-                  </label>
-                  <div className="ml-2 flex-1">
-                    <label className="switch mt-1">
-                      <input
-                        type="checkbox"
-                        name="tls"
-                        disabled={isDisabled}
-                        onChange={handleChange}
-                        ref={checkboxRef}
-                        checked={clusterDetails.tls}
-                      />
-                      <span className="slider round"></span>
+                {clusterDetails.type.toLowerCase() !== "hyper-v" && (
+                  <div className="mb-6 flex items-center">
+                    <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                      <span>
+                        <i className="fas fa-shield-halved mr-2"></i>
+                      </span>{" "}
+                      Insecure Skip Verify
                     </label>
+                    <div className="ml-2 flex-1">
+                      <label className="switch mt-1">
+                        <input
+                          type="checkbox"
+                          name="tls"
+                          disabled={isDisabled}
+                          onChange={handleChange}
+                          ref={checkboxRef}
+                          checked={clusterDetails.tls}
+                        />
+                        <span className="slider round"></span>
+                      </label>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

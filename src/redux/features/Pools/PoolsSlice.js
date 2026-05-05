@@ -62,6 +62,7 @@ const initialState = {
   proxmoxStorages: [],
   proxmoxStoragesLoading: false,
   proxmoxStoragesError: null,
+  creationNodesLoading: false,
 };
 
 const poolsSlice = createSlice({
@@ -465,12 +466,14 @@ const poolsSlice = createSlice({
         state.creationIpPoolNames = [];
       })
       .addCase(fetchClusterNodes.pending, (state) => {
-        // nothing
+        state.creationNodesLoading = true;
       })
       .addCase(fetchClusterNodes.fulfilled, (state, action) => {
+        state.creationNodesLoading = false;
         state.creationNodes = action.payload || [];
       })
       .addCase(fetchClusterNodes.rejected, (state) => {
+        state.creationNodesLoading = false;
         state.creationNodes = [];
       })
       .addCase(fetchTemplates.pending, (state) => {
