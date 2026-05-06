@@ -34,29 +34,35 @@ const PasswordField = ({
           </div>
         )}
       </label>
-      <div className={`relative ${className} ml-2`}>
-        <input
-          type={showPassword ? "text" : "password"}
-          name={name}
-          value={value}
-          onChange={onChange}
-          className={`w-full border border-gray-300 rounded-lg px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-            error ? "border-red-400" : ""
-          }  ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoComplete="new-password"
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-          tabIndex={-1}
-        >
-          {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-        </button>
+      <div className={`flex flex-col flex-1 ${className}`}>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            name={name}
+            value={value}
+            onChange={onChange}
+            className={`w-full border border-gray-300 rounded-lg px-3 py-1 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
+              error ? "border-red-400" : ""
+            }  ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
+            placeholder={placeholder}
+            disabled={disabled}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            tabIndex={-1}
+          >
+            {showPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+          </button>
+        </div>
+        {error && (
+          <div className="text-red-600 text-[11px] mt-1 font-medium leading-tight">
+            {error}
+          </div>
+        )}
       </div>
-      {error && <div className="text-red-600 text-sm mt-1 ml-2">{error}</div>}
     </div>
   );
 };

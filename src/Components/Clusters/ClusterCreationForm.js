@@ -928,7 +928,7 @@ const ClusterCreationForm = () => {
                           onChange={() => handleHyperVNodeSelection("cluster")}
                           name="nodeType"
                         />
-                        <span>Multi-Node</span>
+                        <span>Failover Cluster</span>
                       </label>
                     </div>
                   </div>

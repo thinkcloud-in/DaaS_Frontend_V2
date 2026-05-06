@@ -37,19 +37,25 @@ const InputField = ({
           </div>
         )}
       </label>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className={`${className} border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-          error ? "border-red-400" : ""
-        } ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
-        placeholder={placeholder}
-        disabled={disabled}
-        {...rest}
-      />
-      {error && <div className="text-red-600 text-sm mt-1 ml-2">{error}</div>}
+      <div className="flex flex-col flex-1">
+        <input
+          type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
+          className={`${className} border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
+            error ? "border-red-400" : ""
+          } ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
+          placeholder={placeholder}
+          disabled={disabled}
+          {...rest}
+        />
+        {error && (
+          <div className="text-red-600 text-[11px] mt-1 font-medium leading-tight">
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

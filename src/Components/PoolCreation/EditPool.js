@@ -155,6 +155,7 @@ const EditPool = (props) => {
     clusters,
     poolDetails.pool_template_vm_id?.is_cluster,
   ]);
+  const isHyperV = poolDetails.cluster_type?.toLowerCase() === "hyper-v";
 
   useEffect(() => {
     if (isHyperV && poolDetails.pool_template_vm_id?.is_cluster && nodes.length > 0) {
@@ -302,7 +303,7 @@ const EditPool = (props) => {
     value: node.Node_name || node.name || node.IP || "Unknown Node",
   }));
 
-  const isHyperV = poolDetails.cluster_type?.toLowerCase() === "hyper-v";
+  
   const isDynamicMemory = poolDetails.pool_template_vm_id?.dynamic_memory;
   console.log("isDynamicMemory", isDynamicMemory);
   const hasJoinAD = !!poolDetails.pool_ad_username;

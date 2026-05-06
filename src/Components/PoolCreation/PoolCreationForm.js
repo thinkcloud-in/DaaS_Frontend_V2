@@ -47,6 +47,7 @@ const PoolCreationForm = () => {
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
   const [error, setError] = useState(null);
+  const [memoryErrors, setMemoryErrors] = useState({});
   const isLoading = useSelector(selectPoolSaveLoading);
   const clustersRaw = useSelector(selectAllClusters);
   const clusters = useMemo(() => clustersRaw || [], [clustersRaw]);
@@ -144,7 +145,7 @@ const PoolCreationForm = () => {
     dispatch,
     poolDetails.pool_template_vm_id,
   ]);
-  
+
   useEffect(() => {
     if (
       isHyperVCluster &&
@@ -158,7 +159,9 @@ const PoolCreationForm = () => {
         JSON.stringify(poolDetails.pool_selected_nodes || []) !==
         JSON.stringify(allNodeValues)
       ) {
-        dispatch(setPoolCreationDetails({ pool_selected_nodes: allNodeValues }));
+        dispatch(
+          setPoolCreationDetails({ pool_selected_nodes: allNodeValues }),
+        );
       }
     }
   }, [
@@ -177,8 +180,9 @@ const PoolCreationForm = () => {
     if (cluster?.type === "Hyper-V") {
       let genStr = poolDetails.pool_template_vm_id?.generation || "";
       let generation = genStr === "Gen2" ? 2 : genStr === "Gen1" ? 1 : "";
-      const is_cluster =
-        ["multinode", "cluster"].includes(cluster.node_type?.toLowerCase().replace(/\s/g, ""));
+      const is_cluster = ["multinode", "cluster"].includes(
+        cluster.node_type?.toLowerCase().replace(/\s/g, ""),
+      );
       templateVmId = {
         generation,
         memory: poolDetails.pool_template_vm_id?.memory || "",
@@ -329,6 +333,37 @@ const PoolCreationForm = () => {
       } else {
         fieldValue = value;
         keyName = name.replace("hyperv_", "");
+      }
+
+      // Add validation for Dynamic Memory fields
+      if (isHyperVCluster && prev.dynamic_memory) {
+        const memoryVal = keyName === "memory" ? fieldValue : (prev.memory || 0);
+        const minVal = keyName === "minimum_memory" ? fieldValue : (prev.minimum_memory || 512);
+        const maxVal = keyName === "maximum_memory" ? fieldValue : (prev.maximum_memory || 2048);
+        
+        let errors = { ...memoryErrors };
+        
+        if (keyName === "memory" || keyName === "minimum_memory") {
+          if (minVal < 32) {
+            errors.minimum_memory = "Min memory must be at least 32 MB";
+          } else if (memoryVal && minVal > memoryVal * 1024) {
+            errors.minimum_memory = `Min memory cannot exceed Startup RAM (${memoryVal * 1024} MB)`;
+          } else {
+            delete errors.minimum_memory;
+          }
+        }
+        
+        if (keyName === "memory" || keyName === "maximum_memory") {
+          if (memoryVal && maxVal < memoryVal * 1024) {
+            errors.maximum_memory = `Max memory must be at least Startup RAM (${memoryVal * 1024} MB)`;
+          } else if (maxVal > 128 * 1024) {
+            errors.maximum_memory = "Max memory cannot exceed 128 GB (131072 MB)";
+          } else {
+            delete errors.maximum_memory;
+          }
+        }
+        
+        setMemoryErrors(errors);
       }
 
       dispatch(
@@ -531,6 +566,15 @@ const PoolCreationForm = () => {
         pauseOnHover: true,
         theme: "light",
         transition: Slide,
+      });
+      return;
+    }
+
+    if (isHyperVCluster && Object.keys(memoryErrors).length > 0) {
+      toast.error("Please fix the dynamic memory validation errors before proceeding.", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "light",
       });
       return;
     }
@@ -975,6 +1019,16 @@ const PoolCreationForm = () => {
                       </div>
 
                       <InputField
+                        label="Parent Disk Path"
+                        name="hyperv_PvhdPath"
+                        iconClass="fa-folder-open"
+                        value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
+                        onChange={handleOnChange}
+                        placeholder="Enter Parent Disk Path"
+                        required={true}
+                      />
+
+                      <InputField
                         label="Child Disk path"
                         name="hyperv_vhdPath"
                         iconClass="fa-hard-drive"
@@ -985,25 +1039,19 @@ const PoolCreationForm = () => {
                         tooltip="It should be the root folder where the VM's all structure will be created!"
                       />
 
-                      <InputField
-                        label="Parent Disk Path"
-                        name="hyperv_PvhdPath"
-                        iconClass="fa-folder-open"
-                        value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
-                        onChange={handleOnChange}
-                        placeholder="Enter Parent Disk Path"
-                        required={true}
-                      />
-
-                      <PasswordField
-                        label="Host Password"
-                        name="hyperv_HostPassword"
-                        iconClass="fa-key"
-                        value={poolDetails.pool_template_vm_id?.password || ""}
-                        onChange={handleOnChange}
-                        placeholder="Enter Host password"
-                        tooltip="It is used only for Linux. If Pool OS Type is Windows then you may skip it!"
-                      />
+                      {poolDetails.pool_os_type === "Linux" && (
+                        <PasswordField
+                          label="Host Password"
+                          name="hyperv_HostPassword"
+                          iconClass="fa-key"
+                          value={
+                            poolDetails.pool_template_vm_id?.password || ""
+                          }
+                          onChange={handleOnChange}
+                          placeholder="Enter Host password"
+                          required={true}
+                        />
+                      )}
 
                       <SelectField
                         label="Generation"
@@ -1073,7 +1121,7 @@ const PoolCreationForm = () => {
                             type="number"
                             iconClass="fa-memory"
                             value={
-                              poolDetails.pool_template_vm_id?.minimum_memory ||
+                              poolDetails.pool_template_vm_id?.minimum_memory ??
                               512
                             }
                             onChange={handleOnChange}
@@ -1082,6 +1130,7 @@ const PoolCreationForm = () => {
                             min="32"
                             step="2"
                             max={poolDetails.pool_template_vm_id?.memory * 1024}
+                            error={memoryErrors.minimum_memory}
                           />
                           <InputField
                             label="Max Memory (MB)"
@@ -1089,7 +1138,7 @@ const PoolCreationForm = () => {
                             type="number"
                             iconClass="fa-memory"
                             value={
-                              poolDetails.pool_template_vm_id?.maximum_memory ||
+                              poolDetails.pool_template_vm_id?.maximum_memory ??
                               2048
                             }
                             onChange={handleOnChange}
@@ -1098,6 +1147,7 @@ const PoolCreationForm = () => {
                             min={poolDetails.pool_template_vm_id?.memory * 1024}
                             step="1"
                             max={128 * 1024}
+                            error={memoryErrors.maximum_memory}
                           />
                           <InputField
                             label="Buffer Memory (%)"
@@ -1106,7 +1156,7 @@ const PoolCreationForm = () => {
                             iconClass="fa-percent"
                             value={
                               poolDetails.pool_template_vm_id?.buffer_memory ||
-                              ""
+                              20
                             }
                             onChange={handleOnChange}
                             placeholder="Buffer percentage (e.g. 20)"
@@ -1137,7 +1187,9 @@ const PoolCreationForm = () => {
                       {/* Priority Field — appears only if cluster and pool type is Automated */}
                       {poolDetails.pool_type === "Automated" &&
                         ["multinode", "cluster"].includes(
-                          selectedCluster?.node_type?.toLowerCase().replace(/\s/g, "")
+                          selectedCluster?.node_type
+                            ?.toLowerCase()
+                            .replace(/\s/g, ""),
                         ) && (
                           <SelectField
                             label="Priority"

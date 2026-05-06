@@ -488,7 +488,7 @@ const EditCluster = () => {
                           checked={formCluster.node_type === "Cluster"}
                           disabled
                         />
-                        <span>Cluster</span>
+                        <span>Failover Cluster</span>
                       </label>
                     </div>
                   </div>

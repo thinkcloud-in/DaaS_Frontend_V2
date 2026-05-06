@@ -423,14 +423,14 @@ export default function DomainCreationForm() {
                   <select
                     name="vendor"
                     value={ad.vendor}
-                    onChange={handleOnChange}
+                    // onChange={handleOnChange}
                     className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     <option value="ad">Active Directory</option>
-                    <option value="rhds">Red Hat Directory Server</option>
+                    {/* <option value="rhds">Red Hat Directory Server</option>
                     <option value="tivoli">Tivoli</option>
                     <option value="edirectory">Novell eDirectory</option>
-                    <option value="other">Other</option>
+                    <option value="other">Other</option> */}
                   </select>
                 </div>
               </div>
@@ -455,6 +455,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-gray-300">
                     <input
+                      placeholder="ldap://[IP_ADDRESS]"
                       type="text"
                       name="connectionUrl"
                       value={ad.connectionUrl}
@@ -593,6 +594,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
+                      placeholder="CN=Administrator,CN=Users,DC=yourdomain,DC=com"
                       type="text"
                       name="bindDn"
                       onChange={handleOnChange}
@@ -695,6 +697,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
+                      placeholder="CN=Users,DC=yourdomain,DC=com"
                       type="text"
                       name="usersDn"
                       onChange={handleOnChange}
@@ -716,6 +719,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
+                      placeholder="(e.g. UserPrincipalName)"
                       type="text"
                       name="usernameLDAPAttribute"
                       onChange={handleOnChange}
@@ -737,6 +741,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
+                      placeholder="cn"
                       type="text"
                       name="rdnLDAPAttribute"
                       onChange={handleOnChange}
@@ -758,6 +763,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
+                      placeholder="ObjectGUID"
                       type="text"
                       name="uuidLDAPAttribute"
                       onChange={handleOnChange}
@@ -779,6 +785,7 @@ export default function DomainCreationForm() {
                 <div className="mt-2 border-0">
                   <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
+                      placeholder="(e.g. top,person,organizationalPerson, user)"
                       type="text"
                       name="userObjectClasses"
                       onChange={handleOnChange}

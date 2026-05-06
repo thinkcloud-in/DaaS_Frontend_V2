@@ -10,6 +10,7 @@ const SelectField = ({
   disabled,
   options = [],
   placeholder = "Select an option",
+  error,
   required = false,
   className = "flex-1 max-w-[40rem]",
   tooltip,
@@ -35,28 +36,35 @@ const SelectField = ({
           </div>
         )}
       </label>
-      <select
-        name={name}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        className={`${className} border border-gray-300 rounded-lg px-3 py-1 ml-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
-          disabled ? "bg-gray-100 text-gray-500" : ""
-        }`}
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {options.map((opt) => {
-          const val = typeof opt === "object" ? opt.value : opt;
-          const lbl = typeof opt === "object" ? opt.label : opt;
-          return (
-            <option key={val} value={val} className="capitalize px-1">
-              {lbl}
-            </option>
-          );
-        })}
-      </select>
+      <div className={`flex flex-col flex-1 ${className}`}>
+        <select
+          name={name}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          className={`w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
+            error ? "border-red-400" : ""
+          } ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
+        >
+          <option value="" disabled>
+            {placeholder}
+          </option>
+          {options.map((opt) => {
+            const val = typeof opt === "object" ? opt.value : opt;
+            const lbl = typeof opt === "object" ? opt.label : opt;
+            return (
+              <option key={val} value={val} className="capitalize px-1">
+                {lbl}
+              </option>
+            );
+          })}
+        </select>
+        {error && (
+          <div className="text-red-600 text-[11px] mt-1 font-medium leading-tight">
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
