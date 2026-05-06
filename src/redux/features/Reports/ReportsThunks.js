@@ -73,9 +73,9 @@ export const fetchCompanyDetails = createAsyncThunk(
 
 export const fetchReportsList = createAsyncThunk(
   'reports/fetchReportsList',
-  async ({ token, alignment, page, itemsPerPage }, { rejectWithValue }) => {
+  async ({ token, page, itemsPerPage }, { rejectWithValue }) => {
     try {
-      const data = await fetchReportsListService(token, alignment, page, itemsPerPage);
+      const data = await fetchReportsListService(token, page, itemsPerPage);
       return data || { items: [], total: 0 };
     } catch (err) {
       return rejectWithValue(err?.response?.data || err.message);

@@ -85,9 +85,9 @@ export const baseNavigation = [
     submenus: [
       { name: "Template", href: "/template", componentKey: "Template" },
       {
-        name: "DevRaQ Reports",
+        name: "Generate Reports",
         href: "/reports/vamanit",
-        componentKey: "DevRaQ Reports",
+        componentKey: "Generate Reports",
       },
     ],
   },

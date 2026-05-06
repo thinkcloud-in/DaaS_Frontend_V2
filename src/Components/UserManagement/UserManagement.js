@@ -53,7 +53,7 @@ const componentCategories = {
     IPMI: ["IpmiDashboard"],
     HyperV: ["HyperV"],
   },
-  Reports: ["Template", "DevRaQ Reports"],
+  Reports: ["Template", "Generate Reports"],
   Schedule: ["Schedule"],
   Pools: ["Pools"],
   IpPools: ["IpPools"],

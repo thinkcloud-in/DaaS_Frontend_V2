@@ -413,7 +413,7 @@ function App() {
                       <ProtectedRoute
                         tokenParsed={tokenParsed}
                         component={VamanitReports}
-                        componentKey="DevRaQ Reports"
+                        componentKey="Generate Reports"
                       />
                     }
                   />

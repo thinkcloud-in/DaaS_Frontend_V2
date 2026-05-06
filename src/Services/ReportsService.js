@@ -44,10 +44,10 @@ export const fetchVamanitConsolidateReports = async (token, start, end, user = "
 
 
 // Report List APIs
-export const fetchReportsList = async (token, alignment, currentPage, itemsPerPage) => {
+export const fetchReportsList = async (token, currentPage, itemsPerPage) => {
   const offset = (currentPage - 1) * itemsPerPage;
   const response = await axiosInstance.get(
-    `${backendUrl}/v1/schedule/get_schedules_report/${alignment}?limit=${itemsPerPage}&offset=${offset}`,
+    `${backendUrl}/v1/schedule/get_schedules_report?limit=${itemsPerPage}&offset=${offset}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }

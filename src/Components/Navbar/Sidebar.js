@@ -66,7 +66,7 @@ const getIcon = (name, level = 0, parent = "") => {
         {
           Template: faFileAlt,
           // "Horizon Reports": faChartBar,
-          "DevRaQ Reports": faChartPie,
+          "Generate Reports": faChartPie,
         }[name] || faAngleRight
       );
     }

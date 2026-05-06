@@ -204,18 +204,6 @@ export default function Auto_Mail() {
               />
 
               <SelectField
-                label="Report Type"
-                name="report"
-                iconClass="fa-folder"
-                value={formData.report}
-                onChange={(e) => setFormData({ ...formData, report: e.target.value })}
-                required={true}
-                options={[
-                  { value: 'Vamanit', label: 'DevRaQ Reports' }
-                ]}
-              />
-
-              <SelectField
                 label="Report Name"
                 name="reportName"
                 iconClass="fa-file-lines"
@@ -223,7 +211,6 @@ export default function Auto_Mail() {
                 onChange={handleChange}
                 required={true}
                 options={[
-                  { value: '', label: 'Select Report', disabled: true },
                   { value: 'Session Reports', label: 'Session Reports' },
                   { value: 'Daily Reports', label: 'Daily Reports' },
                   { value: 'Consolidate Reports', label: 'Consolidate Reports' }

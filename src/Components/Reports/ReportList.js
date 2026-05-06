@@ -28,7 +28,6 @@ const ReportList = () => {
   const navigate = useNavigate();
   const token = useSelector(selectAuthToken);
 
-  const [alignment, setAlignment] = useState("DevRaQ");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportDetails, setReportDetails] = useState({});
@@ -44,18 +43,12 @@ const ReportList = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const handleChange = (event, newAlignment) => {
-    if (newAlignment && newAlignment !== alignment) {
-      setAlignment(newAlignment);
-      setCurrentPage(1);
-    }
-  };
 
   const loadList = async () => {
     if (!token) return;
     try {
       const result = await dispatch(
-        fetchReportsList({ token, alignment, page: currentPage, itemsPerPage }),
+        fetchReportsList({ token, page: currentPage, itemsPerPage }),
       ).unwrap();
       const list = result?.items || [];
       // request status for each schedule (non-blocking)
@@ -71,7 +64,7 @@ const ReportList = () => {
 
   useEffect(() => {
     loadList();
-  }, [alignment, currentPage, token]);
+  }, [currentPage, token]);
 
   const handleRefresh = () => loadList();
 
@@ -104,17 +97,32 @@ const ReportList = () => {
     }
   };
 
-  const renderStatusIcon = (status) => {
-    switch (String(status)) {
+  const renderStatusBadge = (status) => {
+    const s = String(status).toUpperCase();
+    switch (s) {
       case "COMPLETED":
-        return <i className="fa-solid fa-check-circle status-icon success"></i>;
+        return (
+          <span className="status-badge completed">
+            <i className="fa-solid fa-check-circle"></i> Completed
+          </span>
+        );
       case "RUNNING":
-        return <i className="fa-solid fa-clock status-icon pending"></i>;
+        return (
+          <span className="status-badge running">
+            <i className="fa-solid fa-clock"></i> Running
+          </span>
+        );
       case "FAILED":
-        return <i className="fa-solid fa-times-circle status-icon failure"></i>;
+        return (
+          <span className="status-badge failed">
+            <i className="fa-solid fa-times-circle"></i> Failed
+          </span>
+        );
       default:
         return (
-          <i className="fa-solid fa-circle-question status-icon default"></i>
+          <span className="status-badge pending">
+            <i className="fa-solid fa-circle-question"></i> {s || "Pending"}
+          </span>
         );
     }
   };
@@ -138,34 +146,6 @@ const ReportList = () => {
           <h1 className="header-title">Scheduled Reports</h1>
 
           <div className="right-controls">
-            <ToggleButtonGroup
-              value={alignment}
-              exclusive
-              onChange={handleChange}
-              aria-label="Platform"
-            >
-              <ToggleButton
-                value="DevRaQ"
-                sx={{
-                  border: "1px solid #1a365dcc",
-                  color: "#1a365dcc",
-                  height: "2.5rem",
-                  width: "10rem",
-                  borderRadius: "5px",
-                  textTransform: "capitalize",
-                  "&:hover": { backgroundColor: "transparent" },
-                  "&.Mui-selected": {
-                    color: "#f5f5f5",
-                    backgroundColor: "#1a365dcc",
-                    "&:hover": { backgroundColor: "#1a365d" },
-                  },
-                }}
-              >
-                <Typography sx={{ fontWeight: "600" }}>
-                  DevRaQ Reports
-                </Typography>
-              </ToggleButton>
-            </ToggleButtonGroup>
 
             <button
               className="refresh-button"
@@ -181,7 +161,7 @@ const ReportList = () => {
 
         {isLoading ? (
           <Box sx={{ width: "100%", mt: 2 }}>
-            <table className="tableRow custom-scrollbar skeleton-loading">
+            <table className="tableRow skeleton-loading">
               <thead>
                 <tr>
                   <th>S.No</th>
@@ -199,7 +179,7 @@ const ReportList = () => {
           </Box>
         ) : (
           <>
-            <table className="tableRow custom-scrollbar bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
+            <table className="tableRow">
               <thead>
                 <tr>
                   <th>S.No</th>
@@ -244,7 +224,7 @@ const ReportList = () => {
                             </div>
                           </span>
                         </td>
-                        <td>{renderStatusIcon(report.status)}</td>
+                        <td>{renderStatusBadge(report.status)}</td>
                         <td>
                           <button
                             className="edit-button"
