@@ -256,35 +256,40 @@ const EditPool = (props) => {
     }));
   };
 
-  const handleVmwareDCChange = (e) => {
-    setPoolDetails((prev) => ({ ...prev, pool_vmware_dc: e.target.value }));
-  };
-
-  const handleVmwareFolderChange = (e) => {
-    setPoolDetails((prev) => ({ ...prev, pool_vmware_folder: e.target.value }));
-  };
-
   const handleOnClick = () => {
-    setIsLoading(true);
     const requestData = { ...poolDetails, email: userEmail };
-    dispatch(updatePool({ token, poolId: poolDetails.id, requestData }))
-      .unwrap()
-      .then((payload) => {
-        if (payload?.pool) setPoolDetails(payload.pool);
-        toast.success(payload?.msg || "Pool updated", {
-          position: "top-right",
-          autoClose: 5000,
+
+    try {
+      // Fire the update request and handle completion in the background
+      dispatch(updatePool({ token, poolId: poolDetails.id, requestData }))
+        .unwrap()
+        .then((payload) => {
+          toast.success(payload?.msg || "Pool updated successfully", {
+            position: "top-right",
+            autoClose: 5000,
+          });
+        })
+        .catch((err) => {
+          toast.error(err?.detail || err?.msg || err?.message || "Pool update failed", {
+            position: "top-right",
+            autoClose: 5000,
+          });
         });
-        navigate("/pools");
-      })
-      .catch((err) => {
-        setPoolDetails({});
-        toast.error(err?.msg || err?.message || "Pool modification failed", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      })
-      .finally(() => setIsLoading(false));
+
+      toast.info("Pool Updation Initialized", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      // Navigate immediately to the pools page
+      navigate("/pools");
+    } catch (err) {
+      const message = err?.msg || err?.message || "Submission failed";
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    }
   };
 
   const securityMode = [

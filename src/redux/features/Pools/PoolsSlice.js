@@ -141,7 +141,10 @@ const poolsSlice = createSlice({
       })
       .addCase(fetchPools.rejected, (state, action) => {
         state.poolsLoading = false;
-        state.error = action.payload || action.error?.message;
+        const payload = action.payload;
+        state.error = (payload && typeof payload === "object")
+          ? (payload.detail || payload.msg || payload.message || JSON.stringify(payload))
+          : (payload || action.error?.message);
         state.availablePools = [];
         state.isPoolAvailable = false;
       })
@@ -181,7 +184,10 @@ const poolsSlice = createSlice({
       })
       .addCase(updateMachine.rejected, (state, action) => {
         state.poolSaveLoading = false;
-        state.error = action.payload || action.error?.message;
+        const payload = action.payload;
+        state.error = (payload && typeof payload === "object")
+          ? (payload.detail || payload.msg || payload.message || JSON.stringify(payload))
+          : (payload || action.error?.message);
       })
 
       // createPool
@@ -203,7 +209,10 @@ const poolsSlice = createSlice({
       })
       .addCase(createPool.rejected, (state, action) => {
         state.poolSaveLoading = false;
-        state.error = action.payload || action.error?.message;
+        const payload = action.payload;
+        state.error = (payload && typeof payload === "object")
+          ? (payload.detail || payload.msg || payload.message || JSON.stringify(payload))
+          : (payload || action.error?.message);
       })
 
       // updatePool
@@ -226,7 +235,10 @@ const poolsSlice = createSlice({
       })
       .addCase(updatePool.rejected, (state, action) => {
         state.poolSaveLoading = false;
-        state.error = action.payload || action.error?.message;
+        const payload = action.payload;
+        state.error = (payload && typeof payload === "object")
+          ? (payload.detail || payload.msg || payload.message || JSON.stringify(payload))
+          : (payload || action.error?.message);
       })
 
       // deletePool
@@ -244,7 +256,10 @@ const poolsSlice = createSlice({
       })
       .addCase(deletePool.rejected, (state, action) => {
         state.poolDeleteLoading = false;
-        state.error = action.payload || action.error?.message;
+        const payload = action.payload;
+        state.error = (payload && typeof payload === "object")
+          ? (payload.detail || payload.msg || payload.message || JSON.stringify(payload))
+          : (payload || action.error?.message);
       })
         .addCase(createMachine.pending, (state) => {
           state.poolSaveLoading = true;
@@ -258,10 +273,13 @@ const poolsSlice = createSlice({
             state.isPoolAvailable = Array.isArray(payload.pools) && payload.pools.length > 0;
           }
         })
-        .addCase(createMachine.rejected, (state, action) => {
-          state.poolSaveLoading = false;
-          state.error = action.payload || action.error?.message;
-        })
+      .addCase(createMachine.rejected, (state, action) => {
+        state.poolSaveLoading = false;
+        const payload = action.payload;
+        state.error = (payload && typeof payload === "object")
+          ? (payload.detail || payload.msg || payload.message || JSON.stringify(payload))
+          : (payload || action.error?.message);
+      })
       .addCase(fetchPoolMachines.pending, (state) => {
         state.machinesLoading = true;
       })

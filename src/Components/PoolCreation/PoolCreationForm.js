@@ -588,17 +588,36 @@ const PoolCreationForm = () => {
     };
 
     try {
-      const payload = await dispatch(
-        createPool({ token, requestData }),
-      ).unwrap();
-      const msg = payload?.msg || "Pool created";
-      toast.success(msg, { position: "top-right", autoClose: 5000 });
+      // Fire the creation request and handle completion in the background
+      dispatch(createPool({ token, requestData }))
+        .unwrap()
+        .then((payload) => {
+          toast.success(payload?.msg || "Pool created successfully", { 
+            position: "top-right", 
+            autoClose: 5000 
+          });
+        })
+        .catch((err) => {
+          toast.error(err?.detail || err?.msg || err?.message || "Pool creation failed", { 
+            position: "top-right", 
+            autoClose: 5000 
+          });
+        });
+
+      toast.info("Pool Creation Initialized", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+
+      // Navigate immediately to the pools page
       navigate("/pools");
       dispatch(resetPoolCreation());
     } catch (err) {
-      const message = err?.msg || err?.message || "Pool creation failed";
-      toast.error(message, { position: "top-right", autoClose: 5000 });
-      navigate("/pools/pool-creation-form");
+      const message = err?.msg || err?.message || "Submission failed";
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
