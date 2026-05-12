@@ -457,10 +457,11 @@ const EditPool = (props) => {
                           value={
                             isHyperV && poolDetails.pool_template_vm_id?.is_cluster
                               ? nodeOptions
-                              : nodeOptions.filter((opt) =>
-                                  (poolDetails.pool_selected_nodes || []).includes(
-                                    opt.value,
-                                  ),
+                              : (poolDetails.pool_selected_nodes || []).map((val) =>
+                                  nodeOptions.find((opt) => opt.value === val) || {
+                                    label: val,
+                                    value: val,
+                                  },
                                 )
                           }
                           onChange={handleNodesChange}
@@ -472,15 +473,15 @@ const EditPool = (props) => {
                               ? "All cluster nodes"
                               : "Select Nodes"
                           }
-                          isDisabled={
-                            (isHyperV &&
-                              !!poolDetails.pool_template_vm_id?.is_cluster) ||
-                            nodes.length === 0
-                          }
+                          isDisabled={true}
+                          components={{
+                            DropdownIndicator: () => null,
+                            IndicatorSeparator: () => null,
+                          }}
                           noOptionsMessage={() =>
                             isHyperV &&
                             poolDetails.pool_template_vm_id?.is_cluster
-                              ? "All nodes selected"
+                              ? "All cluster nodes selected"
                               : "No nodes available"
                           }
                           isLoading={isHyperV && isNodesLoading}

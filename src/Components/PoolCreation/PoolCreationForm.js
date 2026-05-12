@@ -302,15 +302,22 @@ const PoolCreationForm = () => {
             pool_template_vm_id: {
               ...prev,
               dynamic_memory: checked,
-              // reset sub-fields when toggled off
-              ...(!checked && {
-                minimum_memory: "",
-                maximum_memory: "",
-                buffer_memory: "",
-              }),
+              // Initialize with defaults when toggled on, reset when toggled off
+              ...(checked
+                ? {
+                    minimum_memory: 512,
+                    maximum_memory: (prev.memory || 2) * 1024,
+                    buffer_memory: 20,
+                  }
+                : {
+                    minimum_memory: "",
+                    maximum_memory: "",
+                    buffer_memory: "",
+                  }),
             },
           }),
         );
+        setMemoryErrors({});
         return;
       } else if (name === "hyperv_minimum_memory") {
         fieldValue = value ? parseInt(value, 10) : "";
@@ -337,32 +344,42 @@ const PoolCreationForm = () => {
 
       // Add validation for Dynamic Memory fields
       if (isHyperVCluster && prev.dynamic_memory) {
-        const memoryVal = keyName === "memory" ? fieldValue : (prev.memory || 0);
-        const minVal = keyName === "minimum_memory" ? fieldValue : (prev.minimum_memory || 512);
-        const maxVal = keyName === "maximum_memory" ? fieldValue : (prev.maximum_memory || 2048);
-        
+        const memoryVal = keyName === "memory" ? fieldValue : prev.memory || 0;
+        const minVal =
+          keyName === "minimum_memory"
+            ? fieldValue
+            : prev.minimum_memory || 512;
+        const maxVal =
+          keyName === "maximum_memory"
+            ? fieldValue
+            : prev.maximum_memory || 2048;
+
         let errors = { ...memoryErrors };
-        
+
         if (keyName === "memory" || keyName === "minimum_memory") {
           if (minVal < 32) {
             errors.minimum_memory = "Min memory must be at least 32 MB";
           } else if (memoryVal && minVal > memoryVal * 1024) {
             errors.minimum_memory = `Min memory cannot exceed Startup RAM (${memoryVal * 1024} MB)`;
+          } else if (minVal % 2 !== 0) {
+            errors.minimum_memory = "Min memory must be divisible by 2";
           } else {
             delete errors.minimum_memory;
           }
         }
-        
+
         if (keyName === "memory" || keyName === "maximum_memory") {
           if (memoryVal && maxVal < memoryVal * 1024) {
             errors.maximum_memory = `Max memory must be at least Startup RAM (${memoryVal * 1024} MB)`;
           } else if (maxVal > 128 * 1024) {
-            errors.maximum_memory = "Max memory cannot exceed 128 GB (131072 MB)";
+            errors.maximum_memory =
+              "Max memory cannot exceed 128 GB (131072 MB)";
+          } else if (maxVal % 2 !== 0) {
+            errors.maximum_memory = "Max memory must be divisible by 2";
           } else {
             delete errors.maximum_memory;
           }
         }
-        
         setMemoryErrors(errors);
       }
 
@@ -571,11 +588,14 @@ const PoolCreationForm = () => {
     }
 
     if (isHyperVCluster && Object.keys(memoryErrors).length > 0) {
-      toast.error("Please fix the dynamic memory validation errors before proceeding.", {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "light",
-      });
+      toast.error(
+        "Please fix the dynamic memory validation errors before proceeding.",
+        {
+          position: "top-right",
+          autoClose: 5000,
+          theme: "light",
+        },
+      );
       return;
     }
 
@@ -592,16 +612,19 @@ const PoolCreationForm = () => {
       dispatch(createPool({ token, requestData }))
         .unwrap()
         .then((payload) => {
-          toast.success(payload?.msg || "Pool created successfully", { 
-            position: "top-right", 
-            autoClose: 5000 
+          toast.success(payload?.msg || "Pool created successfully", {
+            position: "top-right",
+            autoClose: 5000,
           });
         })
         .catch((err) => {
-          toast.error(err?.detail || err?.msg || err?.message || "Pool creation failed", { 
-            position: "top-right", 
-            autoClose: 5000 
-          });
+          toast.error(
+            err?.detail || err?.msg || err?.message || "Pool creation failed",
+            {
+              position: "top-right",
+              autoClose: 5000,
+            },
+          );
         });
 
       toast.info("Pool Creation Initialized", {
@@ -1158,13 +1181,14 @@ const PoolCreationForm = () => {
                             iconClass="fa-memory"
                             value={
                               poolDetails.pool_template_vm_id?.maximum_memory ??
-                              2048
+                              (poolDetails.pool_template_vm_id?.memory || 2) *
+                                1024
                             }
                             onChange={handleOnChange}
                             placeholder="Maximum memory (MB)"
                             required={true}
                             min={poolDetails.pool_template_vm_id?.memory * 1024}
-                            step="1"
+                            step="2"
                             max={128 * 1024}
                             error={memoryErrors.maximum_memory}
                           />
@@ -1174,14 +1198,14 @@ const PoolCreationForm = () => {
                             type="number"
                             iconClass="fa-percent"
                             value={
-                              poolDetails.pool_template_vm_id?.buffer_memory ||
+                              poolDetails.pool_template_vm_id?.buffer_memory ??
                               20
                             }
                             onChange={handleOnChange}
                             placeholder="Buffer percentage (e.g. 20)"
                             required={true}
                             min="5"
-                            step="1"
+                            step="5"
                             max="2000"
                           />
                         </div>
