@@ -310,9 +310,9 @@ const PoolCreationForm = () => {
                     buffer_memory: 20,
                   }
                 : {
-                    minimum_memory: "",
-                    maximum_memory: "",
-                    buffer_memory: "",
+                    minimum_memory: 0,
+                    maximum_memory: 0,
+                    buffer_memory: 0,
                   }),
             },
           }),
