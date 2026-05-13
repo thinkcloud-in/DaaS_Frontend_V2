@@ -30,7 +30,7 @@ const Pools = () => {
   }, [token, dispatch]);
 
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
+    <div>
       <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar">
         {isLoading ? (
           <ShowPoolsSkeleton />

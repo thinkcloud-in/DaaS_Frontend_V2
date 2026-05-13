@@ -191,6 +191,8 @@ const PoolCreationForm = () => {
         password: poolDetails.pool_template_vm_id?.password || "",
         os_type: poolDetails.pool_os_type || "",
         is_cluster: is_cluster,
+        clone_type: poolDetails.pool_template_vm_id?.clone_type || "Differencing Disk",
+        destination_path: poolDetails.pool_template_vm_id?.destination_path || "",
       };
     }
 
@@ -268,6 +270,8 @@ const PoolCreationForm = () => {
         "hyperv_processor_count",
         "hyperv_priority",
         "hyperv_is_cluster",
+        "hyperv_clone_type",
+        "hyperv_destination_path",
       ].includes(name) &&
       isHyperVCluster
     ) {
@@ -337,6 +341,29 @@ const PoolCreationForm = () => {
       } else if (name === "hyperv_is_cluster") {
         fieldValue = checked;
         keyName = "is_cluster";
+      } else if (name === "hyperv_clone_type") {
+        fieldValue = value;
+        keyName = "clone_type";
+
+        // Clear irrelevant fields on switch
+        const updatedTemplate = {
+          ...(poolDetails.pool_template_vm_id || {}),
+        };
+        updatedTemplate.clone_type = value;
+        if (value === "Full Clone") {
+          delete updatedTemplate.PvhdPath;
+        } else {
+          delete updatedTemplate.destination_path;
+        }
+        dispatch(
+          setPoolCreationDetails({
+            pool_template_vm_id: updatedTemplate,
+          }),
+        );
+        return; // handleOnChange state update is handled manually here for this field
+      } else if (name === "hyperv_destination_path") {
+        fieldValue = value;
+        keyName = "destination_path";
       } else {
         fieldValue = value;
         keyName = name.replace("hyperv_", "");
@@ -527,18 +554,31 @@ const PoolCreationForm = () => {
       }
 
       if (isHyperVCluster) {
+        const isFullClone =
+          poolDetails.pool_template_vm_id?.clone_type === "Full Clone";
+
         checks.push([
           !(poolDetails.pool_ip_pool_names?.length > 0),
           "IP Pools (Hyper-V)",
         ]);
+
         checks.push([
           !poolDetails.pool_template_vm_id?.vhdPath,
-          "Child Disk Path",
+          isFullClone ? "Source VHD Path" : "Child Disk Path",
         ]);
-        checks.push([
-          !poolDetails.pool_template_vm_id?.PvhdPath,
-          "Parent Disk Path",
-        ]);
+
+        if (isFullClone) {
+          checks.push([
+            !poolDetails.pool_template_vm_id?.destination_path,
+            "Destination Path",
+          ]);
+        } else {
+          checks.push([
+            !poolDetails.pool_template_vm_id?.PvhdPath,
+            "Parent Disk Path",
+          ]);
+        }
+
         checks.push([
           !poolDetails.pool_template_vm_id?.generation,
           "Generation",
@@ -1060,26 +1100,82 @@ const PoolCreationForm = () => {
                         </div>
                       </div>
 
-                      <InputField
-                        label="Parent Disk Path"
-                        name="hyperv_PvhdPath"
-                        iconClass="fa-folder-open"
-                        value={poolDetails.pool_template_vm_id?.PvhdPath || ""}
+                      <SelectField
+                        label="Clone Type"
+                        name="hyperv_clone_type"
+                        iconClass="fa-copy"
+                        value={
+                          poolDetails.pool_template_vm_id?.clone_type ||
+                          "Differencing Disk"
+                        }
                         onChange={handleOnChange}
-                        placeholder="Enter Parent Disk Path"
                         required={true}
+                        options={[
+                          {
+                            value: "Differencing Disk",
+                            label: "Differencing Disk (Linked Clone)",
+                          },
+                          { value: "Full Clone", label: "Full Clone" },
+                        ]}
                       />
 
-                      <InputField
-                        label="Child Disk path"
-                        name="hyperv_vhdPath"
-                        iconClass="fa-hard-drive"
-                        value={poolDetails.pool_template_vm_id?.vhdPath || ""}
-                        onChange={handleOnChange}
-                        placeholder="Enter Child Disk Path"
-                        required={true}
-                        tooltip="It should be the root folder where the VM's all structure will be created!"
-                      />
+                      {poolDetails.pool_template_vm_id?.clone_type ===
+                      "Full Clone" ? (
+                        <>
+                          <InputField
+                            label="Source VHD Path"
+                            name="hyperv_vhdPath"
+                            iconClass="fa-hard-drive"
+                            value={
+                              poolDetails.pool_template_vm_id?.vhdPath || ""
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Enter Source VHD Path"
+                            required={true}
+                          />
+                          <InputField
+                            label="Destination Path"
+                            name="hyperv_destination_path"
+                            iconClass="fa-folder-open"
+                            value={
+                              poolDetails.pool_template_vm_id
+                                ?.destination_path || ""
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Enter Destination Path"
+                            required={true}
+                            tooltip="The folder where the full copy will be stored."
+                            tooltipClass="w-80"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <InputField
+                            label="Parent Disk Path"
+                            name="hyperv_PvhdPath"
+                            iconClass="fa-folder-open"
+                            value={
+                              poolDetails.pool_template_vm_id?.PvhdPath || ""
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Enter Parent Disk Path"
+                            required={true}
+                          />
+
+                          <InputField
+                            label="Child Disk path"
+                            name="hyperv_vhdPath"
+                            iconClass="fa-hard-drive"
+                            value={
+                              poolDetails.pool_template_vm_id?.vhdPath || ""
+                            }
+                            onChange={handleOnChange}
+                            placeholder="Enter Child Disk Path"
+                            required={true}
+                            tooltip="It should be the root folder where the VM's all structure will be created!"
+                          />
+                        </>
+                      )}
 
                       {poolDetails.pool_os_type === "Linux" && (
                         <PasswordField

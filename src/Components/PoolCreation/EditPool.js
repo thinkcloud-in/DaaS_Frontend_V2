@@ -212,6 +212,8 @@ const EditPool = (props) => {
         "pool_port",
         "pool_number_of_vms",
         "pool_template_vm_id",
+        "hyperv_clone_type",
+        "hyperv_destination_path",
       ].includes(name)
     ) {
       newValue = value ? parseInt(value, 10) : null;
@@ -618,31 +620,89 @@ const EditPool = (props) => {
                           </div>
                         </div>
 
-                        <InputField
-                          label="Child Disk Path"
-                          name="hyperv_vhdPath"
-                          iconClass="fa-hard-drive"
-                          value={poolDetails.pool_template_vm_id?.vhdPath || ""}
-                          onChange={(e) =>
-                            setTemplateField("vhdPath", e.target.value)
-                          }
-                          placeholder="Enter Child Disk Path"
-                          required={true}
-                          disabled={true}
-                        />
-                        <InputField
-                          label="Parent Disk Path"
-                          name="hyperv_PvhdPath"
-                          iconClass="fa-folder-open"
+
+                        <SelectField
+                          label="Clone Type"
+                          name="hyperv_clone_type"
+                          iconClass="fa-copy"
                           value={
-                            poolDetails.pool_template_vm_id?.PvhdPath || ""
+                            poolDetails.pool_template_vm_id?.clone_type ||
+                            "Differencing Disk"
                           }
                           onChange={(e) =>
-                            setTemplateField("PvhdPath", e.target.value)
+                            setTemplateField("clone_type", e.target.value)
                           }
-                          placeholder="Enter Parent Disk Path"
                           disabled={true}
+                          options={[
+                            {
+                              value: "Differencing Disk",
+                              label: "Differencing Disk (Linked Clone)",
+                            },
+                            { value: "Full Clone", label: "Full Clone" },
+                          ]}
                         />
+
+                        {poolDetails.pool_template_vm_id?.clone_type ===
+                        "Full Clone" ? (
+                          <>
+                            <InputField
+                              label="Source VHD Path"
+                              name="hyperv_vhdPath"
+                              iconClass="fa-hard-drive"
+                              value={poolDetails.pool_template_vm_id?.vhdPath || ""}
+                              onChange={(e) =>
+                                setTemplateField("vhdPath", e.target.value)
+                              }
+                              placeholder="Enter Source VHD Path"
+                              required={true}
+                              disabled={true}
+                            />
+                            <InputField
+                              label="Destination Path"
+                              name="hyperv_destination_path"
+                              iconClass="fa-folder-open"
+                              value={
+                                poolDetails.pool_template_vm_id?.destination_path ||
+                                ""
+                              }
+                              onChange={(e) =>
+                                setTemplateField("destination_path", e.target.value)
+                              }
+                              placeholder="Enter Destination Path"
+                              required={true}
+                              disabled={true}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <InputField
+                              label="Child Disk Path"
+                              name="hyperv_vhdPath"
+                              iconClass="fa-hard-drive"
+                              value={poolDetails.pool_template_vm_id?.vhdPath || ""}
+                              onChange={(e) =>
+                                setTemplateField("vhdPath", e.target.value)
+                              }
+                              placeholder="Enter Child Disk Path"
+                              required={true}
+                              disabled={true}
+                            />
+                            <InputField
+                              label="Parent Disk Path"
+                              name="hyperv_PvhdPath"
+                              iconClass="fa-folder-open"
+                              value={
+                                poolDetails.pool_template_vm_id?.PvhdPath || ""
+                              }
+                              onChange={(e) =>
+                                setTemplateField("PvhdPath", e.target.value)
+                              }
+                              placeholder="Enter Parent Disk Path"
+                              disabled={true}
+                            />
+                          </>
+                        )}
+
                         <PasswordField
                           label="Host Password"
                           name="hyperv_HostPassword"
