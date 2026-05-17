@@ -43,7 +43,6 @@ const ReportList = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-
   const loadList = async () => {
     if (!token) return;
     try {
@@ -237,7 +236,7 @@ const ReportList = () => {
                         </td>
                         <td>{renderStatusBadge(report.status)}</td>
                         <td>
-                          <button
+                          {/* <button
                             className="edit-button"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -245,7 +244,7 @@ const ReportList = () => {
                             }}
                           >
                             <i className="fa-solid fa-pen-to-square"></i>
-                          </button>
+                          </button> */}
                           <button
                             className="delete-button"
                             onClick={(e) => {
