@@ -1,16 +1,18 @@
 import { updatePoolStatus } from "../../Services/PoolService";
 import React, { useState } from "react";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   selectAvailablePools,
   selectIsPoolAvailable,
 } from "../../redux/features/Pools/PoolsSelectors";
 import "./css/ShowPools.css";
 import { useNavigate } from "react-router-dom";
+import { fetchPools } from "../../redux/features/Pools/PoolsThunks";
 
 const ShowPools = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const token = useSelector(selectAuthToken);
   const availablePools = useSelector(selectAvailablePools);
   const isPoolAvailable = useSelector(selectIsPoolAvailable);
@@ -22,6 +24,20 @@ const ShowPools = () => {
   // }, [token, dispatch]);
   const [selectedPools, setSelectedPools] = useState([]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!token) return;
+    setIsRefreshing(true);
+    try {
+      await dispatch(fetchPools(token)).unwrap();
+    } catch (error) {
+      console.error("Failed to refresh pools:", error);
+    } finally {
+      // Ensure the animation runs for at least a bit
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
+  };
 
   let handlePoolSelection = (pool) => {
     navigate(`/pools/manage-pool/${pool.id}`, { state: { pool: pool } });
@@ -43,7 +59,7 @@ const ShowPools = () => {
   };
 
   return (
-    <div className="w-[98%] min-h-[75vh] m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
+    <div>
       <div className="flex justify-between items-center mb-4">
         <div
           onClick={Goback}
@@ -100,6 +116,28 @@ const ShowPools = () => {
               </div>
             )}
           </div> */}
+
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 flex items-center justify-center"
+            title="Refresh Pools"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-4 w-4 ${isRefreshing ? "animate-spin-custom" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
 
           <button
             onClick={() => navigate("/pools/pool-creation-form")}

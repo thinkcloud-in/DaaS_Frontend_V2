@@ -249,7 +249,12 @@ const GrafanaToolbarContextProvider = ({ children }) => {
         clearInterval(intervalId);
         setIntervalId(-1);
     }
-  }, [autoOption]);
+    return () => {
+      if (intervalId !== -1) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [autoOption, intervalId]);
 
   const value = {
     rangePresets:rangePresets,

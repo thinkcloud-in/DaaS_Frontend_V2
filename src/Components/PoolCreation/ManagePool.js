@@ -896,7 +896,12 @@ const ManagePool = (props) => {
             isOpen={rebuildModalOpen}
             onClose={() => setRebuildModalOpen(false)}
             onConfirm={handleRebuildPool}
-            currentPath={selectedPoolDetails?.pool_template_vm_id?.PvhdPath|| selectedPoolDetails?.pool_template_vm_id?.PvhdPath}
+            currentPath={
+              selectedPoolDetails?.pool_template_vm_id?.clone_type ===
+              "Full Clone"
+                ? selectedPoolDetails?.pool_template_vm_id?.vhdPath
+                : selectedPoolDetails?.pool_template_vm_id?.PvhdPath
+            }
           />
           <button
             className={`bg-red-500 hover:bg-red-600 text-white rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${

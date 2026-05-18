@@ -7,6 +7,19 @@
         transform: rotate(360deg);
     }
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-custom {
+  animation: spin 1s linear infinite;
+}
 /* Ensure the report-list takes full height and footer-container is always at the bottom */
 
 .header-item .refresh-button {

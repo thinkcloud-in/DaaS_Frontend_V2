@@ -43,7 +43,6 @@ const ReportList = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-
   const loadList = async () => {
     if (!token) return;
     try {
@@ -146,15 +145,26 @@ const ReportList = () => {
           <h1 className="header-title">Scheduled Reports</h1>
 
           <div className="right-controls">
-
             <button
-              className="refresh-button"
               onClick={handleRefresh}
-              title="Refresh"
+              disabled={isLoading}
+              className="bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 flex items-center justify-center"
+              title="Refresh Reports"
             >
-              <i
-                className={`fa-solid fa-rotate-right icon${isLoading ? " rotating" : ""}`}
-              ></i>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-4 w-4 ${isLoading ? "animate-spin-custom" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -226,7 +236,7 @@ const ReportList = () => {
                         </td>
                         <td>{renderStatusBadge(report.status)}</td>
                         <td>
-                          <button
+                          {/* <button
                             className="edit-button"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -234,7 +244,7 @@ const ReportList = () => {
                             }}
                           >
                             <i className="fa-solid fa-pen-to-square"></i>
-                          </button>
+                          </button> */}
                           <button
                             className="delete-button"
                             onClick={(e) => {
