@@ -61,16 +61,23 @@ const formatDuration = (seconds) => {
 const formatDateTime = (dateTimeString) => {
   if (dateTimeString === "Not Applicable") {
     return "Not Applicable";
-  } else {
-    const date = new Date(dateTimeString);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear().toString();
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const seconds = date.getSeconds().toString().padStart(2, "0");
-    return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   }
+
+  const date = new Date(dateTimeString.replace(" ", "T") + "+00:00");
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const get = (type) => parts.find((p) => p.type === type)?.value;
+  return `${get("day")}/${get("month")}/${get("year")} ${get("hour")}:${get("minute")}:${get("second")}`;
 };
 const formatHoursDuration = (totalDurationInSeconds) => {
   if (!totalDurationInSeconds || totalDurationInSeconds === "Not Applicable") {

@@ -38,6 +38,16 @@ const Template = ({ tokenParsed }) => {
   const handleFileOnChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Invalid image type. Please upload a JPG, JPEG or PNG image.");
+        return;
+      }
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        toast.error("Image size must be less than 2MB");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result.split(",")[1];
@@ -214,7 +224,7 @@ const Template = ({ tokenParsed }) => {
                             </label>
                           </div>
                           <p className="text-xs leading-5 text-gray-600">
-                            PNG, JPG, JPEG up to 10MB
+                            PNG, JPG, JPEG up to 2MB
                           </p>
                         </div>
                       </div>
