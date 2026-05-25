@@ -107,6 +107,7 @@ function App() {
         onLoad: "login-required",
         checkLoginIframe: false,
         pkceMethod: "S256",
+        flow: "implicit",
       })
       .then((authenticated) => {
         if (authenticated) {
