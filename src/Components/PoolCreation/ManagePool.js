@@ -118,10 +118,11 @@ const ManagePool = (props) => {
   }, [selectedPoolDetails, clusters]);
 
   useEffect(() => {
-    if ((!clusters || clusters.length === 0) && token) {
+    const isAutomated = selectedPoolDetails?.pool_type === "Automated";
+    if (isAutomated && (!clusters || clusters.length === 0) && token) {
       dispatch(fetchClustersThunk(token));
     }
-  }, [dispatch, token, clusters]);
+  }, [dispatch, token, selectedPoolDetails?.pool_type]);
   useEffect(() => {
     const foundPool = pools.find((pool) => String(pool.id) === String(poolId));
     if (foundPool) {

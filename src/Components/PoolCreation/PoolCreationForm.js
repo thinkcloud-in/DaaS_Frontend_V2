@@ -88,10 +88,10 @@ const PoolCreationForm = () => {
   // const isVmwareCluster = selectedCluster && selectedCluster.type === "VMware";
 
   useEffect(() => {
-    if ((!clusters || clusters.length === 0) && token) {
+    if (poolDetails?.pool_type === "Automated" && (!clusters || clusters.length === 0) && token) {
       dispatch(fetchClustersThunk(token));
     }
-  }, [dispatch, token, clusters]);
+  }, [dispatch, token, poolDetails?.pool_type]);
 
   useEffect(() => {
     if (poolDetails.pool_type === "Automated") {
