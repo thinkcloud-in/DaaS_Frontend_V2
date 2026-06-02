@@ -7,7 +7,7 @@ const HorizonReportsUrl = getEnv("HORIZON_REPORT_URL");
 // Devraq Reports APIs
 export const fetchVamanitAllUsers = async (token, start, end) => {
   const response = await axiosInstance.get(
-    `${backendUrl}/v1/guacamole/vamanit_allusers/${start}/${end}`,
+    `${backendUrl}/v1/guacamole/generate_reports/vamanit_allusers/${start}/${end}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -16,7 +16,7 @@ export const fetchVamanitAllUsers = async (token, start, end) => {
 };
 
 export const fetchVamanitSessionReports = async (token, start, end, user = "All Users") => {
-  let url = `${backendUrl}/v1/guacamole/vamanit_session_reports/${start}/${end}`;
+  let url = `${backendUrl}/v1/guacamole/generate_reports/vamanit_session_reports/${start}/${end}`;
   if (user !== "All Users") url += `/${user}`;
   const response = await axiosInstance.get(url, {
     headers: { Authorization: `Bearer ${token}` },
@@ -25,7 +25,7 @@ export const fetchVamanitSessionReports = async (token, start, end, user = "All 
 };
 
 export const fetchVamanitDayReports = async (token, start, end, user = "All Users") => {
-  let url = `${backendUrl}/v1/guacamole/day_reports/${start}/${end}`;
+  let url = `${backendUrl}/v1/guacamole/generate_reports/day_reports/${start}/${end}`;
   if (user !== "All Users") url += `/${user}`;
   const response = await axiosInstance.get(url, {
     headers: { Authorization: `Bearer ${token}` },
@@ -34,7 +34,7 @@ export const fetchVamanitDayReports = async (token, start, end, user = "All User
 };
 
 export const fetchVamanitConsolidateReports = async (token, start, end, user = "All Users") => {
-  let url = `${backendUrl}/v1/guacamole/total_durations_within_range/${start}/${end}`;
+  let url = `${backendUrl}/v1/guacamole/generate_reports/total_durations_within_range/${start}/${end}`;
   if (user !== "All Users") url += `/${user}`;
   const response = await axiosInstance.get(url, {
     headers: { Authorization: `Bearer ${token}` },

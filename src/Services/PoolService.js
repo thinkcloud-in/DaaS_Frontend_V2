@@ -2,7 +2,7 @@ import axiosInstance from "./AxiosInstance";
 import { getEnv } from "utils/getEnv";
 const backendUrl = getEnv("BACKEND_URL");
 export const createMachineService = async (token, requestData) => {
-  return axiosInstance.post(`${backendUrl}/v1/create_machine`, requestData, {
+  return axiosInstance.post(`${backendUrl}/v1/vdi_pools/create_machine`, requestData, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
@@ -13,7 +13,7 @@ export const updateMachineService = async (
   requestData,
 ) => {
   return axiosInstance.put(
-    `${backendUrl}/v1/update_machine/${machineIdentifier}`,
+    `${backendUrl}/v1/vdi_pools/update_machine/${machineIdentifier}`,
     requestData,
     {
       headers: { Authorization: `Bearer ${token}` },
@@ -22,14 +22,14 @@ export const updateMachineService = async (
 };
 
 export const getPoolByIdService = async (token, poolId) => {
-  return axiosInstance.get(`${backendUrl}/v1/pool/${poolId}`, {
+  return axiosInstance.get(`${backendUrl}/v1/vdi_pools/pool/${poolId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
 
 export const updatePoolService = async (token, poolId, requestData) => {
   return axiosInstance.put(
-    `${backendUrl}/v1/update_pool/${poolId}`,
+    `${backendUrl}/v1/vdi_pools/update_pool/${poolId}`,
     requestData,
     {
       headers: {
@@ -113,7 +113,7 @@ export const rebuildPoolService = async (token, poolId, userEmail, vhdPath) => {
 export const deleteVMService = async (token, mach, userEmail) => {
   return axiosInstance.request({
     method: "DELETE",
-    url: `${backendUrl}/v1/delete_machine/${mach}?email=${userEmail}`,
+    url: `${backendUrl}/v1/vdi_pools/delete_machine/${mach}?email=${userEmail}`,
     headers: {
       Authorization: `Bearer ${token}`,
     },

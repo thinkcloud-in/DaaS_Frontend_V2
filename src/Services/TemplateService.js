@@ -4,7 +4,7 @@ const backendUrl = getEnv('BACKEND_URL');
 
 export const fetchReports = async (token, reportType) => {
 	const response = await axiosInstance.get(
-		`${backendUrl}/v1/guacamole/reports/${reportType}`,
+		`${backendUrl}/v1/guacamole/generate_reports/${reportType}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}
@@ -14,7 +14,7 @@ export const fetchReports = async (token, reportType) => {
 
 export const updateReport = async (token, formData) => {
 	const response = await axiosInstance.post(
-		`${backendUrl}/v1/guacamole/update_report`,
+		`${backendUrl}/v1/guacamole/reports/update_report`,
 		formData,
 		{
 			headers: {

@@ -14,7 +14,7 @@ export const fetchUserPermissions = async (token, username) => {
 };
 
 export const fetchPools = async (token) => {
-  const res = await axiosInstance.get(`${backendUrl}/v1/pools`, {
+  const res = await axiosInstance.get(`${backendUrl}/v1/vdi_pools/pools`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   return res.data?.data || [];

@@ -9,7 +9,7 @@ const backendUrl = getEnv("BACKEND_URL");
 export const getTotpBrowserStatus = async (token) => {
   try {
     const response = await axiosInstance.get(
-      `${backendUrl}/v1/get-enable-disable-totp-browser`,
+      `${backendUrl}/v1/totp/get-enable-disable-totp-browser`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -24,7 +24,7 @@ export const getTotpBrowserStatus = async (token) => {
 export const getTotpGuacStatus = async (token) => {
   try {
     const response = await axiosInstance.get(
-      `${backendUrl}/v1/get-enable-disable-guac`,
+      `${backendUrl}/v1/totp/get-enable-disable-guac`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -39,7 +39,7 @@ export const getTotpGuacStatus = async (token) => {
 export const updateTotpBrowserStatus = async (token, enabled) => {
   try {
     const response = await axiosInstance.put(
-      `${backendUrl}/v1/enable-disable-totp-browser/${enabled}`,
+      `${backendUrl}/v1/totp/enable-disable-totp-browser/${enabled}`,
       {},
       {
         headers: { Authorization: `Bearer ${token}` }
@@ -82,7 +82,7 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
 export const updateTotpGuacStatus = async (token, enabled) => {
   try {
     const response = await axiosInstance.put(
-      `${backendUrl}/v1/enable-disable-guac/${enabled}`,
+      `${backendUrl}/v1/totp/enable-disable-guac/${enabled}`,
       {},
       {
         headers: { Authorization: `Bearer ${token}` }

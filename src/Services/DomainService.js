@@ -6,7 +6,7 @@ const backendUrl = getEnv('BACKEND_URL');
 export const testLdapConnectionService = async (token, editAD) => {
 	// use module-level backendUrl (from getEnv)
 	return axiosInstance.post(
-		`${backendUrl}/v1/test_ldap_connection`,
+		`${backendUrl}/v1/domain/test_ldap_connection`,
 		{
 			authType: editAD.authType,
 			bindCredential: editAD.bindCredential,
@@ -24,7 +24,7 @@ export const testLdapConnectionService = async (token, editAD) => {
 
 export const testLdapAuthenticationService = async (token, editAD) => {
 	return axiosInstance.post(
-		`${backendUrl}/v1/test_ldap_authentication`,
+		`${backendUrl}/v1/domain/test_ldap_authentication`,
 		{ ...editAD },
 		{
 			headers: { Authorization: `Bearer ${token}` },
@@ -35,7 +35,7 @@ export const testLdapAuthenticationService = async (token, editAD) => {
 
 export const syncChangedUsers = async (token, domain_id) => {
 	const response = await axiosInstance.get(
-		`${backendUrl}/v1/sync_changed_users/${domain_id}`,
+		`${backendUrl}/v1/domain/sync_changed_users/${domain_id}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}
@@ -45,7 +45,7 @@ export const syncChangedUsers = async (token, domain_id) => {
 
 export const unlinkUsers = async (token, domain_id) => {
 	const response = await axiosInstance.get(
-		`${backendUrl}/v1/unlink_users/${domain_id}`,
+		`${backendUrl}/v1/domain/unlink_users/${domain_id}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}
@@ -55,7 +55,7 @@ export const unlinkUsers = async (token, domain_id) => {
 
 export const removeImportedUsers = async (token, domain_id) => {
 	const response = await axiosInstance.get(
-		`${backendUrl}/v1/remove_imported_users/${domain_id}`,
+		`${backendUrl}/v1/domain/remove_imported_users/${domain_id}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}
@@ -65,7 +65,7 @@ export const removeImportedUsers = async (token, domain_id) => {
 
 export const updateDomain = async (token, domainID, editAD) => {
 	const response = await axiosInstance.put(
-		`${backendUrl}/v1/update_ldap_config/${domainID}`,
+		`${backendUrl}/v1/domain/update_ldap_config/${domainID}`,
 		editAD,
 		{
 			headers: { Authorization: `Bearer ${token}` },
@@ -76,7 +76,7 @@ export const updateDomain = async (token, domainID, editAD) => {
 
 export const createDomain = async (token, ad) => {
 	const response = await axiosInstance.post(
-		`${backendUrl}/v1/ad_ldap_connection`,
+		`${backendUrl}/v1/domain/ad_ldap_connection`,
 		ad,
 		{
 			headers: { Authorization: `Bearer ${token}` },
@@ -87,7 +87,7 @@ export const createDomain = async (token, ad) => {
 
 export const getDomainDetails = async (token, domain_id) => {
 	const response = await axiosInstance.get(
-		`${backendUrl}/v1/get_ldap_by_id/${domain_id}`,
+		`${backendUrl}/v1/domain/get_ldap_by_id/${domain_id}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}
@@ -97,7 +97,7 @@ export const getDomainDetails = async (token, domain_id) => {
 
 export const deleteDomain = async (token, domain_id) => {
 	const response = await axiosInstance.delete(
-		`${backendUrl}/v1/delete_ldap_configuration/${domain_id}`,
+		`${backendUrl}/v1/domain/delete_ldap_configuration/${domain_id}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}
@@ -107,7 +107,7 @@ export const deleteDomain = async (token, domain_id) => {
 
 export const syncUsers = async (token, domain_id) => {
 	const response = await axiosInstance.get(
-		`${backendUrl}/v1/sync_users/${domain_id}`,
+		`${backendUrl}/v1/domain/sync_users/${domain_id}`,
 		{
 			headers: { Authorization: `Bearer ${token}` },
 		}

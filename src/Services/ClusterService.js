@@ -13,14 +13,14 @@ export const fetchEditInfluxdbDetails = async (token, clusterId) => {
 };
 export const createCluster = async (token, payload) => {
   const res = await axiosInstance.post(
-    `${backendUrl}/v1/create_cluster`,
+    `${backendUrl}/v1/cluster/create_cluster`,
     payload,
     { headers: { Authorization: `Bearer ${token}` } },
   );
   return res.data;
 };
 export const fetchClusters = async (token) => {
-  const res = await axiosInstance.get(`${backendUrl}/v1/clusters`, {
+  const res = await axiosInstance.get(`${backendUrl}/v1/cluster/clusters`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data?.data || [];
@@ -33,7 +33,7 @@ export const fetchClusterById = async (token, clusterId) => {
 };
 export const updateCluster = async (token, clusterId, payload) => {
   const res = await axiosInstance.put(
-    `${backendUrl}/v1/update_cluster/${clusterId}`,
+    `${backendUrl}/v1/cluster/update_cluster/${clusterId}`,
     payload,
     { headers: { Authorization: `Bearer ${token}` } },
   );
@@ -41,7 +41,7 @@ export const updateCluster = async (token, clusterId, payload) => {
 };
 export const deleteCluster = async (token, clusterId, userEmail) => {
   const res = await axiosInstance.delete(
-    `${backendUrl}/v1/delete_cluster/${clusterId}`,
+    `${backendUrl}/v1/cluster/delete_cluster/${clusterId}`,
     {
       headers: { Authorization: `Bearer ${token}` },
       data: { email: userEmail },
