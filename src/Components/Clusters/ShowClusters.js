@@ -47,11 +47,14 @@ const ShowClusters = () => {
 
   const clusters = useSelector(selectAllClusters);
   const isLoading = useSelector(selectClustersLoading);
+  const [hasFetched, setHasFetched] = useState(false);
+
   useEffect(() => {
-    if ((!clusters || clusters.length === 0) && token) {
+    if (token && !hasFetched && !isLoading) {
       dispatch(fetchClustersThunk(token));
+      setHasFetched(true);
     }
-  }, [dispatch, token]);
+  }, [dispatch, token, hasFetched, isLoading]);
 
   const [updating, setUpdating] = useState(false);
   const [deletingClusterId, setDeletingClusterId] = useState(null);

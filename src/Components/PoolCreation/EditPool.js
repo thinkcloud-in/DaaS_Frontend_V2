@@ -129,10 +129,10 @@ const EditPool = (props) => {
   }, [poolId, dispatch, token]);
 
   useEffect(() => {
-    if (token && clusters.length === 0) {
+    if (poolDetails.pool_type === "Automated" && token && clusters.length === 0) {
       dispatch(fetchClustersThunk(token));
     }
-  }, [token, clusters.length, dispatch]);
+  }, [token, poolDetails.pool_type, dispatch]);
 
   useEffect(() => {
     if (poolDetails.cluster_id && clusters.length > 0) {
