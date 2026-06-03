@@ -171,6 +171,8 @@ const ManagePool = (props) => {
   const [editMachinePopupOpen, setEditMachinePopupOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredData, setFilteredData] = useState(users);
+  const [userSearchPage, setUserSearchPage] = useState(1);
+  const [userSearchPageSize, setUserSearchPageSize] = useState(10);
   const powerActionLoading = useSelector(selectPowerActionLoading);
   const [selectedTab, setSelectedTab] = useState("users");
   const [selectedRows, setSelectedRows] = useState([]);
@@ -338,16 +340,64 @@ const ManagePool = (props) => {
   }, [selectedPoolDetails.id, token, dispatch]);
 
   const handleSearch = (e) => {
+    const searchText = e.target.value;
+    setSearchTerm(searchText);
+    setUserSearchPage(1);
+
+    if (searchText.trim() === "") {
+      dispatch(
+        listGuacamoleUsers({
+          token,
+          search: "",
+          first: 0,
+          limit: userSearchPageSize,
+        }),
+      ).catch(() => {
+        setFilteredData([]);
+      });
+    }
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearchUsers();
+    }
+  };
+
+  const handleSearchUsers = async () => {
     try {
-      const searchText = e.target.value.toLowerCase();
-      const filteredResults = users.filter((user) =>
-        user.username.toLowerCase().includes(searchText),
-      );
-      setFilteredData(filteredResults);
-      setSearchTerm(searchText);
+      await dispatch(
+        listGuacamoleUsers({
+          token,
+          search: searchTerm,
+          first: 0,
+          limit: userSearchPageSize,
+        }),
+      ).unwrap();
     } catch (err) {
       setFilteredData([]);
     }
+  };
+
+  const handleUserPageChange = (newPage) => {
+    if (newPage < 1) return;
+    setUserSearchPage(newPage);
+    const first = (newPage - 1) * userSearchPageSize;
+    const limit = newPage * userSearchPageSize;
+    dispatch(
+      listGuacamoleUsers({ token, search: searchTerm, first, limit }),
+    ).catch(() => {});
+  };
+
+  const handleUserPageSizeChange = (value) => {
+    const parsedSize = parseInt(value, 10);
+    if (!parsedSize || parsedSize < 1) return;
+    setUserSearchPageSize(parsedSize);
+    setUserSearchPage(1);
+    dispatch(
+      listGuacamoleUsers({ token, search: searchTerm, first: 0, limit: parsedSize }),
+    ).catch(() => {});
   };
 
   let entitleUser = async (usr) => {
@@ -523,8 +573,8 @@ const ManagePool = (props) => {
   };
 
   useEffect(() => {
-    dispatch(listGuacamoleUsers(token)).catch(() => {});
-  }, [token, dispatch]);
+    dispatch(listGuacamoleUsers({ token, first: 0, limit: userSearchPageSize })).catch(() => {});
+  }, [token, dispatch, userSearchPageSize]);
   useEffect(() => {
     try {
       const availableUsers = (users || []).filter(
@@ -1622,8 +1672,15 @@ const ManagePool = (props) => {
         setAssignedUsers={(arr) => dispatch(setAssignedUsers(arr))}
         entitleUser={entitleUser}
         handleSearch={handleSearch}
+        handleSearchKeyDown={handleSearchKeyDown}
+        handleSearchUsers={handleSearchUsers}
         searchTerm={searchTerm}
         filteredData={filteredData}
+        usersLoading={usersLoading}
+        userSearchPage={userSearchPage}
+        userSearchPageSize={userSearchPageSize}
+        handleUserPageChange={handleUserPageChange}
+        handleUserPageSizeChange={handleUserPageSizeChange}
       />
     </div>
   );

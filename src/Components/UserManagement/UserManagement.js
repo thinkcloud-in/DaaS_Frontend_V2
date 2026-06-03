@@ -82,6 +82,8 @@ const UserManagement = () => {
   const [activeTab, setActiveTab] = useState("roles");
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [role, setRole] = useState("");
   const [components, setComponents] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -102,7 +104,7 @@ const UserManagement = () => {
   const token = useSelector(selectAuthToken);
 
   useEffect(() => {
-    dispatch(fetchUsers({ token }));
+    dispatch(fetchUsers({ token, first: 0, limit: itemsPerPage }));
     dispatch(fetchRoles({ token }));
   }, [dispatch, token]);
 
@@ -127,12 +129,53 @@ const UserManagement = () => {
 
   const handleSearch = (term) => {
     setSearchTerm(term);
-    const results = term
-      ? (users || []).filter((user) =>
-          user.toLowerCase().includes(term.toLowerCase()),
-        )
-      : users || [];
-    setFilteredUsers(results);
+    setCurrentPage(1);
+
+    if (term.trim() === "") {
+      dispatch(
+        fetchUsers({
+          token,
+          search: "",
+          first: 0,
+          limit: itemsPerPage,
+        }),
+      );
+    }
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearchClick();
+    }
+  };
+
+  const handleSearchClick = () => {
+    setCurrentPage(1);
+    dispatch(
+      fetchUsers({
+        token,
+        search: searchTerm,
+        first: 0,
+        limit: itemsPerPage,
+      }),
+    );
+  };
+
+  const handlePageSizeChange = (value) => {
+    const parsedSize = parseInt(value, 10);
+    if (!parsedSize || parsedSize < 1) return;
+    setItemsPerPage(parsedSize);
+    setCurrentPage(1);
+    dispatch(fetchUsers({ token, search: searchTerm, first: 0, limit: parsedSize }));
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1) return;
+    setCurrentPage(newPage);
+    const first = (newPage - 1) * itemsPerPage;
+    const limit = newPage * itemsPerPage;
+    dispatch(fetchUsers({ token, search: searchTerm, first, limit }));
   };
 
   const handleUserClick = async (username) => {
@@ -702,18 +745,66 @@ const UserManagement = () => {
         {activeTab === "users" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="text-left">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full p-2 pr-10 mb-4 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200"
-                />
-                <div className="absolute right-3 top-1/3 -translate-y-1/2 text-gray-400 text-xl">
-                  <Search size={18} />
+              <div className="flex flex-col gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex-1 min-w-[220px]">
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="w-full p-2 pr-12 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSearchClick}
+                    disabled={loading}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 hover:text-[#1a365d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Search"
+                  >
+                    <Search size={20} />
+                  </button>
                 </div>
               </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-600">Per page</label>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => handlePageSizeChange(e.target.value)}
+                    className="w-28 p-2 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200 bg-white"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
+                  </select>
+                  <span>
+                    Showing {filteredUsers.length > 0 ? `${(currentPage - 1) * itemsPerPage + 1}-${(currentPage - 1) * itemsPerPage + filteredUsers.length}` : 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                    className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={filteredUsers.length < itemsPerPage || loading}
+                    className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
               <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white custom-scrollbar">
                 {loading ? (
                   <UsersSkeleton />

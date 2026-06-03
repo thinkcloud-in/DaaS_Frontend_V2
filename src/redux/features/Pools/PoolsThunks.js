@@ -200,11 +200,12 @@ export const fetchMachineDetails = createAsyncThunk(
 
 export const listGuacamoleUsers = createAsyncThunk(
   "pools/listGuacamoleUsers",
-  async (token, { rejectWithValue }) => {
+  async ({ token, search = "", first, limit }, { rejectWithValue }) => {
     try {
-      const res = await listGuacamoleUsersService(token);
+      const res = await listGuacamoleUsersService(token, search, first, limit);
       const data = res.data?.data || [];
-      return Array.isArray(data) ? data : [];
+      const users = Array.isArray(data) ? data.map((user) => (typeof user === "string" ? { username: user } : user)) : [];
+      return users;
     } catch (err) {
       return rejectWithValue(
         err?.response?.data || err?.message || "Failed to list users",

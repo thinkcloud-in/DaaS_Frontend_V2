@@ -13,9 +13,9 @@ import {
 
 export const fetchUsers = createAsyncThunk(
   'userManagement/fetchUsers',
-  async ({ token }, { rejectWithValue }) => {
+  async ({ token, search = "", first, limit }, { rejectWithValue }) => {
     try {
-      const users = await fetchUsersService(token);
+      const users = await fetchUsersService(token, search, first, limit);
       return users;
     } catch (err) {
       return rejectWithValue('Failed to fetch users');

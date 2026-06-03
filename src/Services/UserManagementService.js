@@ -1,10 +1,15 @@
 import axiosInstance from "./AxiosInstance"
 import { getEnv } from "utils/getEnv";
 const backendUrl = getEnv('BACKEND_URL');
-export const fetchUsers = async (token) => {
+export const fetchUsers = async (token, search = "", first, limit) => {
 	try {
+		const queryParams = [];
+		if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+		if (typeof first !== "undefined" && first !== null) queryParams.push(`first=${encodeURIComponent(first)}`);
+		if (typeof limit !== "undefined" && limit !== null) queryParams.push(`limit=${encodeURIComponent(limit)}`);
+		const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
 		const response = await axiosInstance.get(
-			`${backendUrl}/v1/guacamole/list_users`,
+			`${backendUrl}/v1/guacamole/list_users${queryString}`,
 			{ headers: { Authorization: `Bearer ${token}` } }
 		);
 		if (response.data?.data) {

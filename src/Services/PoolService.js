@@ -120,8 +120,13 @@ export const deleteVMService = async (token, mach, userEmail) => {
   });
 };
 
-export const listGuacamoleUsersService = async (token) => {
-  return axiosInstance.get(`${backendUrl}/v1/guacamole/list_users`, {
+export const listGuacamoleUsersService = async (token, search = "", first, limit) => {
+  const queryParams = [];
+  if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+  if (typeof first !== "undefined" && first !== null) queryParams.push(`first=${encodeURIComponent(first)}`);
+  if (typeof limit !== "undefined" && limit !== null) queryParams.push(`limit=${encodeURIComponent(limit)}`);
+  const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
+  return axiosInstance.get(`${backendUrl}/v1/guacamole/list_users${queryString}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
