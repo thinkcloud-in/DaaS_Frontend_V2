@@ -462,11 +462,10 @@ const UserManagement = () => {
                 <button
                   key={subcat}
                   onClick={() => handleSubCategorySelect(subcat)}
-                  className={`px-3 py-1 rounded-md text-sm transition-all duration-200 ${
-                    selectedSubCategory === subcat
+                  className={`px-3 py-1 rounded-md text-sm transition-all duration-200 ${selectedSubCategory === subcat
                       ? "bg-[#1a365d] text-white shadow-md shadow-[#1a365d]/20"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                    }`}
                 >
                   {subcat}
                 </button>
@@ -576,21 +575,19 @@ const UserManagement = () => {
           <div className="relative border-b mb-6 w-full">
             <div className="flex gap-6">
               <button
-                className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${
-                  activeTab === "roles"
+                className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${activeTab === "roles"
                     ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
                     : "text-gray-600 hover:text-[#1a365d]"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("roles")}
               >
                 Role Management
               </button>
               <button
-                className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${
-                  activeTab === "users"
+                className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${activeTab === "users"
                     ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
                     : "text-gray-600 hover:text-[#1a365d]"
-                }`}
+                  }`}
                 onClick={() => setActiveTab("users")}
               >
                 User Roles
@@ -689,11 +686,10 @@ const UserManagement = () => {
                       <button
                         key={category}
                         onClick={() => handleCategorySelect(category)}
-                        className={`px-3 py-1 rounded-md text-sm ${
-                          selectedCategory === category
+                        className={`px-3 py-1 rounded-md text-sm ${selectedCategory === category
                             ? "bg-[#1a365d]/80 text-[#f5f5f5]"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                          }`}
                       >
                         {category}
                       </button>
@@ -746,65 +742,67 @@ const UserManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="text-left">
               <div className="flex flex-col gap-3 mb-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative flex-1 min-w-[220px]">
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    className="w-full p-2 pr-12 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSearchClick}
-                    disabled={loading}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 hover:text-[#1a365d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Search"
-                  >
-                    <Search size={20} />
-                  </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative flex-1 min-w-[220px]">
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      value={searchTerm}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
+                      className="w-full p-2 pr-12 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSearchClick}
+                      disabled={loading}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 hover:text-[#1a365d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      title="Search"
+                    >
+                      <Search size={20} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-600">Pages</label>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => handlePageSizeChange(e.target.value)}
+                      className="w-28 p-2 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200 bg-white"
+                    >
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                      <option value={200}>200</option>
+                    </select>
+                    <span>
+                      Showing {filteredUsers.length > 0
+                        ? `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredUsers.length)}`
+                        : 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1 || loading}
+                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={filteredUsers.length < itemsPerPage || loading}
+                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">Per page</label>
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => handlePageSizeChange(e.target.value)}
-                    className="w-28 p-2 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200 bg-white"
-                  >
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                    <option value={200}>200</option>
-                  </select>
-                  <span>
-                    Showing {filteredUsers.length > 0 ? `${(currentPage - 1) * itemsPerPage + 1}-${(currentPage - 1) * itemsPerPage + filteredUsers.length}` : 0}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                    className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={filteredUsers.length < itemsPerPage || loading}
-                    className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
               <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white custom-scrollbar">
                 {loading ? (
                   <UsersSkeleton />
@@ -814,10 +812,9 @@ const UserManagement = () => {
                       key={index}
                       className={`p-3 cursor-pointer border-b-2 border-gray-200 transition-all duration-150
                         hover:bg-[#1a365db3] hover:text-[#f5f5f5] hover:border-b-0 hover:border-l-4 hover:border-[#1a365d]
-                        ${
-                          selectedUser === user
-                            ? "bg-[#1a365dcc] text-[#f5f5f5]"
-                            : "bg-white text-[#00000099]"
+                        ${selectedUser === user
+                          ? "bg-[#1a365dcc] text-[#f5f5f5]"
+                          : "bg-white text-[#00000099]"
                         }
                       `}
                       onClick={() => handleUserClick(user)}

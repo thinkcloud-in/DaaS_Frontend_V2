@@ -60,7 +60,7 @@ function EntitleUser(props) {
                 {/* Pagination controls */}
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">Per page</label>
+                    <label className="text-sm text-gray-600">Showing</label>
                     <select
                       value={props.userSearchPageSize}
                       onChange={(e) => props.handleUserPageSizeChange(e.target.value)}
