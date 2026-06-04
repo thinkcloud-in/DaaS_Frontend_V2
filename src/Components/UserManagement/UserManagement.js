@@ -111,9 +111,11 @@ const UserManagement = () => {
   useEffect(() => {
     setComponents(roleComponents || []);
   }, [roleComponents]);
+
   useEffect(() => {
     setFilteredUsers(users || []);
   }, [users]);
+
   useEffect(() => {
     if (selectedUser) {
       dispatch(getUserPermission({ token, username: selectedUser }));
@@ -174,7 +176,7 @@ const UserManagement = () => {
     if (newPage < 1) return;
     setCurrentPage(newPage);
     const first = (newPage - 1) * itemsPerPage;
-    const limit = newPage * itemsPerPage;
+    const limit = itemsPerPage;
     dispatch(fetchUsers({ token, search: searchTerm, first, limit }));
   };
 
@@ -463,8 +465,8 @@ const UserManagement = () => {
                   key={subcat}
                   onClick={() => handleSubCategorySelect(subcat)}
                   className={`px-3 py-1 rounded-md text-sm transition-all duration-200 ${selectedSubCategory === subcat
-                      ? "bg-[#1a365d] text-white shadow-md shadow-[#1a365d]/20"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-[#1a365d] text-white shadow-md shadow-[#1a365d]/20"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                 >
                   {subcat}
@@ -576,8 +578,8 @@ const UserManagement = () => {
             <div className="flex gap-6">
               <button
                 className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${activeTab === "roles"
-                    ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
-                    : "text-gray-600 hover:text-[#1a365d]"
+                  ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
+                  : "text-gray-600 hover:text-[#1a365d]"
                   }`}
                 onClick={() => setActiveTab("roles")}
               >
@@ -585,8 +587,8 @@ const UserManagement = () => {
               </button>
               <button
                 className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${activeTab === "users"
-                    ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
-                    : "text-gray-600 hover:text-[#1a365d]"
+                  ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
+                  : "text-gray-600 hover:text-[#1a365d]"
                   }`}
                 onClick={() => setActiveTab("users")}
               >
@@ -687,8 +689,8 @@ const UserManagement = () => {
                         key={category}
                         onClick={() => handleCategorySelect(category)}
                         className={`px-3 py-1 rounded-md text-sm ${selectedCategory === category
-                            ? "bg-[#1a365d]/80 text-[#f5f5f5]"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          ? "bg-[#1a365d]/80 text-[#f5f5f5]"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                           }`}
                       >
                         {category}
@@ -779,7 +781,7 @@ const UserManagement = () => {
                     </select>
                     <span>
                       Showing {filteredUsers.length > 0
-                        ? `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredUsers.length)}`
+                        ? `${(currentPage - 1) * itemsPerPage + 1}-${(currentPage - 1) * itemsPerPage + filteredUsers.length}`
                         : 0}
                     </span>
                   </div>
