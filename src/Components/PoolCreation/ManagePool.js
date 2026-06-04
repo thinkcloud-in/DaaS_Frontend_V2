@@ -384,7 +384,7 @@ const ManagePool = (props) => {
     if (newPage < 1) return;
     setUserSearchPage(newPage);
     const first = (newPage - 1) * userSearchPageSize;
-    const limit = newPage * userSearchPageSize;
+    const limit = userSearchPageSize;
     dispatch(
       listGuacamoleUsers({ token, search: searchTerm, first, limit }),
     ).catch(() => {});
