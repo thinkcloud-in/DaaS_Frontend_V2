@@ -4,6 +4,8 @@ import {
   getTotpGuacStatus,
   updateTotpBrowserStatus,
   updateTotpGuacStatus,
+  fetchUsersForTotpReset,
+  resetGuacTotp,
 } from 'Services/TotpService';
 
 export const fetchTotpStatusThunk = createAsyncThunk(
@@ -39,6 +41,30 @@ export const updateTotpGuacStatusThunk = createAsyncThunk(
       return enabled;
     } catch (err) {
       return rejectWithValue('Failed to update Client TOTP status');
+    }
+  }
+);
+
+export const fetchUsersForTotpResetThunk = createAsyncThunk(
+  'totp/fetchUsersForReset',
+  async ({ token, search, first, limit }, { rejectWithValue }) => {
+    try {
+      const users = await fetchUsersForTotpReset(token, search, first, limit);
+      return users;
+    } catch (err) {
+      return rejectWithValue('Failed to fetch users');
+    }
+  }
+);
+
+export const resetGuacTotpThunk = createAsyncThunk(
+  'totp/resetGuacTotp',
+  async ({ token, userId }, { rejectWithValue }) => {
+    try {
+      await resetGuacTotp(token, userId);
+      return userId;
+    } catch (err) {
+      return rejectWithValue('Failed to reset TOTP');
     }
   }
 );

@@ -3,6 +3,8 @@ import {
   fetchTotpStatusThunk,
   updateTotpBrowserStatusThunk,
   updateTotpGuacStatusThunk,
+  fetchUsersForTotpResetThunk,
+  resetGuacTotpThunk,
 } from './TotpThunks';
 
 const initialState = {
@@ -10,6 +12,10 @@ const initialState = {
   clientEnabled: false,
   loading: false,
   error: null,
+  users: [],
+  usersLoading: false,
+  usersError: null,
+  resetLoading: null, // stores userId being reset
 };
 
 const totpSlice = createSlice({
@@ -40,6 +46,29 @@ const totpSlice = createSlice({
       })
       .addCase(updateTotpGuacStatusThunk.fulfilled, (state, action) => {
         state.clientEnabled = action.payload;
+      })
+      // Users for TOTP Reset
+      .addCase(fetchUsersForTotpResetThunk.pending, (state) => {
+        state.usersLoading = true;
+        state.usersError = null;
+      })
+      .addCase(fetchUsersForTotpResetThunk.fulfilled, (state, action) => {
+        state.usersLoading = false;
+        state.users = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(fetchUsersForTotpResetThunk.rejected, (state, action) => {
+        state.usersLoading = false;
+        state.usersError = action.payload;
+      })
+      // Reset TOTP
+      .addCase(resetGuacTotpThunk.pending, (state, action) => {
+        state.resetLoading = action.meta.arg.userId;
+      })
+      .addCase(resetGuacTotpThunk.fulfilled, (state) => {
+        state.resetLoading = null;
+      })
+      .addCase(resetGuacTotpThunk.rejected, (state) => {
+        state.resetLoading = null;
       });
   },
 });

@@ -79,6 +79,58 @@ export const updateTotpBrowserStatus = async (token, enabled) => {
   }
 };
 
+export const fetchUsersForTotpReset = async (token, search = "", first, limit) => {
+  try {
+    const queryParams = [];
+    if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+    if (typeof first !== "undefined" && first !== null) queryParams.push(`first=${encodeURIComponent(first)}`);
+    if (typeof limit !== "undefined" && limit !== null) queryParams.push(`limit=${encodeURIComponent(limit)}`);
+    const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
+    const response = await axiosInstance.get(
+      `${backendUrl}/v1/guacamole/list_users${queryString}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (response.data?.data) {
+      const data = response.data.data;
+      if (Array.isArray(data)) {
+        return data;
+      } else if (data && Array.isArray(data.users)) {
+        return data.users;
+      }
+    }
+    return [];
+  } catch (error) {
+    throw new Error("Failed to fetch users");
+  }
+};
+
+export const resetGuacTotp = async (token, userId) => {
+  try {
+    const response = await axiosInstance.post(
+      `${backendUrl}/v1/totp/reset-guac-totp/${userId}`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (response.status === 200) {
+      toast.success("TOTP reset successfully", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Slide,
+      });
+    }
+    return response.data;
+  } catch (error) {
+    toast.error("Failed to reset TOTP");
+    throw error;
+  }
+};
+
 export const updateTotpGuacStatus = async (token, enabled) => {
   try {
     const response = await axiosInstance.put(
