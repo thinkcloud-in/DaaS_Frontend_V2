@@ -216,7 +216,7 @@ const Sidebar = ({ tokenParsed }) => {
                   className={`menu-icon h-5 w-5 transition-transform ${isOpen ? "rotate-90" : ""}`}
                 />
               )}
-              {item.beta && <Beta />}
+              {/* {item.beta && <Beta />} */}
             </div>
             {hasSubmenu && isOpen && (
               <div
@@ -280,7 +280,7 @@ const Sidebar = ({ tokenParsed }) => {
                 <span>{item.name}</span>
               </span>
               {hasSubmenu && <ChevronRightIcon className="menu-icon h-5 w-5" />}
-              {item.beta && <Beta />}
+              {/* {item.beta && <Beta />} */}
             </div>
             {hasSubmenu && isOpen && (
               <div
@@ -447,7 +447,7 @@ const Sidebar = ({ tokenParsed }) => {
                   title={item.name}
                 >
                   <FontAwesomeIcon icon={getIcon(item.name, 0)} size="lg" />
-                  {item.beta && <Beta />}
+                  {/* {item.beta && <Beta />} */}
                   {hasSubmenu && openSubMenus[0] === item.name && (
                     <div
                       style={{
