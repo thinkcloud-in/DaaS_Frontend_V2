@@ -18,6 +18,7 @@ import activeSessionsReducer from './features/ActiveSessions/ActiveSessionsSlice
 import recordingsReducer from './features/Recordings/RecordingsSlice';
 import clustersReducer from './features/Clusters/ClustersSlice';
 import namespaceReducer from './features/Namespace/NamespaceSlice';
+import sslReducer from './features/SSL/SSLSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -39,7 +40,7 @@ const rootReducer = combineReducers({
   recordings: recordingsReducer,
   clusters: clustersReducer,
   namespace: namespaceReducer,
-  
+  ssl: sslReducer,
 });
 
 export default rootReducer;
