@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+// ✅ Toast ko import kiya
+import { toast } from "react-toastify"; 
 import {
   uploadSSLThunk,
   fetchSSLStatusThunk,
@@ -12,7 +14,7 @@ import {
   selectSSLValidationMessages,
   selectSSLUploadStatus,
   selectSSLError,
-  selectSSLStatusDetails, // Selector for GET API response details
+  selectSSLStatusDetails,
 } from "../../redux/features/SSL/SSLSelectors";
 import { setValidationMessages, clearUploadStatus } from "../../redux/features/SSL/SSLSlice";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
@@ -27,20 +29,18 @@ const SSL = () => {
   const validationMessages = useSelector(selectSSLValidationMessages);
   const uploadStatus = useSelector(selectSSLUploadStatus);
   const error = useSelector(selectSSLError);
-  const sslDetails = useSelector(selectSSLStatusDetails); // Live API details
+  const sslDetails = useSelector(selectSSLStatusDetails);
 
   const [certificateType, setCertificateType] = useState("selfSigned");
   const [privateKeyFile, setPrivateKeyFile] = useState(null);
   const [certificateFile, setCertificateFile] = useState(null);
 
-  // 1. Initial Load: Cluster se active certificate status fetch karna
   useEffect(() => {
     if (token) {
       dispatch(fetchSSLStatusThunk(token));
     }
   }, [token, dispatch]);
 
-  // 2. Auto-toggle Radio button based on cluster's current running certificate
   useEffect(() => {
     if (sslDetails && sslDetails.certificate_type) {
       const type = sslDetails.certificate_type.toLowerCase();
@@ -56,12 +56,21 @@ const SSL = () => {
     navigate("/");
   };
 
+  // ⭐ UPDATE: Handle Renewal with Toast Alerts
   const handleRenewal = async () => {
-    await dispatch(renewSSLThunk(token));
-    dispatch(fetchSSLStatusThunk(token)); // Refresh details after renewal
+    // Thunk ke result ko save kiya check karne ke liye
+    const resultAction = await dispatch(renewSSLThunk(token));
+    
+    if (renewSSLThunk.fulfilled.match(resultAction) || resultAction.meta?.requestStatus === "fulfilled") {
+      toast.success("SSL Certificate successfully renewed!"); // Success Toast
+      dispatch(fetchSSLStatusThunk(token)); 
+    } else {
+      // Agar backend se koi error message aaya ho toh wo dikhao, nahi toh default text
+      const errorMsg = resultAction.payload || error || "Failed to renew SSL Certificate.";
+      toast.error(errorMsg); // Failed Toast
+    }
   };
 
-  // Parse certificate to extract details locally (for validation)
   const parseCertificate = async (certFile) => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -144,18 +153,28 @@ const SSL = () => {
     return messages.every(msg => msg.type !== "error");
   };
 
+  // ⭐ UPDATE: Handle Upload with Toast Alerts
   const handleUpload = async () => {
     dispatch(clearUploadStatus());
     dispatch(setValidationMessages([]));
     
     const isValid = await validateCertificates();
-    if (!isValid) return;
+    if (!isValid) {
+      toast.warning("Please resolve the validation errors first."); // Warning Toast
+      return;
+    }
     
-    await dispatch(uploadSSLThunk({ token, certFile: certificateFile, keyFile: privateKeyFile }));
-    dispatch(fetchSSLStatusThunk(token)); // Refresh details after upload
+    const resultAction = await dispatch(uploadSSLThunk({ token, certFile: certificateFile, keyFile: privateKeyFile }));
+    
+    if (uploadSSLThunk.fulfilled.match(resultAction) || resultAction.meta?.requestStatus === "fulfilled") {
+      toast.success("SSL Certificate uploaded and applied successfully!"); // Success Toast
+      dispatch(fetchSSLStatusThunk(token)); 
+    } else {
+      const errorMsg = resultAction.payload || error || "Failed to upload SSL Certificate.";
+      toast.error(errorMsg); // Failed Toast
+    }
   };
 
-  // Reset file inputs after success
   useEffect(() => {
     if (uploadStatus === "success") {
       setTimeout(() => {
@@ -169,8 +188,6 @@ const SSL = () => {
     }
   }, [uploadStatus]);
 
-
-  // ⭐ DYNAMIC CONDITIONAL EXPIRATION RENDERER
   const renderExpirationDetails = () => {
     if (!sslDetails) {
       return <span className="font-normal text-gray-500 animate-pulse">Fetching cluster details...</span>;
@@ -178,7 +195,6 @@ const SSL = () => {
 
     const isSelfSignedBackend = sslDetails.certificate_type?.toLowerCase().includes("self-signed");
 
-    // CONDITION 1: User SSC select kiya hai par cluster me Custom chal raha hai
     if (certificateType === "selfSigned" && !isSelfSignedBackend) {
       return (
         <span className="font-medium text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md w-fit mt-1">
@@ -187,7 +203,6 @@ const SSL = () => {
       );
     }
 
-    // CONDITION 2: User Custom select kiya hai par cluster me SSC chal raha hai
     if (certificateType === "custom" && isSelfSignedBackend) {
       return (
         <span className="font-medium text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md w-fit mt-1">
@@ -196,7 +211,6 @@ const SSL = () => {
       );
     }
 
-    // CONDITION 3: Agar view aur active certificate type match karte hain, toh asli details dikhao
     return (
       <div className="flex flex-col space-y-1 mt-1">
         <span className="font-semibold text-gray-800 text-sm">{sslDetails.valid_until}</span>
@@ -218,10 +232,9 @@ const SSL = () => {
     );
   };
 
-
   return (
     <div className="mt-5 flex flex-col space-y-6 w-[98%] h-[90vh] m-auto bg-white">
-      <div className="flex justify-start ml=0 mt-5">
+      <div className="flex justify-start ml-0 mt-5">
         <div
           onClick={Goback}
           className="ml-4 bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] hover:text-white px-2 py-2 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
@@ -234,7 +247,6 @@ const SSL = () => {
       <div className="p-8 rounded-lg flex flex-col items-start m-10 bg-white">
         <h1 className="text-xl font-bold mb-4 text-gray-900 border-b-2 border-gray-200">SSL Certificate</h1>
         
-        {/* Radio Button Selection */}
         <div className="mb-6 flex flex-col items-start w-full">
           <label className="text-sm font-medium text-gray-900 mb-3">Certificate Type:</label>
           <div className="flex items-center space-x-6">
@@ -263,7 +275,6 @@ const SSL = () => {
           </div>
         </div>
 
-        {/* Self Signed Certificate Section */}
         {certificateType === "selfSigned" && (
           <div className="w-full flex flex-col items-start space-y-4 border-t pt-6">
             <div className="text-sm font-medium text-gray-900 flex flex-col items-start">
@@ -284,7 +295,6 @@ const SSL = () => {
           </div>
         )}
 
-        {/* Custom Certificate Section */}
         {certificateType === "custom" && (
           <div className="w-full flex flex-col items-start space-y-4 border-t pt-6">
             <div className="text-sm font-medium text-gray-900 flex flex-col items-start">
@@ -314,7 +324,6 @@ const SSL = () => {
               />
             </div>
 
-            {/* Local Certificate File Validation Messages */}
             {validationMessages.length > 0 && (
               <div className="w-full mt-4 p-4 rounded-md border-2 border-gray-200 bg-gray-50">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Certificate Verification:</h3>
