@@ -9,7 +9,7 @@ export const uploadSSLCertificate = async (token, certFile, keyFile) => {
   formData.append("key_file", keyFile);
 
   const response = await axiosInstance.post(
-    `${backendUrl}/ssl_upload`,
+    `${backendUrl}/v1/ssl/ssl_upload`,
     formData,
     {
       headers: {
@@ -23,7 +23,7 @@ export const uploadSSLCertificate = async (token, certFile, keyFile) => {
 
 export const fetchSSLStatus = async (token) => {
   const response = await axiosInstance.get(
-    `${backendUrl}/ssl_status`,
+    `${backendUrl}/v1/ssl/ssl_status`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -33,7 +33,7 @@ export const fetchSSLStatus = async (token) => {
 
 export const renewSSLCertificate = async (token) => {
   const response = await axiosInstance.post(
-    `${backendUrl}/ssl_renew`,
+    `${backendUrl}/v1/ssl/ssl_renew`,
     {},
     {
       headers: { Authorization: `Bearer ${token}` },
