@@ -13,7 +13,7 @@ export const fetchEditInfluxdbDetails = async (token, clusterId) => {
 };
 export const createCluster = async (token, payload) => {
   const res = await axiosInstance.post(
-    `${backendUrl}/v1/cluster/create_cluster`,
+    `${backendUrl}/v1/create_cluster`,
     payload,
     { headers: { Authorization: `Bearer ${token}` } },
   );

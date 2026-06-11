@@ -26,6 +26,7 @@ import {
   updateMachine,
   fetchSwitches,
   fetchProxmoxStorages,
+  fetchNodeGpus,
 } from "./PoolsThunks";
 import { initialPoolDetails } from "./poolDefaults";
 
@@ -63,6 +64,8 @@ const initialState = {
   proxmoxStoragesLoading: false,
   proxmoxStoragesError: null,
   creationNodesLoading: false,
+  nodeGpus: {},
+  nodeGpusLoading: false,
 };
 
 const poolsSlice = createSlice({
@@ -125,6 +128,10 @@ const poolsSlice = createSlice({
       state.proxmoxStorages = [];
       state.proxmoxStoragesLoading = false;
       state.proxmoxStoragesError = null;
+    },
+    clearNodeGpus(state) {
+      state.nodeGpus = {};
+      state.nodeGpusLoading = false;
     },
   },
   extraReducers: (builder) => {
@@ -516,6 +523,17 @@ const poolsSlice = createSlice({
         state.creationVmwareFolders = [];
       })
   
+      .addCase(fetchNodeGpus.pending, (state) => {
+        state.nodeGpusLoading = true;
+      })
+      .addCase(fetchNodeGpus.fulfilled, (state, action) => {
+        state.nodeGpusLoading = false;
+        // Merge new node GPU data into existing cache — don't replace
+        state.nodeGpus = { ...state.nodeGpus, ...(action.payload || {}) };
+      })
+      .addCase(fetchNodeGpus.rejected, (state) => {
+        state.nodeGpusLoading = false;
+      })
       .addCase(fetchSwitches.pending, (state) => {
         state.poolsLoading = true;
       })
@@ -545,7 +563,8 @@ export const {
   setDeletingMachine,
   setDeletingUser,
   setPowerActionLoading,
-  clearProxmoxStorages
+  clearProxmoxStorages,
+  clearNodeGpus,
 } = poolsSlice.actions;
 export default poolsSlice.reducer;
 

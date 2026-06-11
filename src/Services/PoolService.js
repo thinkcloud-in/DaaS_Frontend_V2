@@ -295,6 +295,15 @@ export const createPool = async (token, requestData) => {
   return response;
 };
 
+export const getNodeGpus = async (token, clusterId, nodes) => {
+  const response = await axiosInstance.post(
+    `${backendUrl}/v1/proxmox/get_node_gpus`,
+    { cluster_id: clusterId, nodes },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return response?.data?.data;
+};
+
 export const getSwitches = async (token, clusterId) => {
   const response = await axiosInstance.get(
     `${backendUrl}/v1/hyper_v/get_switches`,

@@ -53,6 +53,12 @@ const VamanitReports = React.lazy(
 const Template = React.lazy(() => import("./Components/Template/Template"));
 const Task = React.lazy(() => import("./Components/Tasks/Task"));
 const Pools = React.lazy(() => import("./Components/PoolCreation/Pools"));
+const LLMInference = React.lazy(() => import("./Components/LLMInference/LLMInferenceList"));
+const LLMInferenceCreate = React.lazy(() => import("./Components/LLMInference/LLMInferenceCreate"));
+const EditLLMInference = React.lazy(() => import("./Components/LLMInference/LLMInferenceEdit"));
+const LibraryManagement = React.lazy(() => import("./Components/Library/LibraryUpload"));
+const LibraryList = React.lazy(() => import("./Components/Library/LibraryList"));
+const ClusterMachinesList = React.lazy(() => import("./Components/LLMInference/LLMInferenceMachines"));
 
 const ManagePool = React.lazy(
   () => import("./Components/PoolCreation/ManagePool"),
@@ -458,6 +464,54 @@ function App() {
                         token={refreshToken}
                       />
                     }
+                  />
+                  <Route
+                    path="/inference"
+                    element={
+                      <ProtectedRoute
+                        component={LLMInference}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/inference-create"
+                    element={
+                      <ProtectedRoute
+                        component={LLMInferenceCreate}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/inference-edit"
+                    element={
+                      <ProtectedRoute
+                        component={EditLLMInference}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/inference/machines/:id"
+                    element={
+                      <ProtectedRoute
+                        component={ClusterMachinesList}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/library"
+                    element={<LibraryList token={refreshToken} />}
+                  />
+                  <Route
+                    path="/upload-library"
+                    element={<LibraryManagement token={refreshToken} />}
                   />
                   <Route
                     path="/ip-pools"

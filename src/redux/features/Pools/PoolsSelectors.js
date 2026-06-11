@@ -25,4 +25,8 @@ export const selectPoolCreationError = (state) => state.pools?.poolCreationError
 export const selectCurrentPoolDetails = (state) => state.pools?.currentPoolDetails || {};
 export const selectCreationSwitches = (state) => state.pools?.creationSwitches || [];
 export const selectCreationNodesLoading = (state) => !!state.pools?.creationNodesLoading;
+export const selectProxmoxStorages = (state) => state.pools?.proxmoxStorages || [];
+export const selectProxmoxStoragesLoading = (state) => !!state.pools?.proxmoxStoragesLoading;
+export const selectNodeGpus = (state) => state.pools?.nodeGpus || {};
+export const selectNodeGpusLoading = (state) => !!state.pools?.nodeGpusLoading;
 

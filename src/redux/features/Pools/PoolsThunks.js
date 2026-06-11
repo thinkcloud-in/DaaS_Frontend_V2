@@ -28,6 +28,7 @@ import {
   getSwitches,
   getProxmoxStorages,
   rebuildPoolService,
+  getNodeGpus,
 } from "Services/PoolService";
 
 export const fetchPoolById = createAsyncThunk(
@@ -418,6 +419,24 @@ export const fetchVmwareFolders = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(
         err?.response?.data || err?.message || "Failed to fetch vmware folders",
+      );
+    }
+  },
+);
+
+export const fetchNodeGpus = createAsyncThunk(
+  "pools/fetchNodeGpus",
+  async ({ token, clusterId, nodes }, { rejectWithValue }) => {
+    try {
+      const data = await getNodeGpus(token, String(clusterId), nodes.map(String));
+      // Keep as { nodeName: [gpuArray] } so UI can show per-node GPU dropdowns
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        return data;
+      }
+      return {};
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data || err?.message || "Failed to fetch node GPUs",
       );
     }
   },

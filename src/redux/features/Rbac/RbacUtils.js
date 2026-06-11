@@ -98,8 +98,19 @@ export const baseNavigation = [
     componentKey: "ActiveSessions",
   },
   { name: "Schedule", href: "/Reportlist", componentKey: "Schedule" },
-  { name: "VDI Pools", href: "/pools", componentKey: "Pools" },
+  { 
+    name: "VDI Pools",
+    href: "/pools",
+    componentKey: "Pools",
+    submenus: [
+      { name: "Private LLM", href: "/inference", componentKey: "Pools" },
+      { name: "AI Agent", href: "/ai-agent", componentKey: "Pools" },
+    ],
+  },
+  
   { name: "IP Pools", href: "/ip-pools", componentKey: "IpPools" },
+  { name: "Library", href: "/library", componentKey: "Library" },
+  { name: "Cluster", href: "/clusters", componentKey: "Cluster" },
   { name: "Tasks", href: "/tasks", componentKey: "Tasks" },
   {
     name: "Settings",
@@ -109,14 +120,13 @@ export const baseNavigation = [
       { name: "TOTP", href: "/totp", componentKey: "TOTP" },
       { name: "Domain", href: "/domain", componentKey: "Domain" },
       { name: "IPMI", href: "/ipmi", componentKey: "IPMI" },
-      { name: "Cluster", href: "/clusters", componentKey: "Cluster" },
       { name: "SSL", href: "/ssl", componentKey: "SSL", beta: true },
       { name: "SMTP", href: "/SmtpConfig", componentKey: "SMTP" },
       { name: "RBAC", href: "/user_management", componentKey: "RBAC" },
-      // { name: "Retention Period", href: "/retention-period", componentKey: "Retention Period" },
     ],
   },
 ];
+
 export const filterNavigation = (navItems, allowedComponents) => {
   return navItems
     .map((item) => {

@@ -30,6 +30,9 @@ import {
   faChartPie,
   faUserCog,
   faVideo,
+  faBook,   
+  faBrain,  
+  faRobot,  
 } from "@fortawesome/free-solid-svg-icons";
 import Beta from "../Beta/Beta";
 import Thinkcloud from "../../images/t3.jpg";
@@ -51,11 +54,13 @@ const getIcon = (name, level = 0, parent = "") => {
         ActiveSessions: faUserShield,
         Schedule: faCalendarAlt,
         "VDI Pools": faLayerGroup,
+        Pools: faLayerGroup, 
         "IP Pools": faNetworkWired,
-        Pools: faLayerGroup,
         IpPools: faNetworkWired,
         Tasks: faListAlt,
         Settings: faCog,
+        Cluster: faLayerGroup,
+        Library: faBook, 
       }[name] || faAngleRight
     );
   }
@@ -65,7 +70,6 @@ const getIcon = (name, level = 0, parent = "") => {
       return (
         {
           Template: faFileAlt,
-          // "Horizon Reports": faChartBar,
           "Generate Reports": faChartPie,
         }[name] || faAngleRight
       );
@@ -77,11 +81,20 @@ const getIcon = (name, level = 0, parent = "") => {
           TOTP: faKey,
           Domain: faDatabase,
           IPMI: faServer,
-          Cluster: faLayerGroup,
           SSL: faLock,
           SMTP: faEnvelopeOpenText,
           RBAC: faUserCog,
           "Retention Period": faCalendarAlt,
+        }[name] || faAngleRight
+      );
+    }
+
+    if (parent === "Pools" || parent === "VDI Pools") {
+      return (
+        {
+          "Developer Desktop": faServer,
+          "Private LLM": faBrain,
+          "Agentic AI": faRobot,
         }[name] || faAngleRight
       );
     }
@@ -137,6 +150,74 @@ const Sidebar = ({ tokenParsed }) => {
   }, [isMobile, isTablet]);
 
   useEffect(() => {
+    if (!navigation || navigation.length === 0) return;
+
+    let updatedItems = JSON.parse(JSON.stringify(navigation));
+    let clusterItem = null;
+
+    // 1. Settings me se Cluster nikalna
+    updatedItems = updatedItems.map((item) => {
+      if (item.name === "Settings" && item.submenus) {
+        clusterItem = item.submenus.find((sub) => sub.name === "Cluster");
+        item.submenus = item.submenus.filter((sub) => sub.name !== "Cluster");
+      }
+      return item;
+    });
+
+    // 2. Pools ke submenus aur routes set karna
+    updatedItems = updatedItems.map((item) => {
+      if (item.name === "VDI Pools" || item.name === "Pools") {
+        const originalHref = item.href || "/pools"; 
+        item.name = "Pools"; 
+        item.href = undefined; // Parent toggle hoga, navigate nahi
+        item.submenus = [
+          {
+            name: "Developer Desktop",
+            href: originalHref, 
+            submenus: [],
+          },
+          {
+            name: "Private LLM",
+            href: "/inference", // ✅ Changed to /inference
+            submenus: [],
+          },
+          {
+            name: "Agentic AI",
+            href: "/ai-agent", // ✅ Changed to /ai-agent
+            submenus: [],
+          },
+        ];
+      }
+      return item;
+    });
+
+    // 3. Dynamic Menu positioning (Library -> Cluster)
+    let insertedMenus = false;
+    const finalItems = [];
+
+    const libraryItem = {
+      name: "Library",
+      href: "/library", // ✅ Library click ke liye exact /library path
+      submenus: [],
+    };
+
+    updatedItems.forEach((item) => {
+      finalItems.push(item);
+      if (item.name === "IP Pools" || item.name === "IpPools") {
+        finalItems.push(libraryItem); 
+        if (clusterItem) {
+          finalItems.push(clusterItem);
+        }
+        insertedMenus = true;
+      }
+    });
+
+    if (!insertedMenus) {
+      finalItems.push(libraryItem);
+      if (clusterItem) finalItems.push(clusterItem);
+    }
+
+    // Active tracking logic
     function markCurrent(items) {
       return items.map((item) => {
         let isCurrent = item.href === location.pathname;
@@ -153,7 +234,8 @@ const Sidebar = ({ tokenParsed }) => {
         return { ...item, current: isCurrent, submenus };
       });
     }
-    setNavState(markCurrent(navigation));
+
+    setNavState(markCurrent(finalItems));
   }, [location.pathname, navigation]);
 
   const handleMenuItemClick = (item, level = 0) => {
@@ -216,7 +298,6 @@ const Sidebar = ({ tokenParsed }) => {
                   className={`menu-icon h-5 w-5 transition-transform ${isOpen ? "rotate-90" : ""}`}
                 />
               )}
-              {/* {item.beta && <Beta />} */}
             </div>
             {hasSubmenu && isOpen && (
               <div
@@ -280,7 +361,6 @@ const Sidebar = ({ tokenParsed }) => {
                 <span>{item.name}</span>
               </span>
               {hasSubmenu && <ChevronRightIcon className="menu-icon h-5 w-5" />}
-              {/* {item.beta && <Beta />} */}
             </div>
             {hasSubmenu && isOpen && (
               <div
@@ -333,7 +413,6 @@ const Sidebar = ({ tokenParsed }) => {
     );
   }
 
-  // Mobile View
   if (isMobile) {
     return (
       <>
@@ -380,7 +459,6 @@ const Sidebar = ({ tokenParsed }) => {
     );
   }
 
-  // Desktop/Tablet View
   return (
     <div
       className={`sidebar-container h-screen flex flex-col bg-[#1a365d] text-[#afb8c4] ${isToggled ? "w-64" : "w-20"} transition-all duration-300 shrink-0`}
@@ -447,7 +525,6 @@ const Sidebar = ({ tokenParsed }) => {
                   title={item.name}
                 >
                   <FontAwesomeIcon icon={getIcon(item.name, 0)} size="lg" />
-                  {/* {item.beta && <Beta />} */}
                   {hasSubmenu && openSubMenus[0] === item.name && (
                     <div
                       style={{
