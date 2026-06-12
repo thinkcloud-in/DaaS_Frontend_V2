@@ -295,6 +295,20 @@ export const createPool = async (token, requestData) => {
   return response;
 };
 
+export const createPrivateLLM = async (token, requestData) => {
+  const response = await axiosInstance.post(
+    `${backendUrl}/v1/llm-inference-v2/create-private-llm`,
+    requestData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+  return response;
+};
+
 export const getNodeGpus = async (token, clusterId, nodes) => {
   const response = await axiosInstance.post(
     `${backendUrl}/v1/proxmox/get_node_gpus`,

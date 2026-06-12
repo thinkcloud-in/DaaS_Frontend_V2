@@ -29,4 +29,6 @@ export const selectProxmoxStorages = (state) => state.pools?.proxmoxStorages || 
 export const selectProxmoxStoragesLoading = (state) => !!state.pools?.proxmoxStoragesLoading;
 export const selectNodeGpus = (state) => state.pools?.nodeGpus || {};
 export const selectNodeGpusLoading = (state) => !!state.pools?.nodeGpusLoading;
+export const selectPrivateLLMCreateLoading = (state) => !!state.pools?.privateLLMCreateLoading;
+export const selectPrivateLLMCreateError = (state) => state.pools?.privateLLMCreateError || null;
 

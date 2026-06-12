@@ -27,6 +27,7 @@ import {
   fetchSwitches,
   fetchProxmoxStorages,
   fetchNodeGpus,
+  createPrivateLLMThunk,
 } from "./PoolsThunks";
 import { initialPoolDetails } from "./poolDefaults";
 
@@ -66,6 +67,8 @@ const initialState = {
   creationNodesLoading: false,
   nodeGpus: {},
   nodeGpusLoading: false,
+  privateLLMCreateLoading: false,
+  privateLLMCreateError: null,
 };
 
 const poolsSlice = createSlice({
@@ -544,6 +547,22 @@ const poolsSlice = createSlice({
       .addCase(fetchSwitches.rejected, (state) => {
         state.poolsLoading = false;
         state.creationSwitches = [];
+      })
+      .addCase(createPrivateLLMThunk.pending, (state) => {
+        state.privateLLMCreateLoading = true;
+        state.privateLLMCreateError = null;
+      })
+      .addCase(createPrivateLLMThunk.fulfilled, (state) => {
+        state.privateLLMCreateLoading = false;
+        state.privateLLMCreateError = null;
+      })
+      .addCase(createPrivateLLMThunk.rejected, (state, action) => {
+        state.privateLLMCreateLoading = false;
+        const payload = action.payload;
+        state.privateLLMCreateError =
+          typeof payload === "string"
+            ? payload
+            : payload?.detail || payload?.message || JSON.stringify(payload) || "Failed to create Private LLM pool";
       });
   },
 });

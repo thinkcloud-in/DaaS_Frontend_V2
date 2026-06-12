@@ -29,6 +29,7 @@ import {
   getProxmoxStorages,
   rebuildPoolService,
   getNodeGpus,
+  createPrivateLLM,
 } from "Services/PoolService";
 
 export const fetchPoolById = createAsyncThunk(
@@ -419,6 +420,24 @@ export const fetchVmwareFolders = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(
         err?.response?.data || err?.message || "Failed to fetch vmware folders",
+      );
+    }
+  },
+);
+
+export const createPrivateLLMThunk = createAsyncThunk(
+  "pools/createPrivateLLM",
+  async ({ token, requestData }, { rejectWithValue }) => {
+    try {
+      const res = await createPrivateLLM(token, requestData);
+      return res?.data?.data || res?.data || {};
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.detail ||
+          err?.response?.data?.message ||
+          err?.response?.data ||
+          err?.message ||
+          "Failed to create Private LLM pool",
       );
     }
   },
