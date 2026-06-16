@@ -28,6 +28,10 @@ import {
   fetchProxmoxStorages,
   fetchNodeGpus,
   createPrivateLLMThunk,
+  deletePrivateLLMThunk,
+  fetchPrivateLLMListThunk,
+  fetchPrivateLLMByIdThunk,
+  privateLLMPoolActionThunk,
 } from "./PoolsThunks";
 import { initialPoolDetails } from "./poolDefaults";
 
@@ -69,6 +73,17 @@ const initialState = {
   nodeGpusLoading: false,
   privateLLMCreateLoading: false,
   privateLLMCreateError: null,
+  privateLLMDeleteLoading: false,
+  privateLLMDeleteError: null,
+  privateLLMList: [],
+  privateLLMPagination: { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false },
+  privateLLMListLoading: false,
+  privateLLMListError: null,
+  privateLLMDetail: null,
+  privateLLMDetailLoading: false,
+  privateLLMDetailError: null,
+  privateLLMActionLoading: null,
+  privateLLMActionError: null,
 };
 
 const poolsSlice = createSlice({
@@ -135,6 +150,11 @@ const poolsSlice = createSlice({
     clearNodeGpus(state) {
       state.nodeGpus = {};
       state.nodeGpusLoading = false;
+    },
+    clearPrivateLLMDetail(state) {
+      state.privateLLMDetail = null;
+      state.privateLLMDetailLoading = false;
+      state.privateLLMDetailError = null;
     },
   },
   extraReducers: (builder) => {
@@ -548,6 +568,58 @@ const poolsSlice = createSlice({
         state.poolsLoading = false;
         state.creationSwitches = [];
       })
+      .addCase(fetchPrivateLLMListThunk.pending, (state) => {
+        state.privateLLMListLoading = true;
+        state.privateLLMListError = null;
+      })
+      .addCase(fetchPrivateLLMListThunk.fulfilled, (state, action) => {
+        state.privateLLMListLoading = false;
+        state.privateLLMList = action.payload?.items || [];
+        state.privateLLMPagination = action.payload?.pagination || state.privateLLMPagination;
+      })
+      .addCase(fetchPrivateLLMListThunk.rejected, (state, action) => {
+        state.privateLLMListLoading = false;
+        state.privateLLMListError = action.payload || "Failed to fetch list";
+      })
+      .addCase(privateLLMPoolActionThunk.pending, (state, action) => {
+        state.privateLLMActionLoading = action.meta.arg.action;
+        state.privateLLMActionError = null;
+      })
+      .addCase(privateLLMPoolActionThunk.fulfilled, (state) => {
+        state.privateLLMActionLoading = null;
+      })
+      .addCase(privateLLMPoolActionThunk.rejected, (state, action) => {
+        state.privateLLMActionLoading = null;
+        state.privateLLMActionError = action.payload || "Action failed";
+      })
+      .addCase(fetchPrivateLLMByIdThunk.pending, (state) => {
+        state.privateLLMDetailLoading = true;
+        state.privateLLMDetailError = null;
+      })
+      .addCase(fetchPrivateLLMByIdThunk.fulfilled, (state, action) => {
+        state.privateLLMDetailLoading = false;
+        state.privateLLMDetail = action.payload;
+      })
+      .addCase(fetchPrivateLLMByIdThunk.rejected, (state, action) => {
+        state.privateLLMDetailLoading = false;
+        state.privateLLMDetailError = action.payload || "Failed to fetch detail";
+      })
+      .addCase(deletePrivateLLMThunk.pending, (state) => {
+        state.privateLLMDeleteLoading = true;
+        state.privateLLMDeleteError = null;
+      })
+      .addCase(deletePrivateLLMThunk.fulfilled, (state) => {
+        state.privateLLMDeleteLoading = false;
+        state.privateLLMDeleteError = null;
+      })
+      .addCase(deletePrivateLLMThunk.rejected, (state, action) => {
+        state.privateLLMDeleteLoading = false;
+        const payload = action.payload;
+        state.privateLLMDeleteError =
+          typeof payload === "string"
+            ? payload
+            : payload?.detail || payload?.message || JSON.stringify(payload) || "Failed to delete Private LLM pool";
+      })
       .addCase(createPrivateLLMThunk.pending, (state) => {
         state.privateLLMCreateLoading = true;
         state.privateLLMCreateError = null;
@@ -584,6 +656,7 @@ export const {
   setPowerActionLoading,
   clearProxmoxStorages,
   clearNodeGpus,
+  clearPrivateLLMDetail,
 } = poolsSlice.actions;
 export default poolsSlice.reducer;
 

@@ -1,155 +1,235 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
+import { toast } from "react-toastify";
+import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
+import { fetchPrivateLLMListThunk, deletePrivateLLMThunk, privateLLMPoolActionThunk } from "../../redux/features/Pools/PoolsThunks";
+import { fetchFooterTasksThunk } from "../../redux/features/Footer/FooterThunks";
+import {
+    selectPrivateLLMList,
+    selectPrivateLLMPagination,
+    selectPrivateLLMListLoading,
+    selectPrivateLLMDeleteLoading,
+} from "../../redux/features/Pools/PoolsSelectors";
 import {
     ArrowPathIcon,
     PlusIcon,
     TrashIcon,
-    CpuChipIcon,
-    GlobeAltIcon,
     EllipsisVerticalIcon,
     XMarkIcon,
-    UserPlusIcon,
     PlayIcon,
     PowerIcon,
     ArrowPathRoundedSquareIcon,
     StopIcon,
-    PencilSquareIcon,
     InformationCircleIcon,
-    ServerIcon,
-    ComputerDesktopIcon
+    CpuChipIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+
+const STATUS_CONFIG = {
+    vms_ready:    { label: "VMs Ready",    dot: "bg-green-500",  badge: "bg-green-100 text-green-800",   pulse: false },
+    provisioning: { label: "Provisioning", dot: "bg-yellow-500", badge: "bg-yellow-100 text-yellow-800", pulse: true  },
+    failed:       { label: "Failed",       dot: "bg-red-500",    badge: "bg-red-100 text-red-800",       pulse: false },
+};
+
+const getStatusConfig = (status) =>
+    STATUS_CONFIG[status] || { label: status || "Unknown", dot: "bg-gray-400", badge: "bg-gray-100 text-gray-700", pulse: false };
 
 const LLMInference = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const token = useSelector(selectAuthToken);
+    const token       = useSelector(selectAuthToken);
+    const tokenParsed = useSelector(selectAuthTokenParsed);
+    const userName    = tokenParsed?.preferred_username;
 
-    // Mock Data with nested machines/VMs list for each cluster pool
-    const [inferencePools, setInferencePools] = useState([
-        {
-            id: "1",
-            name: "Inference-Pool-Alpha",
-            ip_pools: "10.100.4.0/22",
-            base_os: "Ubuntu 22.04 LTS (CUDA 12.1)",
-            cluster: "K8s-GPU-Cluster-01",
-            model_name: "Meta-Llama-3-8B-Instruct",
-            status: "Running",
-            custom_model_path: "huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct",
-            replicas: 2,
-            endpoint_prefix: "meta-llama-3-8b-instruct",
-            max_tokens: 4096,
-            temperature: 0.7,
-            machines: [
-                { id: "m-101", name: "gpu-node-01a", hostname: "10.100.4.12", port: 22, protocol: "SSH", status: "Active" },
-                { id: "m-102", name: "gpu-node-01b", hostname: "10.100.4.13", port: 22, protocol: "SSH", status: "Active" }
-            ]
-        },
-        {
-            id: "2",
-            name: "Mistral-Prod-Endpoint",
-            ip_pools: "10.100.8.0/22",
-            base_os: "Ubuntu 20.04 LTS (CUDA 11.8)",
-            cluster: "K8s-GPU-Cluster-01",
-            model_name: "Mistral-7B-Instruct-v0.2",
-            status: "Stopped",
-            custom_model_path: "huggingface.co/mistralai/Mistral-7B-Instruct-v0.2",
-            replicas: 1,
-            endpoint_prefix: "mistral-7b-instruct-v0-2",
-            max_tokens: 8192,
-            temperature: 0.5,
-            machines: [
-                { id: "m-201", name: "mistral-core-01", hostname: "10.100.8.45", port: 3389, protocol: "RDP", status: "Inactive" }
-            ]
-        },
-        {
-            id: "3",
-            name: "Custom-FineTuned-LLM",
-            ip_pools: "172.16.20.0/24",
-            base_os: "Rocky Linux 9 (CUDA 12.2)",
-            cluster: "DGX-OnPrem-Cluster",
-            model_name: "DeepSeek-Coder-7B",
-            status: "Deploying",
-            custom_model_path: "s3://my-llm-bucket/custom-llama-v3",
-            replicas: 1,
-            endpoint_prefix: "custom-endpoint-slug",
-            max_tokens: 16384,
-            temperature: 0.2,
-            machines: [
-                { id: "m-301", name: "dgx-node-alpha", hostname: "172.16.20.5", port: 5900, protocol: "VNC", status: "Active" }
-            ]
-        }
-    ]);
+    const inferencePools  = useSelector(selectPrivateLLMList);
+    const pagination      = useSelector(selectPrivateLLMPagination);
+    const listLoading     = useSelector(selectPrivateLLMListLoading);
+    const deleteLoading   = useSelector(selectPrivateLLMDeleteLoading);
 
-    // UI States
     const [selectedPools, setSelectedPools] = useState([]);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [activeDropdownId, setActiveDropdownId] = useState(null);
-
-    // Side Panel Drawer State
+    const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
     const [selectedPoolForDrawer, setSelectedPoolForDrawer] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    // confirmDelete: { type: 'single'|'bulk', id?: number, name?: string } | null
+    const [confirmDelete, setConfirmDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [drawerActionLoading, setDrawerActionLoading] = useState(null);
 
     const dropdownRef = useRef(null);
 
+    const fetchList = useCallback((page, size) => {
+        if (token) dispatch(fetchPrivateLLMListThunk({ token, page, pageSize: size }));
+    }, [token, dispatch]);
+
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        fetchList(currentPage, pageSize);
+    }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Close fixed dropdown on outside click or scroll
+    useEffect(() => {
+        const close = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target))
                 setActiveDropdownId(null);
-            }
         };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        document.addEventListener("mousedown", close);
+        document.addEventListener("scroll", () => setActiveDropdownId(null), true);
+        return () => {
+            document.removeEventListener("mousedown", close);
+            document.removeEventListener("scroll", () => setActiveDropdownId(null), true);
+        };
     }, []);
 
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 800));
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsRefreshing(false);
-        }
+    const handleRefresh = () => fetchList(currentPage, pageSize);
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        setSelectedPools([]);
+        fetchList(page, pageSize);
+    };
+
+    const handlePageSizeChange = (e) => {
+        const newSize = Number(e.target.value);
+        setPageSize(newSize);
+        setCurrentPage(1);
+        setSelectedPools([]);
+        fetchList(1, newSize);
     };
 
     const handleSelectAll = (e) => {
-        if (e.target.checked) {
-            setSelectedPools(inferencePools.map((item) => item.id));
-        } else {
-            setSelectedPools([]);
-        }
+        setSelectedPools(e.target.checked ? inferencePools.map((item) => item.id) : []);
     };
 
     const handleCheckboxClick = (e, id) => {
         e.stopPropagation();
-        if (selectedPools.includes(id)) {
-            setSelectedPools((prev) => prev.filter((pId) => pId !== id));
-        } else {
-            setSelectedPools((prev) => [...prev, id]);
-        }
+        setSelectedPools((prev) =>
+            prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+        );
     };
 
-    // Row click par naye machines page par redirect karega
     const handleRowClick = (item) => {
         navigate(`/inference/machines/${item.id}`, { state: { poolData: item } });
     };
 
     const toggleDropdown = (e, id) => {
         e.stopPropagation();
-        setActiveDropdownId(activeDropdownId === id ? null : id);
+        if (activeDropdownId === id) { setActiveDropdownId(null); return; }
+        const rect = e.currentTarget.getBoundingClientRect();
+        setDropdownPos({
+            top: rect.bottom + 4,
+            right: window.innerWidth - rect.right,
+        });
+        setActiveDropdownId(id);
     };
 
-    // Details par click karne se dropdown close hoga aur purana side drawer modal khulega
     const handleDetailsClick = (e, item) => {
         e.stopPropagation();
         setActiveDropdownId(null);
         setSelectedPoolForDrawer(item);
     };
 
+    // Open confirmation modal for single delete
+    const handleDeleteSingleClick = (e, item) => {
+        e.stopPropagation();
+        setActiveDropdownId(null);
+        setConfirmDelete({ type: "single", id: item.id, name: item.name });
+    };
+
+    // Open confirmation modal for bulk delete
+    const handleDeleteBulkClick = () => {
+        setConfirmDelete({ type: "bulk", count: selectedPools.length });
+    };
+
+    // Actual delete — close modal immediately, run in background
+    const handleConfirmedDelete = () => {
+        const snapshot = { ...confirmDelete };
+        // Close modal right away so user can continue working
+        setConfirmDelete(null);
+        setIsDeleting(false);
+
+        const triggerFooterRefresh = () => {
+            dispatch(fetchFooterTasksThunk(userName));
+            // Re-poll after a brief delay for the workflow to register
+            setTimeout(() => dispatch(fetchFooterTasksThunk(userName)), 3000);
+        };
+
+        if (snapshot.type === "single") {
+            if (selectedPoolForDrawer?.id === snapshot.id) setSelectedPoolForDrawer(null);
+            setSelectedPools((prev) => prev.filter((pId) => pId !== snapshot.id));
+            dispatch(fetchFooterTasksThunk(userName)); // immediate trigger
+            dispatch(deletePrivateLLMThunk({ token, id: snapshot.id }))
+                .unwrap()
+                .then(() => {
+                    toast.success(`Pool "${snapshot.name || snapshot.id}" deleted successfully`);
+                    fetchList(currentPage, pageSize);
+                    triggerFooterRefresh();
+                })
+                .catch((err) => {
+                    toast.error(typeof err === "string" ? err : err?.detail || err?.message || "Failed to delete");
+                    triggerFooterRefresh();
+                });
+        } else {
+            const ids = [...selectedPools];
+            const count = ids.length;
+            setSelectedPools([]);
+            dispatch(fetchFooterTasksThunk(userName));
+            Promise.all(ids.map((id) => dispatch(deletePrivateLLMThunk({ token, id })).unwrap()))
+                .then(() => {
+                    toast.success(`${count} pool(s) deleted successfully`);
+                    fetchList(currentPage, pageSize);
+                    triggerFooterRefresh();
+                })
+                .catch((err) => {
+                    toast.error(typeof err === "string" ? err : err?.detail || err?.message || "Failed to delete");
+                    triggerFooterRefresh();
+                });
+        }
+    };
+
+    const handlePoolAction = async (action) => {
+        if (!selectedPoolForDrawer) return;
+        setDrawerActionLoading(action);
+        dispatch(fetchFooterTasksThunk(userName));
+        try {
+            await dispatch(privateLLMPoolActionThunk({ token, id: selectedPoolForDrawer.id, action })).unwrap();
+            toast.success(`Pool ${action} initiated successfully`);
+            fetchList(currentPage, pageSize);
+        } catch (err) {
+            toast.error(typeof err === "string" ? err : err?.detail || err?.message || `Failed to ${action} pool`);
+        } finally {
+            setDrawerActionLoading(null);
+            setTimeout(() => dispatch(fetchFooterTasksThunk(userName)), 2000);
+        }
+    };
+
+    const { total = 0, total_pages = 1, has_next = false, has_prev = false } = pagination;
+    const startItem = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    const endItem   = Math.min(currentPage * pageSize, total);
+
+    const getPageNumbers = () => {
+        if (total_pages <= 7) return Array.from({ length: total_pages }, (_, i) => i + 1);
+        const pages = [];
+        const delta = 2;
+        const left  = Math.max(2, currentPage - delta);
+        const right = Math.min(total_pages - 1, currentPage + delta);
+        pages.push(1);
+        if (left > 2) pages.push("...");
+        for (let i = left; i <= right; i++) pages.push(i);
+        if (right < total_pages - 1) pages.push("...");
+        pages.push(total_pages);
+        return pages;
+    };
+
     return (
         <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
-            {/* Top Action Header Section */}
+
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
                 <div>
                     <h1 className="text-2xl font-bold text-[#1a365d]">Private LLM Pools</h1>
@@ -159,11 +239,11 @@ const LLMInference = () => {
                 <div className="flex items-center gap-3 mt-4 md:mt-0">
                     <button
                         onClick={handleRefresh}
-                        disabled={isRefreshing}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all"
+                        disabled={listLoading}
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
                     >
-                        <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                        {isRefreshing ? "Refreshing..." : "Refresh"}
+                        <ArrowPathIcon className={`h-4 w-4 ${listLoading ? "animate-spin" : ""}`} />
+                        {listLoading ? "Loading..." : "Refresh"}
                     </button>
 
                     <button
@@ -176,8 +256,9 @@ const LLMInference = () => {
 
                     {selectedPools.length > 0 && (
                         <button
-                            onClick={() => console.log("Deleting:", selectedPools)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm font-medium shadow-sm transition-all"
+                            onClick={handleDeleteBulkClick}
+                            disabled={deleteLoading}
+                            className="flex items-center gap-2 px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-sm font-medium shadow-sm transition-all"
                         >
                             <TrashIcon className="h-4 w-4" />
                             Delete ({selectedPools.length})
@@ -186,10 +267,10 @@ const LLMInference = () => {
                 </div>
             </div>
 
-            {/* Main Table */}
+            {/* Table */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
                 <div className="overflow-x-auto max-w-full">
-                    <table className="w-full text-left border-collapse min-w-[1200px]">
+                    <table className="w-full text-left border-collapse min-w-[1100px]">
                         <thead>
                             <tr className="bg-[#1a365d] text-white text-sm font-semibold select-none">
                                 <th className="py-3 px-4 w-12 text-center">
@@ -201,136 +282,264 @@ const LLMInference = () => {
                                     />
                                 </th>
                                 <th className="py-3 px-4">Name</th>
-                                <th className="py-3 px-4">IP Pools</th>
-                                <th className="py-3 px-4">Base OS</th>
-                                <th className="py-3 px-4">Cluster</th>
-                                <th className="py-3 px-4">Model Name</th>
-                                <th className="py-3 px-4 text-center">Machines</th>
+                                <th className="py-3 px-4">OS Type</th>
+                                <th className="py-3 px-4">Storage</th>
+                                <th className="py-3 px-4">Head IP</th>
+                                <th className="py-3 px-4">Template</th>
+                                <th className="py-3 px-4 text-center">VMs</th>
+                                <th className="py-3 px-4">Created At</th>
                                 <th className="py-3 px-4 text-center">Status</th>
-                                <th className="py-3 px-4 text-center w-24">Action</th>
+                                <th className="py-3 px-4 text-center w-20">Action</th>
                             </tr>
                         </thead>
 
                         <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
-                            {inferencePools.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    onClick={() => handleRowClick(item)}
-                                    className={`hover:bg-blue-50/20 cursor-pointer transition-colors ${selectedPools.includes(item.id) ? "bg-blue-50/40" : ""
-                                        } ${selectedPoolForDrawer?.id === item.id ? "bg-blue-50/60 font-medium" : ""}`}
-                                >
-                                    {/* Checkbox Column */}
-                                    <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                        <input
-                                            type="checkbox"
-                                            className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
-                                            checked={selectedPools.includes(item.id)}
-                                            onChange={(e) => handleCheckboxClick(e, item.id)}
-                                        />
-                                    </td>
-
-                                    <td className="py-3.5 px-4 text-gray-900 font-semibold max-w-[180px] truncate">
-                                        {item.name}
-                                    </td>
-                                    <td className="py-3.5 px-4 font-mono text-xs text-gray-600">
-                                        {item.ip_pools}
-                                    </td>
-                                    <td className="py-3.5 px-4 text-gray-600 max-w-[200px] truncate">
-                                        {item.base_os}
-                                    </td>
-                                    <td className="py-3.5 px-4 text-gray-600 max-w-[180px] truncate">
-                                        {item.cluster}
-                                    </td>
-                                    <td className="py-3.5 px-4 text-gray-900 font-medium max-w-[220px] truncate">
-                                        {item.model_name}
-                                    </td>
-
-                                    {/* Machines Count Live Badge Column */}
-                                    <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                        <span className="inline-flex items-center justify-center bg-blue-50 border border-blue-200 text-[#1a365d] text-xs font-bold px-2.5 py-0.5 rounded-md min-w-[28px] shadow-xs">
-                                            {item.machines?.length || 0}
-                                        </span>
-                                    </td>
-
-                                    {/* Status Badge */}
-                                    <td className="py-3.5 px-4 text-center">
-                                        <span
-                                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${item.status === "Running"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : item.status === "Deploying"
-                                                        ? "bg-yellow-100 text-yellow-800 animate-pulse"
-                                                        : "bg-gray-100 text-gray-800"
-                                                }`}
-                                        >
-                                            <span className={`h-1.5 w-1.5 rounded-full ${item.status === "Running" ? "bg-green-500" : item.status === "Deploying" ? "bg-yellow-500" : "bg-gray-400"}`} />
-                                            {item.status}
-                                        </span>
-                                    </td>
-
-                                    {/* Action Column - Details click opens the side panel model */}
-                                    <td className="py-3.5 px-4 text-center relative" onClick={(e) => e.stopPropagation()}>
-                                        <button
-                                            onClick={(e) => toggleDropdown(e, item.id)}
-                                            className="p-1 hover:bg-gray-100 rounded-full transition-colors inline-flex text-gray-500"
-                                        >
-                                            <EllipsisVerticalIcon className="h-5 w-5" />
-                                        </button>
-
-                                        {activeDropdownId === item.id && (
-                                            <div
-                                                ref={dropdownRef}
-                                                className="absolute right-4 mt-1 w-36 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20 border border-gray-100 text-left divide-y divide-gray-100"
-                                            >
-                                                <div className="py-1">
-                                                    <button
-                                                        onClick={(e) => handleDetailsClick(e, item)}
-                                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 gap-2 font-medium"
-                                                    >
-                                                        <InformationCircleIcon className="h-4 w-4 text-blue-500" />
-                                                        Details
-                                                    </button>
-                                                </div>
-                                                <div className="py-1">
-                                                    <button onClick={() => navigate("/inference-edit")} className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 gap-2 font-medium">
-                                                        <PencilSquareIcon className="h-4 w-4 text-gray-400" />
-                                                        Edit
-                                                    </button>
-                                                </div>
-                                                <div className="py-1">
-                                                    <button onClick={() => setActiveDropdownId(null)} className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 gap-2 font-medium">
-                                                        <TrashIcon className="h-4 w-4 text-red-400" />
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
+                            {listLoading && inferencePools.length === 0 ? (
+                                <tr>
+                                    <td colSpan="10" className="py-12 text-center text-gray-400">
+                                        <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto mb-2" />
+                                        Loading pools...
                                     </td>
                                 </tr>
-                            ))}
+                            ) : inferencePools.length === 0 ? (
+                                <tr>
+                                    <td colSpan="10" className="py-12 text-center text-gray-400">
+                                        No Private LLM pools found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                inferencePools.map((item) => {
+                                    const sc = getStatusConfig(item.status);
+                                    return (
+                                        <tr
+                                            key={item.id}
+                                            onClick={() => handleRowClick(item)}
+                                            className={`hover:bg-blue-50/20 cursor-pointer transition-colors
+                                                ${selectedPools.includes(item.id) ? "bg-blue-50/40" : ""}
+                                                ${selectedPoolForDrawer?.id === item.id ? "bg-blue-50/60 font-medium" : ""}`}
+                                        >
+                                            <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
+                                                    checked={selectedPools.includes(item.id)}
+                                                    onChange={(e) => handleCheckboxClick(e, item.id)}
+                                                />
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-900 font-semibold max-w-[160px] truncate">
+                                                {item.name}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600 capitalize">
+                                                {item.pool_os_type || "-"}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">
+                                                {item.storage || "-"}
+                                            </td>
+                                            <td className="py-3.5 px-4 font-mono text-xs text-gray-600">
+                                                {item.head_ip || "-"}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">
+                                                {item.template || "-"}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                <span className="inline-flex items-center justify-center bg-blue-50 border border-blue-200 text-[#1a365d] text-xs font-bold px-2.5 py-0.5 rounded-md min-w-[28px]">
+                                                    {item.vmids?.length || 0}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-xs text-gray-500 whitespace-nowrap">
+                                                {item.created_at ? item.created_at.split(".")[0] : "-"}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-center">
+                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${sc.badge} ${sc.pulse ? "animate-pulse" : ""}`}>
+                                                    <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
+                                                    {sc.label}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    onClick={(e) => toggleDropdown(e, item.id)}
+                                                    className="p-1 hover:bg-gray-100 rounded-full transition-colors inline-flex text-gray-500"
+                                                >
+                                                    <EllipsisVerticalIcon className="h-5 w-5" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Footer */}
+                {total > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50">
+                        <div className="flex items-center gap-4">
+                            <span className="text-xs text-gray-500">
+                                Showing <span className="font-semibold text-gray-700">{startItem}–{endItem}</span> of <span className="font-semibold text-gray-700">{total}</span> pools
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                                <label className="text-xs text-gray-500 whitespace-nowrap">Rows per page:</label>
+                                <select
+                                    value={pageSize}
+                                    onChange={handlePageSizeChange}
+                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1a365d] focus:border-[#1a365d] cursor-pointer"
+                                >
+                                    {PAGE_SIZE_OPTIONS.map((s) => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={!has_prev || listLoading}
+                                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronLeftIcon className="h-4 w-4" />
+                            </button>
+
+                            {getPageNumbers().map((p, idx) =>
+                                p === "..." ? (
+                                    <span key={`ellipsis-${idx}`} className="px-1.5 text-gray-400 text-xs select-none">…</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => handlePageChange(p)}
+                                        disabled={listLoading}
+                                        className={`min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border transition-colors disabled:cursor-not-allowed
+                                            ${currentPage === p
+                                                ? "bg-[#1a365d] text-white border-[#1a365d] shadow-sm"
+                                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            )}
+
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={!has_next || listLoading}
+                                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronRightIcon className="h-4 w-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Side Drawer Modal Restored (Details click handler renders this UI panel block seamlessly) */}
+            {/* Fixed-position dropdown — rendered outside table so overflow won't clip it */}
+            {activeDropdownId !== null && (
+                <div
+                    ref={dropdownRef}
+                    style={{ position: "fixed", top: dropdownPos.top, right: dropdownPos.right, zIndex: 200 }}
+                    className="w-36 bg-white rounded-md shadow-xl ring-1 ring-black ring-opacity-5 border border-gray-100 text-left divide-y divide-gray-100"
+                >
+                    {(() => {
+                        const item = inferencePools.find((p) => p.id === activeDropdownId);
+                        if (!item) return null;
+                        return (
+                            <>
+                                <div className="py-1">
+                                    <button
+                                        onClick={(e) => handleDetailsClick(e, item)}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 gap-2 font-medium"
+                                    >
+                                        <InformationCircleIcon className="h-4 w-4 text-blue-500" />
+                                        Details
+                                    </button>
+                                </div>
+                                <div className="py-1">
+                                    <button
+                                        onClick={(e) => handleDeleteSingleClick(e, item)}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 gap-2 font-medium"
+                                    >
+                                        <TrashIcon className="h-4 w-4 text-red-400" />
+                                        Delete
+                                    </button>
+                                </div>
+                            </>
+                        );
+                    })()}
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {confirmDelete && (
+                <>
+                    <div
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[210]"
+                        onClick={() => !isDeleting && setConfirmDelete(null)}
+                    />
+                    <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+                            <div className="p-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                        <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-900">
+                                            {confirmDelete.type === "bulk" ? "Delete Multiple Pools" : "Delete Pool"}
+                                        </h3>
+                                        <p className="text-sm text-gray-500 mt-1">
+                                            {confirmDelete.type === "bulk"
+                                                ? <>Are you sure you want to delete <span className="font-semibold text-gray-800">{confirmDelete.count} pool(s)</span>? This action cannot be undone.</>
+                                                : <>Are you sure you want to delete pool <span className="font-semibold text-gray-800">"{confirmDelete.name}"</span>? This action cannot be undone.</>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="px-6 pb-6 flex justify-end gap-3">
+                                <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    disabled={isDeleting}
+                                    className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleConfirmedDelete}
+                                    disabled={isDeleting}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TrashIcon className="h-4 w-4" />
+                                            Delete
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Side Drawer */}
             {selectedPoolForDrawer && (
                 <>
-                    {/* Backdrop Overlay - z-[90] */}
                     <div className="fixed inset-0 bg-black/30 backdrop-blur-xs z-[90]" onClick={() => setSelectedPoolForDrawer(null)} />
 
-                    {/* Main Side Drawer Container - z-[100] */}
                     <div className="fixed top-0 bottom-0 right-0 max-w-xl w-full bg-white shadow-2xl z-[100] flex flex-col justify-between border-l border-gray-200 h-full">
 
-                        {/* Drawer Header & Scrolled Content Area */}
-                        <div className="overflow-y-auto flex-1 p-6 custom-scrollbar text-left">
+                        <div className="overflow-y-auto flex-1 p-6 text-left">
                             <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-5">
                                 <div>
                                     <span className="text-xs font-bold uppercase tracking-wider text-[#1a365d] bg-blue-50 border border-blue-100 px-2.5 py-1 rounded">
-                                        Pool Details View
+                                        Pool Details
                                     </span>
-                                    <h2 className="text-xl font-bold text-gray-900 mt-2">
-                                        {selectedPoolForDrawer.name}
-                                    </h2>
+                                    <h2 className="text-xl font-bold text-gray-900 mt-2">{selectedPoolForDrawer.name}</h2>
                                 </div>
                                 <button
                                     onClick={() => setSelectedPoolForDrawer(null)}
@@ -340,140 +549,113 @@ const LLMInference = () => {
                                 </button>
                             </div>
 
-                            {/* Section 1: Read-Only Configurations Meta-Grid */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-xs shadow-xs">
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
                                 <div>
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Model Architecture</span>
-                                    <span className="text-gray-900 font-medium text-sm block mt-0.5">{selectedPoolForDrawer.model_name}</span>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Pool ID</span>
+                                    <span className="text-gray-900 font-mono font-medium text-sm block mt-0.5">#{selectedPoolForDrawer.id}</span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Target Cluster Node</span>
-                                    <span className="text-gray-900 font-medium text-sm block mt-0.5">{selectedPoolForDrawer.cluster}</span>
-                                </div>
-                                <div className="border-t border-gray-200/60 pt-2 col-span-2"></div>
-                                <div>
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">IP Routing Pool</span>
-                                    <span className="text-gray-700 font-mono block mt-0.5 font-semibold">{selectedPoolForDrawer.ip_pools}</span>
-                                </div>
-                                <div>
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Scale Replicas</span>
-                                    <span className="text-gray-900 block font-bold mt-0.5">{selectedPoolForDrawer.replicas} Target Instance(s)</span>
-                                </div>
-                                <div className="border-t border-gray-200/60 pt-2 col-span-2"></div>
-                                <div className="col-span-2">
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Model Registry/S3 Storage Path</span>
-                                    <span className="text-gray-800 font-mono block text-[11px] mt-0.5 bg-white p-1.5 rounded border border-gray-200 break-all">
-                                        {selectedPoolForDrawer.custom_model_path || "Default Hub Path"}
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Status</span>
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold mt-0.5 ${getStatusConfig(selectedPoolForDrawer.status).badge}`}>
+                                        {getStatusConfig(selectedPoolForDrawer.status).label}
                                     </span>
                                 </div>
-                                <div className="border-t border-gray-200/60 pt-2 col-span-2"></div>
+                                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
                                 <div>
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Max Tokens</span>
-                                    <span className="text-gray-800 font-mono font-medium block mt-0.5">{selectedPoolForDrawer.max_tokens}</span>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">OS Type</span>
+                                    <span className="text-gray-900 font-medium block mt-0.5 capitalize">{selectedPoolForDrawer.pool_os_type || "-"}</span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Temperature</span>
-                                    <span className="text-gray-800 font-mono font-medium block mt-0.5">{selectedPoolForDrawer.temperature}</span>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Storage</span>
+                                    <span className="text-gray-900 font-mono block mt-0.5">{selectedPoolForDrawer.storage || "-"}</span>
+                                </div>
+                                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                                <div>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Template</span>
+                                    <span className="text-gray-900 font-mono block mt-0.5">{selectedPoolForDrawer.template || "-"}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Machine Name</span>
+                                    <span className="text-gray-900 block mt-0.5">{selectedPoolForDrawer.machine_name || "-"}</span>
+                                </div>
+                                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                                <div>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Head IP</span>
+                                    <span className="text-gray-700 font-mono font-semibold block mt-0.5">{selectedPoolForDrawer.head_ip || "-"}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">IP Addresses</span>
+                                    <span className="text-gray-700 font-mono block mt-0.5">{selectedPoolForDrawer.ip_addresses?.join(", ") || "-"}</span>
+                                </div>
+                                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                                <div className="col-span-2">
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Workflow ID</span>
+                                    <span className="text-gray-800 font-mono block text-[11px] mt-0.5 bg-white p-1.5 rounded border border-gray-200 break-all">
+                                        {selectedPoolForDrawer.workflow_id || "-"}
+                                    </span>
+                                </div>
+                                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                                <div>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">Created At</span>
+                                    <span className="text-gray-700 block mt-0.5">{selectedPoolForDrawer.created_at?.split(".")[0] || "-"}</span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-400 font-semibold block uppercase tracking-wide">VM IDs</span>
+                                    <span className="text-gray-700 font-mono block mt-0.5">{selectedPoolForDrawer.vmids?.join(", ") || "-"}</span>
                                 </div>
                             </div>
 
-                            {/* Section 2: Virtual Machines Sub-table Inside Drawer */}
-                            <div className="mt-6">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <ServerIcon className="h-5 w-5 text-[#1a365d]" />
+                            {selectedPoolForDrawer.nodes?.length > 0 && (
+                                <div className="mb-6">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <CpuChipIcon className="h-5 w-5 text-[#1a365d]" />
                                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                                            Virtual Machines ({selectedPoolForDrawer.machines?.length || 0})
+                                            Nodes & GPUs ({selectedPoolForDrawer.nodes.length})
                                         </h3>
                                     </div>
-                                    <button
-                                        onClick={() => console.log("Trigger Add Machine Popover for pool:", selectedPoolForDrawer.id)}
-                                        className="text-xs bg-[#1a365d] hover:bg-[#153056] text-white py-1 px-2.5 rounded font-semibold shadow-xs flex items-center gap-1 transition-all"
-                                    >
-                                        <PlusIcon className="h-3.5 w-3.5" />
-                                        Add Machine
-                                    </button>
-                                </div>
-
-                                <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-xs">
-                                    <table className="w-full text-left border-collapse text-xs">
-                                        <thead>
-                                            <tr className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
-                                                <th className="p-2.5">VM Name</th>
-                                                <th className="p-2.5">Hostname</th>
-                                                <th className="p-2.5 text-center">Port/Protocol</th>
-                                                <th className="p-2.5 text-center">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-100 text-gray-700">
-                                            {selectedPoolForDrawer.machines && selectedPoolForDrawer.machines.length > 0 ? (
-                                                selectedPoolForDrawer.machines.map((machine) => (
-                                                    <tr key={machine.id} className="hover:bg-gray-50/60">
-                                                        <td className="p-2.5 font-semibold text-gray-900 flex items-center gap-1.5">
-                                                            <ComputerDesktopIcon className="h-3.5 w-3.5 text-gray-400" />
-                                                            {machine.name}
-                                                        </td>
-                                                        <td className="p-2.5 font-mono text-gray-600">{machine.hostname}</td>
-                                                        <td className="p-2.5 text-center">
-                                                            <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded font-mono text-[10px]">
-                                                                {machine.port} / {machine.protocol}
-                                                            </span>
-                                                        </td>
-                                                        <td className="p-2.5 text-center">
-                                                            <span className={`inline-block h-2 w-2 rounded-full mr-1.5 ${machine.status === "Active" ? "bg-green-500" : "bg-gray-400"}`} />
-                                                            <span className="font-medium">{machine.status}</span>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="4" className="p-4 text-center text-gray-400 italic">
-                                                        No virtual machines attached to this cluster configuration.
-                                                    </td>
+                                    <div className="border border-gray-200 rounded-md overflow-hidden bg-white">
+                                        <table className="w-full text-left text-xs">
+                                            <thead>
+                                                <tr className="bg-gray-100 text-gray-600 font-semibold border-b border-gray-200">
+                                                    <th className="p-2.5">Node</th>
+                                                    <th className="p-2.5">GPUs</th>
                                                 </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 text-gray-700">
+                                                {selectedPoolForDrawer.nodes.map((n, i) => (
+                                                    <tr key={i} className="hover:bg-gray-50/60">
+                                                        <td className="p-2.5 font-semibold text-gray-900">{n.node}</td>
+                                                        <td className="p-2.5 font-mono">{n.gpu?.join(", ") || "-"}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-
+                            )}
                         </div>
 
-                        {/* Bottom Power Actions Strip */}
                         <div className="p-4 bg-gray-50 border-t border-gray-200 grid grid-cols-4 gap-2">
-                            <button
-                                onClick={() => console.log("Starting:", selectedPoolForDrawer.id)}
-                                className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-green-700 hover:bg-green-50 hover:border-green-300 shadow-xs gap-1.5 transition-all"
-                            >
-                                <PlayIcon className="h-4 w-4 text-green-600" />
-                                Start
-                            </button>
-
-                            <button
-                                onClick={() => console.log("Shutting down:", selectedPoolForDrawer.id)}
-                                className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 hover:border-red-300 shadow-xs gap-1.5 transition-all"
-                            >
-                                <PowerIcon className="h-4 w-4 text-red-600" />
-                                Shutdown
-                            </button>
-
-                            <button
-                                onClick={() => console.log("Restarting:", selectedPoolForDrawer.id)}
-                                className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-amber-700 hover:bg-amber-50 hover:border-amber-300 shadow-xs gap-1.5 transition-all"
-                            >
-                                <ArrowPathRoundedSquareIcon className="h-4 w-4 text-amber-600" />
-                                Restart
-                            </button>
-
-                            <button
-                                onClick={() => console.log("Stopping:", selectedPoolForDrawer.id)}
-                                className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:border-gray-400 shadow-xs gap-1.5 transition-all"
-                            >
-                                <StopIcon className="h-4 w-4 text-gray-600" />
-                                Stop
-                            </button>
+                            {[
+                                { action: "start",    label: "Start",    Icon: PlayIcon,                   color: "text-green-700 hover:bg-green-50 hover:border-green-300", iconColor: "text-green-600" },
+                                { action: "shutdown", label: "Shutdown", Icon: PowerIcon,                  color: "text-red-700 hover:bg-red-50 hover:border-red-300",       iconColor: "text-red-600"   },
+                                { action: "restart",  label: "Restart",  Icon: ArrowPathRoundedSquareIcon, color: "text-amber-700 hover:bg-amber-50 hover:border-amber-300", iconColor: "text-amber-600" },
+                                { action: "stop",     label: "Stop",     Icon: StopIcon,                   color: "text-gray-700 hover:bg-gray-100 hover:border-gray-400",   iconColor: "text-gray-600"  },
+                            ].map(({ action, label, Icon, color, iconColor }) => (
+                                <button
+                                    key={action}
+                                    onClick={() => handlePoolAction(action)}
+                                    disabled={!!drawerActionLoading}
+                                    className={`flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${color}`}
+                                >
+                                    {drawerActionLoading === action
+                                        ? <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                        : <Icon className={`h-4 w-4 ${iconColor}`} />
+                                    }
+                                    {label}
+                                </button>
+                            ))}
                         </div>
-
                     </div>
                 </>
             )}

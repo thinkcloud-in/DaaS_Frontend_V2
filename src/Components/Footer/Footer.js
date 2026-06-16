@@ -26,9 +26,19 @@ const Footer = () => {
     }
   };
 
+  const silentRefresh = () => { dispatch(fetchFooterTasksThunk(userName)); };
+
   useEffect(() => {
     loadRecentTasks();
   }, [userName]);
+
+  // Auto-poll every 5s while any task is Running
+  useEffect(() => {
+    const hasRunning = data.some((t) => t.status === "Running");
+    if (!hasRunning) return;
+    const timer = setInterval(silentRefresh, 5000);
+    return () => clearInterval(timer);
+  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getStatusColor = (status) => {
     switch (status) {

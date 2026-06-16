@@ -295,6 +295,46 @@ export const createPool = async (token, requestData) => {
   return response;
 };
 
+export const privateLLMPoolAction = async (token, id, action) => {
+  const response = await axiosInstance.post(
+    `${backendUrl}/v1/llm-inference-v2/pool-action/${id}`,
+    { action },
+    { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } },
+  );
+  return response;
+};
+
+export const getPrivateLLMById = async (token, id) => {
+  const response = await axiosInstance.get(
+    `${backendUrl}/v1/llm-inference-v2/list-private-llm/${id}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return response?.data?.data;
+};
+
+export const listPrivateLLM = async (token, page = 1, pageSize = 10) => {
+  const response = await axiosInstance.get(
+    `${backendUrl}/v1/llm-inference-v2/list-private-llm`,
+    {
+      params: { page, page_size: pageSize },
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+  return response?.data?.data;
+};
+
+export const deletePrivateLLM = async (token, id) => {
+  const response = await axiosInstance.delete(
+    `${backendUrl}/v1/llm-inference-v2/delete-private-llm/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+  return response;
+};
+
 export const createPrivateLLM = async (token, requestData) => {
   const response = await axiosInstance.post(
     `${backendUrl}/v1/llm-inference-v2/create-private-llm`,

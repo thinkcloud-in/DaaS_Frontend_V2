@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
+import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
 import { Loader2, ChevronDown, X } from "lucide-react";
 import { toast } from "react-toastify";
 import "../PoolCreation/css/PoolCreationForm.css";
@@ -18,6 +18,7 @@ import {
   createPrivateLLMThunk,
 } from "../../redux/features/Pools/PoolsThunks";
 import { clearNodeGpus } from "../../redux/features/Pools/PoolsSlice";
+import { fetchFooterTasksThunk } from "../../redux/features/Footer/FooterThunks";
 import {
   selectCreationNodes,
   selectCreationIpPoolNames,
@@ -46,6 +47,7 @@ const MultiSelectField = ({ label, iconClass, required, children }) => (
 );
 
 // options can be plain strings OR { value, label } objects
+// maxSelections: when set, caps how many items can be selected; already-selected items can still be deselected
 const MultiSelectDropdown = ({
   options = [],
   selectedValues = [],
@@ -54,6 +56,7 @@ const MultiSelectDropdown = ({
   loading,
   disabled,
   compact = false,
+  maxSelections = 0,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef(null);
@@ -83,6 +86,7 @@ const MultiSelectDropdown = ({
   };
 
   const isDisabled = disabled || loading;
+  const limitReached = maxSelections > 0 && selectedValues.length >= maxSelections;
 
   return (
     <div className="relative w-full" ref={ref}>
@@ -127,20 +131,27 @@ const MultiSelectDropdown = ({
       {isOpen && !isDisabled && (
         <div className="absolute top-[calc(100%+2px)] left-0 w-full bg-white border border-gray-200 rounded-lg shadow-md z-50 max-h-48 overflow-y-auto">
           {options.length > 0 ? (
-            options.map((opt) => (
-              <label
-                key={optVal(opt)}
-                className="flex items-center gap-2.5 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm text-gray-800"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedValues.includes(optVal(opt))}
-                  onChange={() => toggle(optVal(opt))}
-                  className="rounded border-gray-300 text-[#1a365d] h-4 w-4"
-                />
-                {optLabel(opt)}
-              </label>
-            ))
+            options.map((opt) => {
+              const val = optVal(opt);
+              const isChecked = selectedValues.includes(val);
+              const isOptionDisabled = limitReached && !isChecked;
+              return (
+                <label
+                  key={val}
+                  className={`flex items-center gap-2.5 px-3 py-2 text-sm
+                    ${isOptionDisabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer text-gray-800"}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    disabled={isOptionDisabled}
+                    onChange={() => !isOptionDisabled && toggle(val)}
+                    className="rounded border-gray-300 text-[#1a365d] h-4 w-4 disabled:cursor-not-allowed"
+                  />
+                  {optLabel(opt)}
+                </label>
+              );
+            })
           ) : (
             <p className="px-3 py-3 text-xs text-gray-400 text-center">No options available</p>
           )}
@@ -153,7 +164,9 @@ const MultiSelectDropdown = ({
 const LLMInferenceCreate = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const token = useSelector(selectAuthToken);
+  const token       = useSelector(selectAuthToken);
+  const tokenParsed = useSelector(selectAuthTokenParsed);
+  const userName    = tokenParsed?.preferred_username;
   const isSubmitting = useSelector(selectPrivateLLMCreateLoading);
   const [loadingGpuNodes, setLoadingGpuNodes] = useState(new Set());
 
@@ -295,21 +308,51 @@ const LLMInferenceCreate = () => {
     });
   };
 
-  // Update gpu array for a specific node inside formData.nodes
+  // Update gpu array for a specific node inside formData.nodes.
+  // If the first node's count changes, trim all other nodes to match.
   const handleGpuChange = (nodeName, selectedIds) => {
-    setFormData((p) => ({
-      ...p,
-      nodes: p.nodes.map((n) =>
+    setFormData((p) => {
+      const updatedNodes = p.nodes.map((n) =>
         n.node === nodeName ? { ...n, gpu: selectedIds } : n
-      ),
-    }));
+      );
+      const isFirstNode = p.nodes[0]?.node === nodeName;
+      if (isFirstNode) {
+        const newCount = selectedIds.length;
+        return {
+          ...p,
+          nodes: updatedNodes.map((n, i) =>
+            i === 0 ? n : { ...n, gpu: n.gpu.slice(0, newCount) }
+          ),
+        };
+      }
+      return { ...p, nodes: updatedNodes };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate: all selected nodes must have the same number of GPUs as the first node
+    if (formData.nodes.length > 0) {
+      const referenceCount = formData.nodes[0].gpu.length;
+      const mismatch = formData.nodes.find((n) => n.gpu.length !== referenceCount);
+      if (mismatch) {
+        toast.error(
+          `"${mismatch.node}" must have exactly ${referenceCount} GPU${referenceCount > 1 ? "s" : ""} selected (same as the first node)`
+        );
+        return;
+      }
+      if (referenceCount === 0) {
+        toast.error("Please select at least 1 GPU for each node");
+        return;
+      }
+    }
+
     try {
+      dispatch(fetchFooterTasksThunk(userName));
       await dispatch(createPrivateLLMThunk({ token, requestData: formData })).unwrap();
       toast.success("Private LLM pool created successfully!");
+      dispatch(fetchFooterTasksThunk(userName));
       navigate("/inference");
     } catch (err) {
       const msg =
@@ -416,45 +459,62 @@ const LLMInferenceCreate = () => {
                     <span className="text-sm text-gray-400">No nodes available</span>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      {nodeOptions.map((nodeName) => {
-                        const nodeObj = formData.nodes.find((n) => n.node === nodeName);
-                        const isChecked = !!nodeObj;
-                        const gpuOpts = getNvidiaGpuOptions(nodeName);
-                        return (
-                          <div key={nodeName} className="flex items-center gap-4">
-                            <label className="flex items-center gap-2.5 cursor-pointer group min-w-[140px] flex-shrink-0">
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => handleNodeToggle(nodeName)}
-                                className="h-4 w-4 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer"
-                              />
-                              <span className="text-sm text-gray-800 group-hover:text-[#1a365d] transition-colors">
-                                {nodeName}
-                              </span>
-                            </label>
-
-                            {isChecked && (
-                              loadingGpuNodes.has(nodeName) ? (
-                                <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                                  <Loader2 className="h-3 w-3 animate-spin" /> Loading GPUs...
-                                </span>
-                              ) : (
-                                <div className="flex-1 max-w-xs">
-                                  <MultiSelectDropdown
-                                    options={gpuOpts}
-                                    selectedValues={nodeObj?.gpu || []}
-                                    onChange={(vals) => handleGpuChange(nodeName, vals)}
-                                    placeholder={gpuOpts.length === 0 ? "No NVIDIA GPU available" : "Select GPU(s)"}
-                                    disabled={gpuOpts.length === 0}
-                                    compact
+                      {(() => {
+                        const referenceGpuCount = formData.nodes[0]?.gpu?.length || 0;
+                        return nodeOptions.map((nodeName) => {
+                          const nodeObj = formData.nodes.find((n) => n.node === nodeName);
+                          const isChecked = !!nodeObj;
+                          const gpuOpts = getNvidiaGpuOptions(nodeName);
+                          const isFirstChecked = formData.nodes[0]?.node === nodeName;
+                          // Non-first nodes are limited to match the first node's GPU count
+                          const maxSel = !isFirstChecked && referenceGpuCount > 0 ? referenceGpuCount : 0;
+                          return (
+                            <div key={nodeName} className="flex flex-col gap-1">
+                              <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-2.5 cursor-pointer group min-w-[140px] flex-shrink-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleNodeToggle(nodeName)}
+                                    className="h-4 w-4 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer"
                                   />
-                                </div>
-                              )
-                            )}
-                          </div>
-                        );
-                      })}
+                                  <span className="text-sm text-gray-800 group-hover:text-[#1a365d] transition-colors">
+                                    {nodeName}
+                                  </span>
+                                </label>
+
+                                {isChecked && (
+                                  loadingGpuNodes.has(nodeName) ? (
+                                    <span className="flex items-center gap-1.5 text-xs text-gray-400">
+                                      <Loader2 className="h-3 w-3 animate-spin" /> Loading GPUs...
+                                    </span>
+                                  ) : (
+                                    <div className="flex-1 max-w-xs">
+                                      <MultiSelectDropdown
+                                        options={gpuOpts}
+                                        selectedValues={nodeObj?.gpu || []}
+                                        onChange={(vals) => handleGpuChange(nodeName, vals)}
+                                        placeholder={gpuOpts.length === 0 ? "No NVIDIA GPU available" : "Select GPU(s)"}
+                                        disabled={gpuOpts.length === 0}
+                                        compact
+                                        maxSelections={maxSel}
+                                      />
+                                    </div>
+                                  )
+                                )}
+                              </div>
+
+                              {/* Hint for non-first checked nodes */}
+                              {isChecked && !isFirstChecked && referenceGpuCount > 0 && (
+                                <p className="ml-[172px] text-xs text-amber-600">
+                                  Exactly {referenceGpuCount} GPU{referenceGpuCount > 1 ? "s" : ""} select karo
+                                  {nodeObj?.gpu?.length > 0 ? ` (${nodeObj.gpu.length}/${referenceGpuCount} selected)` : ""}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   )}
                 </MultiSelectField>

@@ -30,6 +30,10 @@ import {
   rebuildPoolService,
   getNodeGpus,
   createPrivateLLM,
+  deletePrivateLLM,
+  listPrivateLLM,
+  getPrivateLLMById,
+  privateLLMPoolAction,
 } from "Services/PoolService";
 
 export const fetchPoolById = createAsyncThunk(
@@ -420,6 +424,78 @@ export const fetchVmwareFolders = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(
         err?.response?.data || err?.message || "Failed to fetch vmware folders",
+      );
+    }
+  },
+);
+
+export const privateLLMPoolActionThunk = createAsyncThunk(
+  "pools/privateLLMPoolAction",
+  async ({ token, id, action }, { rejectWithValue }) => {
+    try {
+      const res = await privateLLMPoolAction(token, id, action);
+      return res?.data?.data || res?.data || {};
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.detail ||
+          err?.response?.data?.message ||
+          err?.message ||
+          `Failed to ${action} pool`,
+      );
+    }
+  },
+);
+
+export const fetchPrivateLLMByIdThunk = createAsyncThunk(
+  "pools/fetchPrivateLLMById",
+  async ({ token, id }, { rejectWithValue }) => {
+    try {
+      const data = await getPrivateLLMById(token, id);
+      return data || {};
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.detail ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch Private LLM detail",
+      );
+    }
+  },
+);
+
+export const fetchPrivateLLMListThunk = createAsyncThunk(
+  "pools/fetchPrivateLLMList",
+  async ({ token, page = 1, pageSize = 10 }, { rejectWithValue }) => {
+    try {
+      const data = await listPrivateLLM(token, page, pageSize);
+      return {
+        items: Array.isArray(data?.items) ? data.items : [],
+        pagination: data?.pagination || {},
+      };
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.detail ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch Private LLM list",
+      );
+    }
+  },
+);
+
+export const deletePrivateLLMThunk = createAsyncThunk(
+  "pools/deletePrivateLLM",
+  async ({ token, id }, { rejectWithValue }) => {
+    try {
+      await deletePrivateLLM(token, id);
+      return id;
+    } catch (err) {
+      return rejectWithValue(
+        err?.response?.data?.detail ||
+          err?.response?.data?.message ||
+          err?.response?.data ||
+          err?.message ||
+          "Failed to delete Private LLM pool",
       );
     }
   },

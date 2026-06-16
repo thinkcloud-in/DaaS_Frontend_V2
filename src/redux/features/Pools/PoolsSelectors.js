@@ -31,4 +31,15 @@ export const selectNodeGpus = (state) => state.pools?.nodeGpus || {};
 export const selectNodeGpusLoading = (state) => !!state.pools?.nodeGpusLoading;
 export const selectPrivateLLMCreateLoading = (state) => !!state.pools?.privateLLMCreateLoading;
 export const selectPrivateLLMCreateError = (state) => state.pools?.privateLLMCreateError || null;
+export const selectPrivateLLMDeleteLoading = (state) => !!state.pools?.privateLLMDeleteLoading;
+export const selectPrivateLLMDeleteError = (state) => state.pools?.privateLLMDeleteError || null;
+export const selectPrivateLLMActionLoading = (state) => state.pools?.privateLLMActionLoading || null;
+export const selectPrivateLLMActionError = (state) => state.pools?.privateLLMActionError || null;
+export const selectPrivateLLMDetail = (state) => state.pools?.privateLLMDetail || null;
+export const selectPrivateLLMDetailLoading = (state) => !!state.pools?.privateLLMDetailLoading;
+export const selectPrivateLLMDetailError = (state) => state.pools?.privateLLMDetailError || null;
+export const selectPrivateLLMList = (state) => state.pools?.privateLLMList || [];
+export const selectPrivateLLMPagination = (state) => state.pools?.privateLLMPagination || { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false };
+export const selectPrivateLLMListLoading = (state) => !!state.pools?.privateLLMListLoading;
+export const selectPrivateLLMListError = (state) => state.pools?.privateLLMListError || null;
 
