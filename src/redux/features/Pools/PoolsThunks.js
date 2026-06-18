@@ -485,9 +485,9 @@ export const fetchPrivateLLMListThunk = createAsyncThunk(
 
 export const deletePrivateLLMThunk = createAsyncThunk(
   "pools/deletePrivateLLM",
-  async ({ token, id }, { rejectWithValue }) => {
+  async ({ token, id, totpCode }, { rejectWithValue }) => {
     try {
-      await deletePrivateLLM(token, id);
+      await deletePrivateLLM(token, id, totpCode);
       return id;
     } catch (err) {
       return rejectWithValue(

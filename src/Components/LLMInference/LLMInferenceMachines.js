@@ -6,7 +6,10 @@ import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Aut
 import { fetchPrivateLLMByIdThunk, deletePrivateLLMThunk, privateLLMPoolActionThunk } from "../../redux/features/Pools/PoolsThunks";
 import { clearPrivateLLMDetail } from "../../redux/features/Pools/PoolsSlice";
 import { fetchFooterTasksThunk } from "../../redux/features/Footer/FooterThunks";
+import { fetchTotpStatusThunk } from "../../redux/features/TOTP/TotpThunks";
+import { selectTotpAdminEnabled } from "../../redux/features/TOTP/TotpSelectors";
 import { GrafanaToolbarContext } from "../../Context/GrafanaToolbarContext";
+import TotpVerifyModal from "./TotpVerifyModal";
 import TimeRangeSelector from "../Dashboard/TimeRangeSelector";
 import AutoRefresh from "../Dashboard/AutoRefresh";
 import {
@@ -55,8 +58,9 @@ const LLMInferenceMachines = () => {
     const tokenParsed = useSelector(selectAuthTokenParsed);
     const userName    = tokenParsed?.preferred_username;
 
-    const poolDetail    = useSelector(selectPrivateLLMDetail);
-    const detailLoading = useSelector(selectPrivateLLMDetailLoading);
+    const poolDetail      = useSelector(selectPrivateLLMDetail);
+    const detailLoading   = useSelector(selectPrivateLLMDetailLoading);
+    const totpAdminEnabled = useSelector(selectTotpAdminEnabled);
     const gc            = useContext(GrafanaToolbarContext);
     const grafanaBase   = "https://devraq.dev.team/grafana" //`${window.location.origin}/grafana`;
 
@@ -65,6 +69,7 @@ const LLMInferenceMachines = () => {
 
     const [selectedMachineForDrawer, setSelectedMachineForDrawer] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showTotpVerify, setShowTotpVerify] = useState(false);
     const [machinePage, setMachinePage] = useState(1);
     const [showActionDropdown, setShowActionDropdown] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
@@ -79,11 +84,12 @@ const LLMInferenceMachines = () => {
         return Array.isArray(raw) ? raw.filter(Boolean) : [];
     }, [poolDetail]);
 
-    // Fetch on mount — clear stale data, reset page
+    // Fetch on mount — clear stale data, reset page, load TOTP status
     useEffect(() => {
         dispatch(clearPrivateLLMDetail());
         setMachinePage(1);
         if (token && poolId) dispatch(fetchPrivateLLMByIdThunk({ token, id: poolId }));
+        if (token) dispatch(fetchTotpStatusThunk(token));
     }, [token, poolId, dispatch]);
 
     // Reset to page 1 whenever machines list changes
@@ -120,22 +126,35 @@ const LLMInferenceMachines = () => {
         }
     };
 
-    // Close modal immediately, run delete in background, show progress in footer
-    const handleDeleteConfirmed = () => {
+    // Core delete execution — totpCode passed only when TOTP is enabled
+    const executePoolDelete = (totpCode = null) => {
         const poolName = pool.name;
-        setShowDeleteConfirm(false); // close modal right away
-        dispatch(fetchFooterTasksThunk(userName));
-        dispatch(deletePrivateLLMThunk({ token, id: poolId }))
+        dispatch(deletePrivateLLMThunk({ token, id: poolId, totpCode }))
             .unwrap()
             .then(() => {
                 toast.success(`Pool "${poolName}" deleted successfully`);
-                dispatch(fetchFooterTasksThunk(userName));
+                setTimeout(() => dispatch(fetchFooterTasksThunk(userName)), 1500);
                 navigate(-1);
             })
             .catch((err) => {
                 toast.error(typeof err === "string" ? err : err?.detail || err?.message || "Failed to delete pool");
-                dispatch(fetchFooterTasksThunk(userName));
             });
+    };
+
+    // User confirms delete — check TOTP status first
+    const handleDeleteConfirmed = () => {
+        setShowDeleteConfirm(false);
+        if (totpAdminEnabled === true) {
+            setShowTotpVerify(true);
+        } else {
+            executePoolDelete();
+        }
+    };
+
+    // Called after user enters OTP — code is passed directly to delete API
+    const handleTotpVerified = (totpCode) => {
+        setShowTotpVerify(false);
+        executePoolDelete(totpCode);
     };
 
     const grafanaIframeSrc =
@@ -451,6 +470,16 @@ const LLMInferenceMachines = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* TOTP Verification Modal */}
+            {showTotpVerify && (
+                <TotpVerifyModal
+                    token={token}
+                    actionLabel={`delete pool "${pool.name || poolId}"`}
+                    onSuccess={handleTotpVerified}
+                    onCancel={() => setShowTotpVerify(false)}
+                />
             )}
 
             {/* SIDE DRAWER */}

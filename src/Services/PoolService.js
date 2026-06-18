@@ -323,14 +323,14 @@ export const listPrivateLLM = async (token, page = 1, pageSize = 10) => {
   return response?.data?.data;
 };
 
-export const deletePrivateLLM = async (token, id) => {
+export const deletePrivateLLM = async (token, id, totpCode = null) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+  if (totpCode) config.data = { totp_code: totpCode };
   const response = await axiosInstance.delete(
     `${backendUrl}/v1/llm-inference-v2/delete-private-llm/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
+    config,
   );
   return response;
 };

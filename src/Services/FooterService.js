@@ -9,15 +9,21 @@ export const fetchFooterTasks = async (userName) => {
     const response = await axiosInstance.get(`${backendUrl}/v1/workflows`);
     if (!response.data.data) return [];
     const cutoff = dayjs().subtract(1, "day");
-    const now = dayjs();
     return response.data.data
       .filter((wf) => wf.workflow_type && !/^get/i.test(wf.workflow_type))
       .filter((wf) => {
         const start = dayjs(wf.start_time);
-        return start.isValid() && start.isAfter(cutoff) && start.isAfter(now.subtract(15, "minute"));
+        return start.isValid() && start.isAfter(cutoff);
       })
-      .filter((wf) => wf.UserName === userName)
-      .sort((a, b) => new Date(b.start_time) - new Date(a.start_time))
+      .filter((wf) => !wf.UserName || wf.UserName === "system" || wf.UserName === userName)
+      .sort((a, b) => {
+        // RUNNING tasks always at top
+        const aRunning = a.status?.toUpperCase() === "RUNNING";
+        const bRunning = b.status?.toUpperCase() === "RUNNING";
+        if (aRunning && !bRunning) return -1;
+        if (!aRunning && bRunning) return 1;
+        return new Date(b.start_time) - new Date(a.start_time);
+      })
       .map((workflow, index) => ({
         sNo: index + 1,
         taskName: workflow.task_name || "N/A",

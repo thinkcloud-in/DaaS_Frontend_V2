@@ -3,8 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
+import TotpVerifyModal from "./TotpVerifyModal";
 import { fetchPrivateLLMListThunk, deletePrivateLLMThunk, privateLLMPoolActionThunk } from "../../redux/features/Pools/PoolsThunks";
 import { fetchFooterTasksThunk } from "../../redux/features/Footer/FooterThunks";
+import { fetchTotpStatusThunk } from "../../redux/features/TOTP/TotpThunks";
+import { selectTotpAdminEnabled } from "../../redux/features/TOTP/TotpSelectors";
 import {
     selectPrivateLLMList,
     selectPrivateLLMPagination,
@@ -50,6 +53,7 @@ const LLMInference = () => {
     const pagination      = useSelector(selectPrivateLLMPagination);
     const listLoading     = useSelector(selectPrivateLLMListLoading);
     const deleteLoading   = useSelector(selectPrivateLLMDeleteLoading);
+    const totpAdminEnabled = useSelector(selectTotpAdminEnabled);
 
     const [selectedPools, setSelectedPools] = useState([]);
     const [activeDropdownId, setActiveDropdownId] = useState(null);
@@ -60,16 +64,26 @@ const LLMInference = () => {
     // confirmDelete: { type: 'single'|'bulk', id?: number, name?: string } | null
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    // TOTP: holds pending delete snapshot while OTP modal is open
+    const [totpPendingDelete, setTotpPendingDelete] = useState(null);
     const [drawerActionLoading, setDrawerActionLoading] = useState(null);
 
     const dropdownRef = useRef(null);
 
+    // Explicit user-triggered fetch (shows loading spinner)
     const fetchList = useCallback((page, size) => {
         if (token) dispatch(fetchPrivateLLMListThunk({ token, page, pageSize: size }));
     }, [token, dispatch]);
 
+    // Silent fetch after delete — no loading spinner shown to user
+    const silentFetch = useCallback(() => {
+        if (!token) return;
+        dispatch(fetchPrivateLLMListThunk({ token, page: currentPage, pageSize }));
+    }, [token, currentPage, pageSize, dispatch]);
+
     useEffect(() => {
         fetchList(currentPage, pageSize);
+        if (token) dispatch(fetchTotpStatusThunk(token));
     }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Close fixed dropdown on outside click or scroll
@@ -146,50 +160,58 @@ const LLMInference = () => {
         setConfirmDelete({ type: "bulk", count: selectedPools.length });
     };
 
-    // Actual delete — close modal immediately, run in background
-    const handleConfirmedDelete = () => {
-        const snapshot = { ...confirmDelete };
-        // Close modal right away so user can continue working
-        setConfirmDelete(null);
-        setIsDeleting(false);
-
-        const triggerFooterRefresh = () => {
-            dispatch(fetchFooterTasksThunk(userName));
-            // Re-poll after a brief delay for the workflow to register
-            setTimeout(() => dispatch(fetchFooterTasksThunk(userName)), 3000);
-        };
-
+    // Core delete executor — totpCode passed only when TOTP is enabled
+    const executeDelete = (snapshot, totpCode = null) => {
         if (snapshot.type === "single") {
             if (selectedPoolForDrawer?.id === snapshot.id) setSelectedPoolForDrawer(null);
             setSelectedPools((prev) => prev.filter((pId) => pId !== snapshot.id));
-            dispatch(fetchFooterTasksThunk(userName)); // immediate trigger
-            dispatch(deletePrivateLLMThunk({ token, id: snapshot.id }))
+            dispatch(deletePrivateLLMThunk({ token, id: snapshot.id, totpCode }))
                 .unwrap()
                 .then(() => {
                     toast.success(`Pool "${snapshot.name || snapshot.id}" deleted successfully`);
-                    fetchList(currentPage, pageSize);
-                    triggerFooterRefresh();
+                    silentFetch();
+                    setTimeout(() => dispatch(fetchFooterTasksThunk(userName)), 1500);
                 })
                 .catch((err) => {
                     toast.error(typeof err === "string" ? err : err?.detail || err?.message || "Failed to delete");
-                    triggerFooterRefresh();
                 });
         } else {
             const ids = [...selectedPools];
             const count = ids.length;
             setSelectedPools([]);
-            dispatch(fetchFooterTasksThunk(userName));
-            Promise.all(ids.map((id) => dispatch(deletePrivateLLMThunk({ token, id })).unwrap()))
+            Promise.all(ids.map((id) => dispatch(deletePrivateLLMThunk({ token, id, totpCode })).unwrap()))
                 .then(() => {
                     toast.success(`${count} pool(s) deleted successfully`);
-                    fetchList(currentPage, pageSize);
-                    triggerFooterRefresh();
+                    silentFetch();
+                    setTimeout(() => dispatch(fetchFooterTasksThunk(userName)), 1500);
                 })
                 .catch((err) => {
                     toast.error(typeof err === "string" ? err : err?.detail || err?.message || "Failed to delete");
-                    triggerFooterRefresh();
                 });
         }
+    };
+
+    // User confirms delete — check TOTP status first
+    const handleConfirmedDelete = () => {
+        const snapshot = { ...confirmDelete };
+        setConfirmDelete(null);
+        setIsDeleting(false);
+
+        const userHasTotp = totpAdminEnabled === true;
+
+        if (userHasTotp) {
+            // Store snapshot and show OTP verification modal
+            setTotpPendingDelete(snapshot);
+        } else {
+            executeDelete(snapshot);
+        }
+    };
+
+    // Called after user enters OTP — code is passed directly to delete API
+    const handleTotpVerified = (totpCode) => {
+        const snapshot = totpPendingDelete;
+        setTotpPendingDelete(null);
+        if (snapshot) executeDelete(snapshot, totpCode);
     };
 
     const handlePoolAction = async (action) => {
@@ -524,6 +546,20 @@ const LLMInference = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* TOTP Verification Modal — shown when user has TOTP enabled */}
+            {totpPendingDelete && (
+                <TotpVerifyModal
+                    token={token}
+                    actionLabel={
+                        totpPendingDelete.type === "bulk"
+                            ? `delete ${totpPendingDelete.count} pool(s)`
+                            : `delete pool "${totpPendingDelete.name || totpPendingDelete.id}"`
+                    }
+                    onSuccess={handleTotpVerified}
+                    onCancel={() => setTotpPendingDelete(null)}
+                />
             )}
 
             {/* Side Drawer */}

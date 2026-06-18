@@ -131,6 +131,15 @@ export const resetGuacTotp = async (token, userId) => {
   }
 };
 
+export const verifyTotpCode = async (token, totpCode) => {
+  const response = await axiosInstance.post(
+    `${backendUrl}/v1/totp/verify-totp`,
+    { totp_code: totpCode },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return response.data;
+};
+
 export const updateTotpGuacStatus = async (token, enabled) => {
   try {
     const response = await axiosInstance.put(
