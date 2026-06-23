@@ -1,0 +1,8 @@
+export const selectLibraryItems       = (state) => state.library.items;
+export const selectLibraryPagination  = (state) => state.library.pagination;
+export const selectLibraryListLoading = (state) => state.library.listLoading;
+export const selectLibraryUploadLoading = (state) => state.library.uploadLoading;
+export const selectLibraryUploadResult  = (state) => state.library.uploadResult;
+export const selectLibraryPollingItem   = (state) => state.library.pollingItem;
+export const selectLibraryDeleteLoading = (state) => state.library.deleteLoading;
+export const selectLibraryError         = (state) => state.library.error;

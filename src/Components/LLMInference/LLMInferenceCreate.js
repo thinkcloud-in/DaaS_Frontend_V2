@@ -358,7 +358,7 @@ const LLMInferenceCreate = () => {
       const msg =
         typeof err === "string"
           ? err
-          : err?.detail || err?.message || "Failed to create pool.";
+          : err?.msg || err?.detail || err?.message || "Failed to create pool.";
       toast.error(msg);
     }
   };

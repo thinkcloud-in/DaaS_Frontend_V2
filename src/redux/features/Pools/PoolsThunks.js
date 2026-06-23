@@ -509,9 +509,9 @@ export const createPrivateLLMThunk = createAsyncThunk(
       return res?.data?.data || res?.data || {};
     } catch (err) {
       return rejectWithValue(
-        err?.response?.data?.detail ||
+        err?.response?.data?.msg ||
+          err?.response?.data?.detail ||
           err?.response?.data?.message ||
-          err?.response?.data ||
           err?.message ||
           "Failed to create Private LLM pool",
       );
