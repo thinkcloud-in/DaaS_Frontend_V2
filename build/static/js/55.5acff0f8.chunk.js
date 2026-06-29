@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkdass=self.webpackChunkdass||[]).push([[55],{2436:(s,e,a)=>{a.r(e),a.d(e,{default:()=>c});var t=a(6723);const c=()=>(0,t.jsx)("div",{className:"typing-container",children:(0,t.jsx)("h1",{className:"typing-text",children:(0,t.jsx)("img",{src:a(4749),alt:"logo",className:"typing-logo"})})})},4749:(s,e,a)=>{s.exports=a.p+"static/media/thinkcloud-org.814fa498fe65e3307ec4.jpg"}}]);
-//# sourceMappingURL=55.5acff0f8.chunk.js.map
