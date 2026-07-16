@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    Plus, Search, Layers, Cpu, Trash2, Download,
-    FileText, CheckCircle, Loader2, AlertCircle,
-    RefreshCw, Monitor, ChevronLeft, ChevronRight,
+    Plus, Search, Trash2, Download,
+    FileText, Loader2,
+    RefreshCw, Server, Globe, HardDrive, Box, Database, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
@@ -18,47 +18,39 @@ import {
 import { downloadLibraryFile } from "../../Services/LibraryService";
 
 const TYPE_TABS = [
-    { key: "",              label: "All"           },
-    { key: "base_os",      label: "Base OS"       },
-    { key: "devraq_agent", label: "Devraq Agent"  },
-    { key: "open_web_ui",  label: "Open Web UI"   },
+    { key: "",                label: "All"        },
+    { key: "harbor_template", label: "Harbor"     },
+    { key: "openwebui",       label: "Open WebUI" },
+    { key: "os",              label: "OS"         },
+    { key: "podman",          label: "Podman"     },
+    { key: "vectordb",        label: "Vector DB"  },
 ];
 
 const TYPE_META = {
-    base_os:      { label: "Base OS",      Icon: Layers  },
-    devraq_agent: { label: "Devraq Agent", Icon: Cpu     },
-    open_web_ui:  { label: "Open Web UI",  Icon: Monitor },
+    harbor_template: { label: "Harbor",     Icon: Server   },
+    openwebui:       { label: "Open WebUI", Icon: Globe    },
+    os:              { label: "OS",         Icon: HardDrive },
+    podman:          { label: "Podman",     Icon: Box      },
+    vectordb:        { label: "Vector DB",  Icon: Database },
 };
 
 const PAGE_SIZE = 10;
 
-const StatusBadge = ({ status }) => {
-    if (!status) return null;
-    const s = status.toLowerCase();
-    if (s === "ready") return (
-        <span className="inline-flex items-center gap-1 rounded bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20">
-            <CheckCircle className="h-3 w-3 text-green-500" />
-            Ready
-        </span>
-    );
-    if (s === "uploading") return (
-        <span className="inline-flex items-center gap-1 rounded bg-yellow-50 px-2 py-0.5 text-xs font-semibold text-yellow-700 ring-1 ring-inset ring-yellow-600/20 animate-pulse">
-            <Loader2 className="h-3 w-3 text-yellow-500 animate-spin" />
-            Uploading
-        </span>
-    );
-    if (s === "failed") return (
-        <span className="inline-flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
-            <AlertCircle className="h-3 w-3 text-red-500" />
-            Failed
-        </span>
-    );
-    return (
-        <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600 ring-1 ring-inset ring-gray-300">
-            {status}
-        </span>
-    );
+const DONE_STATUSES      = ["ready", "completed", "done", "success"];
+const FAIL_STATUSES      = ["failed", "error"];
+const UPLOADING_STATUSES = ["uploading", "processing", "pending"];
+
+const isReady     = (s) => DONE_STATUSES.includes(s?.toLowerCase());
+const isFailed    = (s) => FAIL_STATUSES.includes(s?.toLowerCase());
+const isUploading = (s) => UPLOADING_STATUSES.includes(s?.toLowerCase());
+
+const formatBytes = (bytes) => {
+    if (bytes == null || bytes === 0) return "";
+    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+    return `${(bytes / 1024).toFixed(0)} KB`;
 };
+
 
 const LibraryList = () => {
     const navigate   = useNavigate();
@@ -72,8 +64,8 @@ const LibraryList = () => {
     const [activeTab,   setActiveTab]   = useState("");
     const [searchTerm,  setSearchTerm]  = useState("");
     const [page,        setPage]        = useState(1);
-    const [downloading, setDownloading] = useState(null);
-    const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
+    const [downloading,   setDownloading]   = useState(null);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
 
     const loadList = useCallback(() => {
         dispatch(fetchLibraryListThunk({ token, type: activeTab || undefined, page, pageSize: PAGE_SIZE }));
@@ -83,11 +75,11 @@ const LibraryList = () => {
         loadList();
     }, [loadList]);
 
-    // Auto-poll if any item is uploading
+    // Auto-poll every 4s while any item is in uploading/processing state
     useEffect(() => {
-        const hasUploading = items.some((i) => i.status?.toLowerCase() === "uploading");
-        if (!hasUploading) return;
-        const timer = setTimeout(loadList, 5000);
+        const hasPending = items.some((i) => isUploading(i.status));
+        if (!hasPending) return;
+        const timer = setTimeout(loadList, 4000);
         return () => clearTimeout(timer);
     }, [items, loadList]);
 
@@ -98,7 +90,7 @@ const LibraryList = () => {
     };
 
     const handleDownload = async (item) => {
-        if (item.status?.toLowerCase() !== "ready") return;
+        if (!isReady(item.status)) return;
         setDownloading(item.id);
         try {
             await downloadLibraryFile(token, item.id, item.file_name || item.name);
@@ -132,7 +124,7 @@ const LibraryList = () => {
           )
         : items;
 
-    const totalPages = Math.ceil((pagination.total || 0) / PAGE_SIZE);
+    const totalPages = pagination.totalPages || Math.ceil((pagination.total || 0) / PAGE_SIZE);
 
     const formatDate = (str) => {
         if (!str) return "—";
@@ -209,25 +201,24 @@ const LibraryList = () => {
                     <table className="w-full min-w-[700px] text-left border-collapse">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[25%]">Name</th>
+                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[30%]">Name</th>
                                 <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">Type</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[25%]">File</th>
+                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[30%]">File</th>
                                 <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">Uploaded</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[10%]">Status</th>
                                 <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[10%] text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {listLoading && filteredItems.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="p-10 text-center">
+                                    <td colSpan="5" className="p-10 text-center">
                                         <Loader2 className="h-5 w-5 text-[#1a365d] animate-spin mx-auto mb-2" />
                                         <p className="text-xs text-gray-400">Loading library...</p>
                                     </td>
                                 </tr>
                             ) : filteredItems.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="p-10 text-center">
+                                    <td colSpan="5" className="p-10 text-center">
                                         <FileText className="h-7 w-7 text-gray-300 mx-auto mb-2" />
                                         <p className="text-sm font-medium text-gray-500">No library items found</p>
                                         <p className="text-xs text-gray-400 mt-0.5">Upload a new package to get started.</p>
@@ -235,16 +226,48 @@ const LibraryList = () => {
                                 </tr>
                             ) : (
                                 filteredItems.map((item) => {
-                                    const meta = TYPE_META[item.type] || { label: item.type, Icon: FileText };
-                                    const isReady = item.status?.toLowerCase() === "ready";
-                                    const isDeleting = deleteLoading === item.id;
+                                    const meta          = TYPE_META[item.type] || { label: item.type || "General", Icon: FileText };
+                                    const itemReady     = isReady(item.status);
+                                    const itemUploading = isUploading(item.status);
+                                    const isDeleting    = deleteLoading === item.id;
                                     const isDownloading = downloading === item.id;
+                                    const pct           = item.progress_pct ?? null;
+                                    const stage         = item.stage || "";
+                                    const bytesDone     = item.bytes_done;
+                                    const bytesTotal    = item.bytes_total || item.file_size;
                                     return (
-                                        <tr key={item.id} className="hover:bg-gray-50/40 transition-colors">
+                                        <tr key={item.id} className={`transition-colors ${itemUploading ? "bg-yellow-50/20" : "hover:bg-gray-50/40"}`}>
                                             <td className="p-4">
                                                 <p className="text-sm font-semibold text-gray-900 truncate max-w-[200px]" title={item.name}>
                                                     {item.name || "—"}
                                                 </p>
+                                                {itemUploading && (
+                                                    <div className="mt-2 max-w-[200px] space-y-1">
+                                                        {/* Real progress bar from API */}
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="flex-1 bg-yellow-100 rounded-full h-1.5">
+                                                                <div
+                                                                    className="h-1.5 rounded-full bg-yellow-400 transition-all duration-700 ease-out"
+                                                                    style={{ width: `${pct ?? 0}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-yellow-700 flex-shrink-0 w-7 text-right">
+                                                                {pct ?? 0}%
+                                                            </span>
+                                                        </div>
+                                                        {/* Stage + bytes */}
+                                                        <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                                                            {stage && (
+                                                                <span className="capitalize font-medium text-yellow-600">{stage}</span>
+                                                            )}
+                                                            {bytesDone != null && bytesTotal != null && (
+                                                                <span className={stage ? "before:content-['·'] before:mx-1" : ""}>
+                                                                    {formatBytes(bytesDone)} / {formatBytes(bytesTotal)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 {item.version && (
                                                     <p className="text-[11px] text-gray-400 mt-0.5">v{item.version}</p>
                                                 )}
@@ -264,17 +287,14 @@ const LibraryList = () => {
                                             <td className="p-4 text-xs text-gray-600 font-medium whitespace-nowrap">
                                                 {formatDate(item.created_at)}
                                             </td>
-                                            <td className="p-4">
-                                                <StatusBadge status={item.status} />
-                                            </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => handleDownload(item)}
-                                                        disabled={!isReady || isDownloading}
-                                                        title={isReady ? "Download file" : "Available when ready"}
+                                                        disabled={!itemReady || isDownloading}
+                                                        title={itemReady ? "Download file" : "Available when ready"}
                                                         className={`p-1.5 rounded border border-gray-200 transition-colors shadow-2xs
-                                                            ${isReady && !isDownloading
+                                                            ${itemReady && !isDownloading
                                                                 ? "text-gray-500 hover:text-[#1a365d] bg-white hover:bg-gray-100"
                                                                 : "text-gray-300 bg-gray-50 cursor-not-allowed"
                                                             }`}

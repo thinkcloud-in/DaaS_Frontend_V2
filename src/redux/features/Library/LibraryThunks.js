@@ -1,23 +1,24 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
-    uploadLibraryFile,
+    createLibraryItem,
     fetchLibraryList,
     fetchLibraryItem,
     deleteLibraryItem,
 } from "Services/LibraryService";
 
+// Step 1: POST metadata only → returns { id, ... } in <100ms
 export const uploadLibraryThunk = createAsyncThunk(
     "library/upload",
-    async ({ token, formData, onProgress }, { rejectWithValue }) => {
+    async ({ token, name, fileName, type, machineId }, { rejectWithValue }) => {
         try {
-            const res = await uploadLibraryFile(token, formData, onProgress);
+            const res = await createLibraryItem(token, { name, fileName, type, machineId });
             return res;
         } catch (err) {
             return rejectWithValue(
                 err?.response?.data?.msg ||
                 err?.response?.data?.detail ||
                 err?.message ||
-                "Upload failed"
+                "Failed to create upload"
             );
         }
     }
@@ -28,9 +29,22 @@ export const fetchLibraryListThunk = createAsyncThunk(
     async ({ token, type, page = 1, pageSize = 10 }, { rejectWithValue }) => {
         try {
             const res = await fetchLibraryList(token, { type, page, pageSize });
+            // API: { status, code, msg, data: { directories: { harbor:[], os:[], ... }, total, pagination } }
+            const responseData = res.data || {};
+            const dirs = responseData.directories || {};
+            const allItems = Object.values(dirs).flat();
+            const items = type ? allItems.filter((i) => i.type === type) : allItems;
+            const pg = responseData.pagination || {};
             return {
-                items: res.data || [],
-                pagination: { total: res.total || 0, limit: res.limit || pageSize, offset: res.offset || 0 },
+                items,
+                pagination: {
+                    total:      pg.total      ?? responseData.total ?? items.length,
+                    page:       pg.page       || page,
+                    pageSize:   pg.page_size  || pageSize,
+                    totalPages: pg.total_pages || 1,
+                    hasNext:    pg.has_next   ?? false,
+                    hasPrev:    pg.has_prev   ?? false,
+                },
             };
         } catch (err) {
             return rejectWithValue(err?.message || "Failed to fetch library");

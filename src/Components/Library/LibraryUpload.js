@@ -1,198 +1,218 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-    UploadCloud, CheckCircle, Layers, Cpu, Loader2,
-    Archive, ChevronDown, Monitor, ArrowLeft, AlertCircle,
+    UploadCloud, CheckCircle,
+    Loader2, ChevronDown, ArrowLeft, AlertCircle,
+    Server, Globe, HardDrive, Box, Database,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
-import { uploadLibraryThunk, fetchLibraryItemThunk } from "../../redux/features/Library/LibraryThunks";
-import {
-    selectLibraryUploadLoading,
-    selectLibraryPollingItem,
-} from "../../redux/features/Library/LibrarySelectors";
+import { uploadLibraryThunk } from "../../redux/features/Library/LibraryThunks";
+import { selectLibraryUploadLoading } from "../../redux/features/Library/LibrarySelectors";
 import { clearUploadResult } from "../../redux/features/Library/LibrarySlice";
-
-const TYPE_API_MAP = {
-    "base-os":       "base_os",
-    "devraq-agent":  "devraq_agent",
-    "open-web-ui":   "open_web_ui",
-};
+import { streamLibraryFile, fetchDeployments } from "../../Services/LibraryService";
 
 const UPLOAD_TYPES = [
-    { value: "base-os",      label: "Base OS",       icon: Layers,  description: "Upload Base OS image (.iso / .img / .qcow2)" },
-    { value: "devraq-agent", label: "Devraq Agent",  icon: Cpu,     description: "Upload Devraq Agent binary (.tar.gz / .bin)" },
-    { value: "open-web-ui",  label: "Open Web UI",   icon: Monitor, description: "Upload Open Web UI package" },
+    {
+        value:       "harbor_template",
+        apiType:     "harbor_template",
+        label:       "Harbor",
+        icon:        Server,
+        description: "Harbor container registry templates",
+        accept:      ".zst,.tar,.gz,.tar.gz",
+        placeholder: "e.g. Harbor v1",
+        fileHint:    ".tar.zst / .tar.gz",
+    },
+    {
+        value:       "openwebui",
+        apiType:     "openwebui",
+        label:       "Open WebUI",
+        icon:        Globe,
+        description: "Open WebUI application packages",
+        accept:      ".zst,.tar,.gz,.tar.gz",
+        placeholder: "e.g. OpenWebUI v1",
+        fileHint:    ".tar.zst / .tar.gz",
+    },
+    {
+        value:       "os",
+        apiType:     "os",
+        label:       "OS",
+        icon:        HardDrive,
+        description: "Operating system images",
+        accept:      ".iso,.img,.qcow2,.tar,.zst",
+        placeholder: "e.g. Ubuntu-22.04-LTS",
+        fileHint:    ".iso / .img / .qcow2",
+    },
+    {
+        value:       "podman",
+        apiType:     "podman",
+        label:       "Podman",
+        icon:        Box,
+        description: "Podman container image packages",
+        accept:      ".zst,.tar,.gz,.tar.gz",
+        placeholder: "e.g. Podman Image v1",
+        fileHint:    ".tar.zst / .tar.gz",
+    },
+    {
+        value:       "vectordb",
+        apiType:     "vectordb",
+        label:       "Vector DB",
+        icon:        Database,
+        description: "Vector database packages",
+        accept:      ".zst,.tar,.gz,.tar.gz",
+        placeholder: "e.g. Milvus v2.4",
+        fileHint:    ".tar.zst / .tar.gz",
+    },
 ];
 
-const LibraryManagement = () => {
-    const navigate  = useNavigate();
-    const dispatch  = useDispatch();
-    const token     = useSelector(selectAuthToken);
-    const uploading = useSelector(selectLibraryUploadLoading);
-    const pollingItem = useSelector(selectLibraryPollingItem);
+// phase: idle | creating | streaming | done
+const LibraryUpload = () => {
+    const nav      = useNavigate();
+    const dispatch = useDispatch();
+    const token    = useSelector(selectAuthToken);
+    const createLoading = useSelector(selectLibraryUploadLoading);
 
     const [selectedType, setSelectedType] = useState("");
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [name, setName] = useState("");
+    const [file, setFile] = useState(null);
+    const fileInputRef = useRef(null);
 
-    // Base OS
-    const [baseOsName, setBaseOsName] = useState("");
-    const [baseOsFile, setBaseOsFile] = useState(null);
-    const baseOsInputRef = useRef(null);
+    const [phase,        setPhase]        = useState("idle");
+    const [httpProgress, setHttpProgress] = useState(0);
+    const [error,        setError]        = useState("");
 
-    // Devraq Agent
-    const [agentVersion, setAgentVersion] = useState("");
-    const [agentFile, setAgentFile]       = useState(null);
-    const agentInputRef = useRef(null);
+    // Machine selection — only for openwebui & vectordb
+    const [machineId,       setMachineId]       = useState("");
+    const [machines,        setMachines]        = useState([]);
+    const [machinesLoading, setMachinesLoading] = useState(false);
 
-    // Open Web UI
-    const [owuiName, setOwuiName] = useState("");
-    const [owuiFile, setOwuiFile] = useState(null);
-    const owuiInputRef = useRef(null);
+    const NEEDS_MACHINE = ["openwebui", "vectordb"];
 
-    // Upload phases
-    const [httpProgress, setHttpProgress]   = useState(0);   // 0-100 while sending
-    const [phase, setPhase]                 = useState("idle"); // idle | sending | polling | done | failed
-    const pollTimerRef = useRef(null);
+    // XHR ref for cancel support
+    const xhrRef     = useRef(null);
+    const mountedRef = useRef(true);
 
-    // Cleanup polling on unmount
     useEffect(() => {
+        mountedRef.current = true;
         return () => {
-            clearTimeout(pollTimerRef.current);
+            mountedRef.current = false;
+            // Do NOT abort XHR on unmount — let the transfer continue in background.
+            // The library list will show real-time progress from the API.
             dispatch(clearUploadResult());
         };
     }, [dispatch]);
 
-    // Watch pollingItem for status changes
-    const currentItemId = pollingItem?.id;
-    const pollStatus = useCallback((id) => {
-        pollTimerRef.current = setTimeout(async () => {
-            try {
-                const item = await dispatch(fetchLibraryItemThunk({ token, id })).unwrap();
-                if (item?.status === "uploading") {
-                    pollStatus(id);
-                } else if (item?.status === "ready") {
-                    setPhase("done");
-                    toast.success(`"${item.name}" uploaded and ready!`);
-                    dispatch(clearUploadResult());
-                    navigate("/library");
-                } else {
-                    setPhase("failed");
-                    toast.error(`Upload failed for item #${id}.`);
-                }
-            } catch {
-                setPhase("failed");
-            }
-        }, 3000);
-    }, [token, dispatch, navigate]);
-
+    // Fetch deployed machines when type needs one
     useEffect(() => {
-        if (phase === "polling" && currentItemId) {
-            pollStatus(currentItemId);
-        }
-    }, [phase, currentItemId, pollStatus]);
+        if (!NEEDS_MACHINE.includes(selectedType)) { setMachines([]); setMachineId(""); return; }
+        setMachinesLoading(true);
+        setMachineId("");
+        fetchDeployments(token, { page: 1, pageSize: 100 })
+            .then((res) => {
+                const raw  = res?.data ?? res;
+                const list = Array.isArray(raw) ? raw : (raw?.data ?? raw?.items ?? []);
+                setMachines(list.filter((m) => ["deployed_successfully", "running", "completed"].includes(m.status)));
+            })
+            .catch(() => setMachines([]))
+            .finally(() => setMachinesLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedType, token]);
 
-    const resetAllFields = () => {
-        setBaseOsName(""); setBaseOsFile(null);
-        setAgentVersion(""); setAgentFile(null);
-        setOwuiName(""); setOwuiFile(null);
-        [baseOsInputRef, agentInputRef, owuiInputRef].forEach((r) => {
-            if (r.current) r.current.value = "";
-        });
+    const resetFields = () => {
+        setName(""); setFile(null); setMachineId("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handleTypeChange = (value) => {
         setSelectedType(value);
         setDropdownOpen(false);
-        resetAllFields();
+        setError("");
+        resetFields();
     };
 
-    const handleFileChange = (setter, nameSetterFn) => (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        setter(file);
-        nameSetterFn(file.name.split(".").slice(0, -1).join("."));
+    const handleFileChange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        setFile(f);
+        setError("");
+        if (!name) setName(f.name.replace(/\.[^.]+$/, ""));
     };
 
-    const isFormValid = () => {
-        if (!selectedType) return false;
-        if (selectedType === "base-os")      return !!(baseOsName && baseOsFile);
-        if (selectedType === "devraq-agent") return !!(agentVersion && agentFile);
-        if (selectedType === "open-web-ui")  return !!(owuiName && owuiFile);
-        return false;
-    };
+    const activeType      = UPLOAD_TYPES.find((t) => t.value === selectedType);
+    const needsMachine    = NEEDS_MACHINE.includes(selectedType);
+    const isFormValid     = !!(selectedType && name.trim() && file && (!needsMachine || machineId));
+    const isBusy          = phase === "creating" || phase === "streaming";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!isFormValid()) { toast.error("Please fill all required fields."); return; }
+        if (!isFormValid) { toast.error("Please fill all required fields."); return; }
 
-        const formData = new FormData();
-        formData.append("type", TYPE_API_MAP[selectedType]);
+        setError("");
 
-        if (selectedType === "base-os") {
-            formData.append("name", baseOsName);
-            formData.append("file", baseOsFile);
-        } else if (selectedType === "devraq-agent") {
-            formData.append("name", "Devraq Agent");
-            formData.append("version", agentVersion);
-            formData.append("file", agentFile);
-        } else if (selectedType === "open-web-ui") {
-            formData.append("name", owuiName);
-            formData.append("file", owuiFile);
-        }
-
-        setPhase("sending");
-        setHttpProgress(0);
-
+        // ── Phase 1: POST metadata (<100ms) ──────────────────────────────
+        setPhase("creating");
+        let itemId;
         try {
-            await dispatch(uploadLibraryThunk({
+            const result = await dispatch(uploadLibraryThunk({
                 token,
-                formData,
-                onProgress: (pct) => setHttpProgress(pct),
+                name:      name.trim(),
+                fileName:  file.name,
+                type:      activeType?.apiType || null,
+                machineId: machineId || undefined,
             })).unwrap();
-            setPhase("polling");
+            itemId = result?.id ?? result?.item_id ?? result?.data?.id;
+            if (!itemId) throw new Error("Server did not return item ID");
         } catch (err) {
             setPhase("idle");
-            toast.error(typeof err === "string" ? err : err?.msg || err?.detail || "Upload failed");
+            const msg = typeof err === "string" ? err : err?.msg || err?.detail || "Failed to create upload record";
+            setError(msg);
+            toast.error(msg);
+            return;
+        }
+
+        // ── Phase 2: PUT raw bytes via XHR (browser upload progress) ─────
+        if (mountedRef.current) { setPhase("streaming"); setHttpProgress(0); }
+        try {
+            await streamLibraryFile(
+                token,
+                itemId,
+                file,
+                (pct) => { if (mountedRef.current) setHttpProgress(pct); },
+                xhrRef,
+            );
+            // XHR done — navigate to list regardless of mount state
+            toast.success(`"${name}" uploaded! Temporal is processing it in background.`);
+            dispatch(clearUploadResult());
+            // If already navigated away, this nav is a no-op since component unmounted
+            if (mountedRef.current) nav("/library");
+        } catch (err) {
+            if (err === "__CANCELLED__") return; // user cancelled — no toast
+            if (!mountedRef.current) return;     // navigated away — silent
+            setPhase("idle");
+            const msg = typeof err === "string" ? err : "File upload failed";
+            setError(msg);
+            toast.error(msg);
         }
     };
 
     const handleCancel = () => {
-        clearTimeout(pollTimerRef.current);
+        xhrRef.current?.abort(); // abort in-flight XHR
         dispatch(clearUploadResult());
         setSelectedType("");
         setPhase("idle");
         setHttpProgress(0);
-        resetAllFields();
-        toast.info("Upload cancelled.");
+        setError("");
+        resetFields();
     };
 
-    const selectedTypeConfig = UPLOAD_TYPES.find((t) => t.value === selectedType);
-    const isBusy = phase === "sending" || phase === "polling";
-
-    const FileDropZone = ({ inputRef, file, onChange, accept, icon: Icon }) => (
-        <>
-            <input type="file" ref={inputRef} onChange={onChange} className="hidden" accept={accept} />
-            <div
-                onClick={() => !isBusy && inputRef.current.click()}
-                className={`border-2 border-dashed rounded bg-white p-3.5 flex items-center justify-center gap-2.5 transition-all group
-                    ${isBusy ? "opacity-50 cursor-not-allowed border-gray-200" : "border-gray-300 cursor-pointer hover:bg-blue-50/20 hover:border-[#1a365d]"}`}
-            >
-                {file ? (
-                    <>
-                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <span className="text-xs font-semibold text-gray-800 truncate">{file.name}</span>
-                    </>
-                ) : (
-                    <>
-                        <Icon className="h-4 w-4 text-gray-400 group-hover:text-[#1a365d] transition-colors" />
-                        <span className="text-xs text-gray-500 font-medium group-hover:text-gray-700">Click to browse or upload file</span>
-                    </>
-                )}
-            </div>
-        </>
-    );
+    const formatSize = (bytes) => {
+        if (!bytes) return "";
+        if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+        if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+        return `${(bytes / 1024).toFixed(0)} KB`;
+    };
 
     return (
         <div className="p-6 bg-gray-50 min-h-screen text-left flex flex-col w-full relative select-none">
@@ -200,59 +220,73 @@ const LibraryManagement = () => {
             {/* Header */}
             <div className="pb-4 border-b border-gray-200 mb-6 w-full flex items-center gap-3">
                 <button
-                    onClick={() => navigate("/library")}
+                    onClick={() => nav("/library")}
                     className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
                 >
                     <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div>
-                    <h1 className="text-xl font-bold text-[#1a365d]">Library Management</h1>
+                    <h1 className="text-xl font-bold text-[#1a365d]">Library Upload</h1>
                     <p className="text-xs text-gray-500 mt-0.5">
-                        Upload Base OS, Devraq Agent, or Open Web UI packages to the centralized repository.
+                        Upload files to the centralized library — Base OS, Harbor Templates, LXC Backups, or General files.
                     </p>
                 </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-2xl overflow-hidden flex flex-col">
                 <form onSubmit={handleSubmit} className="w-full flex flex-col">
-                    <div className="p-6 space-y-6">
+                    <div className="p-6 space-y-5">
 
-                        {/* Upload Progress Banner */}
-                        {isBusy && (
-                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <Loader2 className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
-                                    <span className="text-sm font-semibold text-blue-800">
-                                        {phase === "sending"
-                                            ? `Sending file... ${httpProgress}%`
-                                            : "Processing — file is being written to storage..."}
-                                    </span>
-                                </div>
-                                {phase === "sending" && (
-                                    <div className="w-full bg-blue-100 rounded-full h-2">
-                                        <div
-                                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                                            style={{ width: `${httpProgress}%` }}
-                                        />
-                                    </div>
-                                )}
-                                {phase === "polling" && (
-                                    <p className="text-xs text-blue-600">
-                                        Checking status every 3 seconds — this may take a moment for large files.
-                                    </p>
-                                )}
+                        {/* Phase banners */}
+                        {phase === "creating" && (
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3.5 flex items-center gap-2.5">
+                                <Loader2 className="h-4 w-4 text-blue-500 animate-spin flex-shrink-0" />
+                                <span className="text-sm font-semibold text-blue-800">Creating upload record...</span>
                             </div>
                         )}
 
-                        {/* Failed Banner */}
-                        {phase === "failed" && (
+                        {phase === "streaming" && (
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
+                                        <span className="text-sm font-semibold text-blue-800">
+                                            {httpProgress < 99
+                                                ? "Uploading file..."
+                                                : "Transfer complete — awaiting server acknowledgement..."}
+                                        </span>
+                                    </div>
+                                    <span className="text-sm font-bold text-blue-700 tabular-nums">{httpProgress}%</span>
+                                </div>
+
+                                {/* Real HTTP upload progress bar */}
+                                <div className="w-full bg-blue-100 rounded-full h-2.5">
+                                    <div
+                                        className="bg-blue-500 h-2.5 rounded-full transition-all duration-200 ease-out"
+                                        style={{ width: `${httpProgress}%` }}
+                                    />
+                                </div>
+
+                                <div className="flex items-center justify-between text-[11px] text-blue-500">
+                                    <span className="truncate max-w-[70%]">{file?.name}</span>
+                                    <span className="flex-shrink-0">{formatSize(file?.size)}</span>
+                                </div>
+
+                                <p className="text-[11px] text-blue-400">
+                                    After transfer, Temporal moves the file to storage — track progress in the Library list.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Error */}
+                        {error && !isBusy && (
                             <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-center gap-3">
                                 <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                                <span className="text-sm font-semibold text-red-700">Upload failed. Please try again.</span>
+                                <span className="text-sm font-semibold text-red-700">{error}</span>
                             </div>
                         )}
 
-                        {/* Type Selector */}
+                        {/* Type Dropdown */}
                         <div className="flex flex-col gap-1.5">
                             <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
                                 Upload Type <span className="text-red-500">*</span>
@@ -264,10 +298,10 @@ const LibraryManagement = () => {
                                     onClick={() => setDropdownOpen((o) => !o)}
                                     className="w-full flex items-center justify-between rounded border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {selectedTypeConfig ? (
+                                    {activeType ? (
                                         <span className="flex items-center gap-2">
-                                            <selectedTypeConfig.icon className="h-4 w-4 text-[#1a365d]" />
-                                            {selectedTypeConfig.label}
+                                            <activeType.icon className="h-4 w-4 text-[#1a365d]" />
+                                            {activeType.label}
                                         </span>
                                     ) : (
                                         <span className="text-gray-400">Select upload type...</span>
@@ -277,20 +311,20 @@ const LibraryManagement = () => {
 
                                 {dropdownOpen && (
                                     <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-                                        {UPLOAD_TYPES.map((type) => {
-                                            const Icon = type.icon;
+                                        {UPLOAD_TYPES.map((t) => {
+                                            const Icon = t.icon;
                                             return (
                                                 <button
-                                                    key={type.value}
+                                                    key={t.value}
                                                     type="button"
-                                                    onClick={() => handleTypeChange(type.value)}
+                                                    onClick={() => handleTypeChange(t.value)}
                                                     className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors
-                                                        ${selectedType === type.value ? "bg-blue-50/60" : ""}`}
+                                                        ${selectedType === t.value ? "bg-blue-50/60" : ""}`}
                                                 >
                                                     <Icon className="h-4 w-4 text-[#1a365d] mt-0.5 flex-shrink-0" />
                                                     <div>
-                                                        <p className="text-sm font-semibold text-gray-800">{type.label}</p>
-                                                        <p className="text-xs text-gray-400">{type.description}</p>
+                                                        <p className="text-sm font-semibold text-gray-800">{t.label}</p>
+                                                        <p className="text-xs text-gray-400">{t.description}</p>
                                                     </div>
                                                 </button>
                                             );
@@ -300,82 +334,104 @@ const LibraryManagement = () => {
                             </div>
                         </div>
 
-                        {/* BASE OS */}
-                        {selectedType === "base-os" && (
+                        {/* Fields */}
+                        {activeType && (
                             <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
                                 <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                                    <Layers className="h-4 w-4 text-[#1a365d]" />
-                                    <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Base OS Configuration</h2>
+                                    <activeType.icon className="h-4 w-4 text-[#1a365d]" />
+                                    <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                                        {activeType.label} Details
+                                    </h2>
                                 </div>
+
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Base OS Name *</label>
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                        Name <span className="text-red-500">*</span>
+                                    </label>
                                     <input
-                                        type="text" value={baseOsName} disabled={isBusy}
-                                        onChange={(e) => setBaseOsName(e.target.value)}
-                                        placeholder="e.g. Ubuntu-22.04-LTS"
+                                        type="text"
+                                        value={name}
+                                        disabled={isBusy}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder={activeType.placeholder}
                                         className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
                                     />
                                 </div>
+
+                                {/* Machine selector — only for openwebui & vectordb */}
+                                {needsMachine && (
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                            Target Machine <span className="text-red-500">*</span>
+                                        </label>
+                                        {machinesLoading ? (
+                                            <div className="flex items-center gap-2 py-2 px-3 rounded border border-gray-200 bg-gray-50 text-xs text-gray-400">
+                                                <Loader2 className="h-3 w-3 animate-spin" /> Loading deployed machines...
+                                            </div>
+                                        ) : machines.length === 0 ? (
+                                            <div className="py-2 px-3 rounded border border-amber-200 bg-amber-50 text-xs text-amber-700">
+                                                No running machines found. Deploy a Harbor template first.
+                                            </div>
+                                        ) : (
+                                            <select
+                                                value={machineId}
+                                                onChange={(e) => setMachineId(e.target.value)}
+                                                disabled={isBusy}
+                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
+                                            >
+                                                <option value="">Select a machine...</option>
+                                                {machines.map((m) => (
+                                                    <option key={m.job_id} value={m.job_id}>
+                                                        {m.name}
+                                                        {m.ip_address ? ` — ${m.ip_address}` : ""}
+                                                        {m.node ? ` (${m.node}` : ""}
+                                                        {m.vmid ? ` · VM ${m.vmid})` : (m.node ? ")" : "")}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Upload OS Image (.iso / .img) *</label>
-                                    <FileDropZone inputRef={baseOsInputRef} file={baseOsFile}
-                                        onChange={handleFileChange(setBaseOsFile, (n) => !baseOsName && setBaseOsName(n))}
-                                        accept=".iso,.img,.qcow2,.tar" icon={UploadCloud} />
+                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                        File <span className="text-red-500">*</span>
+                                        <span className="ml-1 normal-case font-normal text-gray-400">({activeType.fileHint})</span>
+                                    </label>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                        accept={activeType.accept}
+                                    />
+                                    <div
+                                        onClick={() => !isBusy && fileInputRef.current.click()}
+                                        className={`border-2 border-dashed rounded bg-white p-4 flex items-center gap-2.5 transition-all group
+                                            ${isBusy
+                                                ? "opacity-50 cursor-not-allowed border-gray-200"
+                                                : "border-gray-300 cursor-pointer hover:bg-blue-50/20 hover:border-[#1a365d]"
+                                            }`}
+                                    >
+                                        {file ? (
+                                            <>
+                                                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                                <span className="text-xs font-semibold text-gray-800 truncate flex-1">{file.name}</span>
+                                                <span className="text-[11px] text-gray-400 flex-shrink-0">{formatSize(file.size)}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <UploadCloud className="h-4 w-4 text-gray-400 group-hover:text-[#1a365d] transition-colors" />
+                                                <span className="text-xs text-gray-500 font-medium group-hover:text-gray-700">
+                                                    Click to browse or drop a file
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* DEVRAQ AGENT */}
-                        {selectedType === "devraq-agent" && (
-                            <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
-                                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                                    <Cpu className="h-4 w-4 text-[#1a365d]" />
-                                    <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Devraq Agent Configuration</h2>
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Agent Version *</label>
-                                    <input
-                                        type="text" value={agentVersion} disabled={isBusy}
-                                        onChange={(e) => setAgentVersion(e.target.value)}
-                                        placeholder="e.g. v2.4.1-stable"
-                                        className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Upload Agent Binary (.tar.gz / .bin) *</label>
-                                    <FileDropZone inputRef={agentInputRef} file={agentFile}
-                                        onChange={handleFileChange(setAgentFile, () => {})}
-                                        accept=".gz,.bin,.zip,.sh" icon={Archive} />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* OPEN WEB UI */}
-                        {selectedType === "open-web-ui" && (
-                            <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
-                                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                                    <Monitor className="h-4 w-4 text-[#1a365d]" />
-                                    <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">Open Web UI Configuration</h2>
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Name *</label>
-                                    <input
-                                        type="text" value={owuiName} disabled={isBusy}
-                                        onChange={(e) => setOwuiName(e.target.value)}
-                                        placeholder="e.g. open-webui-v0.5"
-                                        className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Upload File *</label>
-                                    <FileDropZone inputRef={owuiInputRef} file={owuiFile}
-                                        onChange={handleFileChange(setOwuiFile, (n) => !owuiName && setOwuiName(n))}
-                                        accept=".tar,.gz,.zip,.bin" icon={UploadCloud} />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Empty state */}
                         {!selectedType && (
                             <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-center">
                                 <UploadCloud className="h-8 w-8 text-gray-300 mb-3" />
@@ -391,22 +447,25 @@ const LibraryManagement = () => {
                         <button
                             type="button"
                             onClick={handleCancel}
-                            disabled={uploading}
+                            disabled={phase === "creating"}
                             className="inline-flex justify-center rounded-md bg-white hover:bg-gray-100 px-5 py-2 text-xs font-bold text-gray-700 shadow-xs ring-1 ring-gray-300 transition-colors uppercase tracking-wider disabled:opacity-50"
                         >
-                            Cancel
+                            {phase === "streaming" ? "Cancel Upload" : "Cancel"}
                         </button>
                         <button
                             type="submit"
-                            disabled={isBusy || !isFormValid()}
+                            disabled={isBusy || !isFormValid}
                             className={`inline-flex items-center gap-2 rounded-md px-5 py-2 text-xs font-bold text-white shadow-xs transition-all uppercase tracking-wider
-                                ${isBusy || !isFormValid() ? "bg-[#1a365d] opacity-50 cursor-not-allowed" : "bg-[#1a365d] hover:bg-[#122744]"}`}
+                                ${isBusy || !isFormValid
+                                    ? "bg-[#1a365d] opacity-50 cursor-not-allowed"
+                                    : "bg-[#1a365d] hover:bg-[#122744]"
+                                }`}
                         >
                             {isBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                             <span>
-                                {phase === "sending"  ? `Sending... ${httpProgress}%` :
-                                 phase === "polling"  ? "Processing..." :
-                                 "Sync to Library"}
+                                {phase === "creating"  ? "Creating record..." :
+                                 phase === "streaming" ? `Uploading... ${httpProgress}%` :
+                                 "Upload to Library"}
                             </span>
                         </button>
                     </div>
@@ -416,4 +475,4 @@ const LibraryManagement = () => {
     );
 };
 
-export default LibraryManagement;
+export default LibraryUpload;
