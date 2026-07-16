@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
+import {
+  selectAuthToken,
+  selectAuthTokenParsed,
+} from "../../redux/features/Auth/AuthSelectors";
 import { Loader2, ChevronDown, X } from "lucide-react";
 import { toast } from "react-toastify";
 import "../PoolCreation/css/PoolCreationForm.css";
@@ -39,7 +42,11 @@ const OS_TYPE_OPTIONS = [
 const MultiSelectField = ({ label, iconClass, required, children }) => (
   <div className="mb-6 flex items-start">
     <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-2.5 flex-shrink-0">
-      {iconClass && <span><i className={`fas ${iconClass} mr-2`} /></span>}
+      {iconClass && (
+        <span>
+          <i className={`fas ${iconClass} mr-2`} />
+        </span>
+      )}
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <div className="flex-1 max-w-[40rem]">{children}</div>
@@ -76,7 +83,7 @@ const MultiSelectDropdown = ({
     onChange(
       selectedValues.includes(val)
         ? selectedValues.filter((v) => v !== val)
-        : [...selectedValues, val]
+        : [...selectedValues, val],
     );
   };
 
@@ -86,7 +93,8 @@ const MultiSelectDropdown = ({
   };
 
   const isDisabled = disabled || loading;
-  const limitReached = maxSelections > 0 && selectedValues.length >= maxSelections;
+  const limitReached =
+    maxSelections > 0 && selectedValues.length >= maxSelections;
 
   return (
     <div className="relative w-full" ref={ref}>
@@ -103,7 +111,9 @@ const MultiSelectDropdown = ({
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading...
             </span>
           ) : selectedValues.length === 0 ? (
-            <span className="text-[#94a3b8] text-sm">{placeholder || "Select items..."}</span>
+            <span className="text-[#94a3b8] text-sm">
+              {placeholder || "Select items..."}
+            </span>
           ) : compact && selectedValues.length > 1 ? (
             <span className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] text-xs font-medium px-2 py-0.5 rounded">
               {selectedValues.length} selected
@@ -117,7 +127,10 @@ const MultiSelectDropdown = ({
                 {getLabelForValue(val)}
                 <X
                   className="h-3 w-3 opacity-60 hover:opacity-100 cursor-pointer"
-                  onClick={(e) => { e.stopPropagation(); toggle(val); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggle(val);
+                  }}
                 />
               </span>
             ))
@@ -153,7 +166,9 @@ const MultiSelectDropdown = ({
               );
             })
           ) : (
-            <p className="px-3 py-3 text-xs text-gray-400 text-center">No options available</p>
+            <p className="px-3 py-3 text-xs text-gray-400 text-center">
+              No options available
+            </p>
           )}
         </div>
       )}
@@ -164,9 +179,9 @@ const MultiSelectDropdown = ({
 const LLMInferenceCreate = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const token       = useSelector(selectAuthToken);
+  const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
-  const userName    = tokenParsed?.preferred_username;
+  const userName = tokenParsed?.preferred_username;
   const isSubmitting = useSelector(selectPrivateLLMCreateLoading);
   const [loadingGpuNodes, setLoadingGpuNodes] = useState(new Set());
 
@@ -177,40 +192,52 @@ const LLMInferenceCreate = () => {
     poolOSType: "",
     ipPools: [],
     template: "",
-    nodes: [],      // [{ node: "nodeName", gpu: ["gpuId", ...] }]
+    nodes: [], // [{ node: "nodeName", gpu: ["gpuId", ...] }]
     storage: "",
     machine_name: "",
   });
 
-  const allClusters   = useSelector(selectAllClusters)         || [];
-  const creationNodes = useSelector(selectCreationNodes)       || [];
-  const ipPoolNames   = useSelector(selectCreationIpPoolNames) || [];
-  const templates     = useSelector(selectCreationTemplates)   || [];
-  const storages      = useSelector(selectProxmoxStorages)     || [];
-  const nodeGpus      = useSelector(selectNodeGpus)           || {};
-  const nodesLoading  = useSelector(selectCreationNodesLoading);
+  const allClusters = useSelector(selectAllClusters) || [];
+  const creationNodes = useSelector(selectCreationNodes) || [];
+  const ipPoolNames = useSelector(selectCreationIpPoolNames) || [];
+  const templates = useSelector(selectCreationTemplates) || [];
+  const storages = useSelector(selectProxmoxStorages) || [];
+  const nodeGpus = useSelector(selectNodeGpus) || {};
+  const nodesLoading = useSelector(selectCreationNodesLoading);
 
   const fetchedGpuNodes = useRef(new Set());
 
-  const clusterOptions  = allClusters.map((x) => {
-    const v = typeof x === "object" ? x.name || x.cluster_name : x;
-    return v ? { value: v, label: v } : null;
-  }).filter(Boolean);
+  const clusterOptions = allClusters
+    .map((x) => {
+      const v = typeof x === "object" ? x.name || x.cluster_name : x;
+      return v ? { value: v, label: v } : null;
+    })
+    .filter(Boolean);
 
   const nodeOptions = creationNodes
-    .map((n) => String(typeof n === "object" ? n.name || n.node_name || n.Node_name || "" : n))
+    .map((n) =>
+      String(
+        typeof n === "object" ? n.name || n.node_name || n.Node_name || "" : n,
+      ),
+    )
     .filter(Boolean);
 
   const ipPoolOptions = ipPoolNames
-    .map((ip) => String(typeof ip === "object" ? ip.name || ip.pool_name || "" : ip))
+    .map((ip) =>
+      String(typeof ip === "object" ? ip.name || ip.pool_name || "" : ip),
+    )
     .filter(Boolean);
 
-  const templateOptions = templates.map((t) => {
-    if (typeof t !== "object") return { value: String(t), label: String(t) };
-    const id = String(t.vmid || t.id || t.template_id || t.name || t.template_name || "");
-    const label = t.name || t.template_name || id;
-    return id ? { value: id, label: `${label} (${id})` } : null;
-  }).filter(Boolean);
+  const templateOptions = templates
+    .map((t) => {
+      if (typeof t !== "object") return { value: String(t), label: String(t) };
+      const id = String(
+        t.vmid || t.id || t.template_id || t.name || t.template_name || "",
+      );
+      const label = t.name || t.template_name || id;
+      return id ? { value: id, label: `${label} (${id})` } : null;
+    })
+    .filter(Boolean);
 
   const storageOptions = storages
     .map((s) => String(typeof s === "object" ? s.storage || s.name || "" : s))
@@ -219,20 +246,25 @@ const LLMInferenceCreate = () => {
   const getNvidiaGpuOptions = (nodeName) => {
     const list = nodeGpus[nodeName] || [];
     return list
-      .filter((g) =>
-        g?.vendor === "0x10de" ||
-        g?.vendor_name?.toLowerCase().includes("nvidia") ||
-        g?.subsystem_vendor_name?.toLowerCase().includes("nvidia")
+      .filter(
+        (g) =>
+          g?.vendor === "0x10de" ||
+          g?.vendor_name?.toLowerCase().includes("nvidia") ||
+          g?.subsystem_vendor_name?.toLowerCase().includes("nvidia"),
       )
       .map((g) => ({
         value: g.id || "",
-        label: g.id ? `${g.vendor_name || "NVIDIA"} [${g.id}]` : (g.vendor_name || "NVIDIA GPU"),
+        label: g.id
+          ? `${g.vendor_name || "NVIDIA"} [${g.id}]`
+          : g.vendor_name || "NVIDIA GPU",
       }))
       .filter((o) => o.value);
   };
 
   const getClusterId = (name) => {
-    const c = allClusters.find((x) => (typeof x === "object" ? x.name || x.cluster_name : x) === name);
+    const c = allClusters.find(
+      (x) => (typeof x === "object" ? x.name || x.cluster_name : x) === name,
+    );
     const raw = c ? c.id || c.cluster_id || c._id : null;
     return raw != null ? String(raw) : null;
   };
@@ -259,9 +291,13 @@ const LLMInferenceCreate = () => {
       const id = getClusterId(formData.clusterName);
       if (id) {
         const nodeNames = formData.nodes.map((n) => n.node);
-        dispatch(fetchProxmoxStorages({ token, clusterId: id, nodes: nodeNames }));
+        dispatch(
+          fetchProxmoxStorages({ token, clusterId: id, nodes: nodeNames }),
+        );
 
-        const newNodes = nodeNames.filter((n) => !fetchedGpuNodes.current.has(n));
+        const newNodes = nodeNames.filter(
+          (n) => !fetchedGpuNodes.current.has(n),
+        );
         if (newNodes.length > 0) {
           newNodes.forEach((n) => fetchedGpuNodes.current.add(n));
           setLoadingGpuNodes((prev) => {
@@ -269,7 +305,9 @@ const LLMInferenceCreate = () => {
             newNodes.forEach((n) => next.add(n));
             return next;
           });
-          dispatch(fetchNodeGpus({ token, clusterId: id, nodes: newNodes })).then(() => {
+          dispatch(
+            fetchNodeGpus({ token, clusterId: id, nodes: newNodes }),
+          ).then(() => {
             setLoadingGpuNodes((prev) => {
               const next = new Set(prev);
               newNodes.forEach((n) => next.delete(n));
@@ -302,9 +340,17 @@ const LLMInferenceCreate = () => {
     setFormData((p) => {
       const exists = p.nodes.find((n) => n.node === nodeName);
       if (exists) {
-        return { ...p, nodes: p.nodes.filter((n) => n.node !== nodeName), storage: "" };
+        return {
+          ...p,
+          nodes: p.nodes.filter((n) => n.node !== nodeName),
+          storage: "",
+        };
       }
-      return { ...p, nodes: [...p.nodes, { node: nodeName, gpu: [] }], storage: "" };
+      return {
+        ...p,
+        nodes: [...p.nodes, { node: nodeName, gpu: [] }],
+        storage: "",
+      };
     });
   };
 
@@ -313,7 +359,7 @@ const LLMInferenceCreate = () => {
   const handleGpuChange = (nodeName, selectedIds) => {
     setFormData((p) => {
       const updatedNodes = p.nodes.map((n) =>
-        n.node === nodeName ? { ...n, gpu: selectedIds } : n
+        n.node === nodeName ? { ...n, gpu: selectedIds } : n,
       );
       const isFirstNode = p.nodes[0]?.node === nodeName;
       if (isFirstNode) {
@@ -321,7 +367,7 @@ const LLMInferenceCreate = () => {
         return {
           ...p,
           nodes: updatedNodes.map((n, i) =>
-            i === 0 ? n : { ...n, gpu: n.gpu.slice(0, newCount) }
+            i === 0 ? n : { ...n, gpu: n.gpu.slice(0, newCount) },
           ),
         };
       }
@@ -335,10 +381,12 @@ const LLMInferenceCreate = () => {
     // Validate: all selected nodes must have the same number of GPUs as the first node
     if (formData.nodes.length > 0) {
       const referenceCount = formData.nodes[0].gpu.length;
-      const mismatch = formData.nodes.find((n) => n.gpu.length !== referenceCount);
+      const mismatch = formData.nodes.find(
+        (n) => n.gpu.length !== referenceCount,
+      );
       if (mismatch) {
         toast.error(
-          `"${mismatch.node}" must have exactly ${referenceCount} GPU${referenceCount > 1 ? "s" : ""} selected (same as the first node)`
+          `"${mismatch.node}" must have exactly ${referenceCount} GPU${referenceCount > 1 ? "s" : ""} selected (same as the first node)`,
         );
         return;
       }
@@ -350,7 +398,9 @@ const LLMInferenceCreate = () => {
 
     try {
       dispatch(fetchFooterTasksThunk(userName));
-      await dispatch(createPrivateLLMThunk({ token, requestData: formData })).unwrap();
+      await dispatch(
+        createPrivateLLMThunk({ token, requestData: formData }),
+      ).unwrap();
       toast.success("Private LLM pool created successfully!");
       dispatch(fetchFooterTasksThunk(userName));
       navigate("/inference");
@@ -365,29 +415,39 @@ const LLMInferenceCreate = () => {
 
   return (
     <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
-
       <div className="flex justify-start mt-2 mb-1">
         <div
           onClick={() => navigate("/inference")}
           className="ml-2 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </div>
       </div>
 
-      <div className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white ${isSubmitting ? "opacity-50 pointer-events-none select-none" : ""}`}>
+      <div
+        className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white ${isSubmitting ? "opacity-50 pointer-events-none select-none" : ""}`}
+      >
         <div className="space-y-5 m-2">
           <div className="w-full mx-auto p-3 rounded-md bg-white">
-
             <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
               Create New Pool
             </h2>
 
             <form onSubmit={handleSubmit}>
               <div className="text-left w-full ml-5 max-w-4xl py-4">
-
                 <SelectField
                   label="Cluster"
                   name="clusterName"
@@ -424,7 +484,11 @@ const LLMInferenceCreate = () => {
                   ]}
                 />
 
-                <MultiSelectField label="Select IP Pools" iconClass="fa-network-wired" required>
+                <MultiSelectField
+                  label="Select IP Pools"
+                  iconClass="fa-network-wired"
+                  required
+                >
                   <MultiSelectDropdown
                     options={ipPoolOptions}
                     selectedValues={formData.ipPools}
@@ -442,7 +506,13 @@ const LLMInferenceCreate = () => {
                   required
                   disabled={!formData.clusterName}
                   options={[
-                    { value: "", label: formData.clusterName ? "Select Template" : "Select a cluster first", disabled: true },
+                    {
+                      value: "",
+                      label: formData.clusterName
+                        ? "Select Template"
+                        : "Select a cluster first",
+                      disabled: true,
+                    },
                     ...templateOptions,
                   ]}
                 />
@@ -451,23 +521,35 @@ const LLMInferenceCreate = () => {
                 <MultiSelectField label="Node" iconClass="fa-server" required>
                   {nodesLoading ? (
                     <span className="flex items-center gap-1.5 text-sm text-gray-400">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading nodes...
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading
+                      nodes...
                     </span>
                   ) : !formData.clusterName ? (
-                    <span className="text-sm text-[#94a3b8]">Select a cluster first</span>
+                    <span className="text-sm text-[#94a3b8]">
+                      Select a cluster first
+                    </span>
                   ) : nodeOptions.length === 0 ? (
-                    <span className="text-sm text-gray-400">No nodes available</span>
+                    <span className="text-sm text-gray-400">
+                      No nodes available
+                    </span>
                   ) : (
                     <div className="flex flex-col gap-3">
                       {(() => {
-                        const referenceGpuCount = formData.nodes[0]?.gpu?.length || 0;
+                        const referenceGpuCount =
+                          formData.nodes[0]?.gpu?.length || 0;
                         return nodeOptions.map((nodeName) => {
-                          const nodeObj = formData.nodes.find((n) => n.node === nodeName);
+                          const nodeObj = formData.nodes.find(
+                            (n) => n.node === nodeName,
+                          );
                           const isChecked = !!nodeObj;
                           const gpuOpts = getNvidiaGpuOptions(nodeName);
-                          const isFirstChecked = formData.nodes[0]?.node === nodeName;
+                          const isFirstChecked =
+                            formData.nodes[0]?.node === nodeName;
                           // Non-first nodes are limited to match the first node's GPU count
-                          const maxSel = !isFirstChecked && referenceGpuCount > 0 ? referenceGpuCount : 0;
+                          const maxSel =
+                            !isFirstChecked && referenceGpuCount > 0
+                              ? referenceGpuCount
+                              : 0;
                           return (
                             <div key={nodeName} className="flex flex-col gap-1">
                               <div className="flex items-center gap-4">
@@ -483,34 +565,45 @@ const LLMInferenceCreate = () => {
                                   </span>
                                 </label>
 
-                                {isChecked && (
-                                  loadingGpuNodes.has(nodeName) ? (
+                                {isChecked &&
+                                  (loadingGpuNodes.has(nodeName) ? (
                                     <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                                      <Loader2 className="h-3 w-3 animate-spin" /> Loading GPUs...
+                                      <Loader2 className="h-3 w-3 animate-spin" />{" "}
+                                      Loading GPUs...
                                     </span>
                                   ) : (
                                     <div className="flex-1 max-w-xs">
                                       <MultiSelectDropdown
                                         options={gpuOpts}
                                         selectedValues={nodeObj?.gpu || []}
-                                        onChange={(vals) => handleGpuChange(nodeName, vals)}
-                                        placeholder={gpuOpts.length === 0 ? "No NVIDIA GPU available" : "Select GPU(s)"}
+                                        onChange={(vals) =>
+                                          handleGpuChange(nodeName, vals)
+                                        }
+                                        placeholder={
+                                          gpuOpts.length === 0
+                                            ? "No NVIDIA GPU available"
+                                            : "Select GPU(s)"
+                                        }
                                         disabled={gpuOpts.length === 0}
                                         compact
                                         maxSelections={maxSel}
                                       />
                                     </div>
-                                  )
-                                )}
+                                  ))}
                               </div>
 
                               {/* Hint for non-first checked nodes */}
-                              {isChecked && !isFirstChecked && referenceGpuCount > 0 && (
-                                <p className="ml-[172px] text-xs text-amber-600">
-                                  Exactly {referenceGpuCount} GPU{referenceGpuCount > 1 ? "s" : ""} select karo
-                                  {nodeObj?.gpu?.length > 0 ? ` (${nodeObj.gpu.length}/${referenceGpuCount} selected)` : ""}
-                                </p>
-                              )}
+                              {isChecked &&
+                                !isFirstChecked &&
+                                referenceGpuCount > 0 && (
+                                  <p className="ml-[172px] text-xs text-amber-600">
+                                    Select {referenceGpuCount} GPU
+                                    {referenceGpuCount > 1 ? "s" : ""}
+                                    {nodeObj?.gpu?.length > 0
+                                      ? ` (${nodeObj.gpu.length}/${referenceGpuCount} selected)`
+                                      : ""}
+                                  </p>
+                                )}
                             </div>
                           );
                         });
@@ -528,7 +621,14 @@ const LLMInferenceCreate = () => {
                   required
                   disabled={formData.nodes.length === 0}
                   options={[
-                    { value: "", label: formData.nodes.length > 0 ? "Select Storage" : "Select nodes first", disabled: true },
+                    {
+                      value: "",
+                      label:
+                        formData.nodes.length > 0
+                          ? "Select Storage"
+                          : "Select nodes first",
+                      disabled: true,
+                    },
                     ...storageOptions.map((s) => ({ value: s, label: s })),
                   ]}
                 />
@@ -542,8 +642,6 @@ const LLMInferenceCreate = () => {
                   placeholder="Naming Pattern (i.e example-{n:fixed=3})"
                   required
                 />
-
-
               </div>
 
               <div className="flex justify-end gap-3 pr-4 pb-4">
@@ -564,11 +662,9 @@ const LLMInferenceCreate = () => {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       </div>
-
     </div>
   );
 };

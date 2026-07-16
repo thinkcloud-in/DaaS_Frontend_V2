@@ -927,7 +927,7 @@ const PoolCreationForm = () => {
                             className="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white"
                             required
                           >
-                            <option value="">Select Template</option>
+                            {/* <option value="">Select Template</option> */}
                             {templates.map((template) => (
                               <option
                                 key={template.vmid}
