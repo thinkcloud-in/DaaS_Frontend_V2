@@ -8,7 +8,7 @@ import {
 
 const initialState = {
     items: [],
-    pagination: { total: 0, limit: 10, offset: 0 },
+    pagination: { total: 0, page: 1, pageSize: 10, totalPages: 1, hasNext: false, hasPrev: false },
     listLoading: false,
     uploadLoading: false,
     uploadResult: null,

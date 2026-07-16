@@ -332,6 +332,11 @@ const LLMInferenceCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!formData.template) {
+      toast.error("Please select a template before submitting.");
+      return;
+    }
+
     // Validate: all selected nodes must have the same number of GPUs as the first node
     if (formData.nodes.length > 0) {
       const referenceCount = formData.nodes[0].gpu.length;
@@ -441,10 +446,8 @@ const LLMInferenceCreate = () => {
                   onChange={handleChange}
                   required
                   disabled={!formData.clusterName}
-                  options={[
-                    { value: "", label: formData.clusterName ? "Select Template" : "Select a cluster first", disabled: true },
-                    ...templateOptions,
-                  ]}
+                  placeholder={formData.clusterName ? "Select Template" : "Select a cluster first"}
+                  options={templateOptions}
                 />
 
                 {/* Node list with inline GPU multi-select */}
@@ -527,10 +530,8 @@ const LLMInferenceCreate = () => {
                   onChange={handleChange}
                   required
                   disabled={formData.nodes.length === 0}
-                  options={[
-                    { value: "", label: formData.nodes.length > 0 ? "Select Storage" : "Select nodes first", disabled: true },
-                    ...storageOptions.map((s) => ({ value: s, label: s })),
-                  ]}
+                  placeholder={formData.nodes.length > 0 ? "Select Storage" : "Select nodes first"}
+                  options={storageOptions.map((s) => ({ value: s, label: s }))}
                 />
 
                 <InputField

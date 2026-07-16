@@ -58,7 +58,11 @@ const LLMInferenceCreate = React.lazy(() => import("./Components/LLMInference/LL
 const EditLLMInference = React.lazy(() => import("./Components/LLMInference/LLMInferenceEdit"));
 const LibraryManagement = React.lazy(() => import("./Components/Library/LibraryUpload"));
 const LibraryList = React.lazy(() => import("./Components/Library/LibraryList"));
+const HarborList   = React.lazy(() => import("./Components/Library/HarborList"));
+const HarborDeploy = React.lazy(() => import("./Components/Library/HarborDeploy"));
 const ClusterMachinesList = React.lazy(() => import("./Components/LLMInference/LLMInferenceMachines"));
+const KubernetesList = React.lazy(() => import("./Components/Kubernetes/KubernetesList"));
+const KubernetesDetail = React.lazy(() => import("./Components/Kubernetes/KubernetesDetail"));
 
 const ManagePool = React.lazy(
   () => import("./Components/PoolCreation/ManagePool"),
@@ -242,7 +246,8 @@ function App() {
             <Suspense fallback={LoadingSpinner()}>
               <div className="app1">
                 {/* <Navbar tokenParsed={tokenParsed} /> */}
-                <Routes>
+                <div className="app-content-wrapper">
+                  <Routes>
                   <Route path="/landingpage" element={<LandingPage />} />
 
                   {/* Dashboard Routes */}
@@ -506,12 +511,40 @@ function App() {
                     }
                   />
                   <Route
+                    path="/kubernetes"
+                    element={
+                      <ProtectedRoute
+                        component={KubernetesList}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/kubernetes/detail/:id"
+                    element={
+                      <ProtectedRoute
+                        component={KubernetesDetail}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
                     path="/library"
                     element={<LibraryList token={refreshToken} />}
                   />
                   <Route
                     path="/upload-library"
                     element={<LibraryManagement token={refreshToken} />}
+                  />
+                  <Route
+                    path="/harbor"
+                    element={<HarborList token={refreshToken} />}
+                  />
+                  <Route
+                    path="/harbor/deploy"
+                    element={<HarborDeploy token={refreshToken} />}
                   />
                   <Route
                     path="/ip-pools"
@@ -730,11 +763,14 @@ function App() {
                     path="*"
                     element={<Navigate to="/landingpage" replace />}
                   />
-                </Routes>
-                <FooterWrapper
-                  workflowId={workflowId}
-                  tokenParsed={tokenParsed}
-                />
+                  </Routes>
+                </div>
+                <div className="app-footer-wrapper">
+                  <FooterWrapper
+                    workflowId={workflowId}
+                    tokenParsed={tokenParsed}
+                  />
+                </div>
               </div>
             </Suspense>
           </BrowserRouter>

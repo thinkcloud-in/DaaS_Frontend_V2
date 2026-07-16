@@ -1,0 +1,16 @@
+{
+  "artifact_name": "harbor-offline-bundle",
+  "version": "v2.10.0",
+  "format": "OCI-Skopeo-Dir",
+  "target_runtime": "kubernetes-containerd",
+  "components": [
+    "harbor-core",
+    "harbor-db",
+    "harbor-portal",
+    "harbor-log",
+    "harbor-jobservice",
+    "nginx-photon",
+    "registry-photon"
+  ],
+  "deploy": "kubernetes"
+}

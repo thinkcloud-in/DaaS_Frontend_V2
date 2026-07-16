@@ -30,9 +30,11 @@ import {
   faChartPie,
   faUserCog,
   faVideo,
-  faBook,   
-  faBrain,  
-  faRobot,  
+  faBook,
+  faBrain,
+  faRobot,
+  faAnchor,
+  faCubes,
 } from "@fortawesome/free-solid-svg-icons";
 import Beta from "../Beta/Beta";
 import Thinkcloud from "../../images/t3.jpg";
@@ -85,6 +87,7 @@ const getIcon = (name, level = 0, parent = "") => {
           SMTP: faEnvelopeOpenText,
           RBAC: faUserCog,
           "Retention Period": faCalendarAlt,
+          Harbor: faAnchor,
         }[name] || faAngleRight
       );
     }
@@ -95,6 +98,7 @@ const getIcon = (name, level = 0, parent = "") => {
           "Developer Desktop": faServer,
           "Private LLM": faBrain,
           "Agentic AI": faRobot,
+          Kubernetes: faCubes,
         }[name] || faAngleRight
       );
     }
@@ -155,11 +159,14 @@ const Sidebar = ({ tokenParsed }) => {
     let updatedItems = JSON.parse(JSON.stringify(navigation));
     let clusterItem = null;
 
-    // 1. Settings me se Cluster nikalna
+    // 1. Settings me se Cluster nikalna + Harbor inject karna
     updatedItems = updatedItems.map((item) => {
       if (item.name === "Settings" && item.submenus) {
         clusterItem = item.submenus.find((sub) => sub.name === "Cluster");
         item.submenus = item.submenus.filter((sub) => sub.name !== "Cluster");
+        if (!item.submenus.find((sub) => sub.name === "Harbor")) {
+          item.submenus.push({ name: "Harbor", href: "/harbor", submenus: [] });
+        }
       }
       return item;
     });
@@ -184,6 +191,11 @@ const Sidebar = ({ tokenParsed }) => {
           {
             name: "Agentic AI",
             href: "/ai-agent", // ✅ Changed to /ai-agent
+            submenus: [],
+          },
+          {
+            name: "Kubernetes",
+            href: "/kubernetes",
             submenus: [],
           },
         ];

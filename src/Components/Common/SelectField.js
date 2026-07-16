@@ -42,6 +42,7 @@ const SelectField = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
+          required={required}
           className={`w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
             error ? "border-red-400" : ""
           } ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
@@ -50,10 +51,11 @@ const SelectField = ({
             {placeholder}
           </option>
           {options.map((opt) => {
-            const val = typeof opt === "object" ? opt.value : opt;
-            const lbl = typeof opt === "object" ? opt.label : opt;
+            const val   = typeof opt === "object" ? opt.value   : opt;
+            const lbl   = typeof opt === "object" ? opt.label   : opt;
+            const isDis = typeof opt === "object" ? !!opt.disabled : false;
             return (
-              <option key={val} value={val} className="capitalize px-1">
+              <option key={val} value={val} disabled={isDis} className="capitalize px-1">
                 {lbl}
               </option>
             );

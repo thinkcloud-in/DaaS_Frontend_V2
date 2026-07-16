@@ -16,11 +16,21 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   flex: 1;
   background-color: rgba(240, 248, 255, 0.801);
+}
+
+.app-content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem;
+}
+
+.app-footer-wrapper {
+  padding: 0 1rem 1rem 1rem;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -28,8 +38,13 @@
     flex-direction: column;
   }
   .app1 {
-    padding: 0.5rem;
     height: calc(100% - 60px); /* Account for mobile nav height if needed */
+  }
+  .app-content-wrapper {
+    padding: 0.5rem;
+  }
+  .app-footer-wrapper {
+    padding: 0 0.5rem 0.5rem 0.5rem;
   }
 }
 center {
