@@ -69,6 +69,7 @@ export const addInfluxdb = async (token, clusterId, isCustomIntegration) => {
       headers: { Authorization: `Bearer ${token}` },
     },
   );
+  console.log('----------------------->influx data:', res)
   return res.data;
 };
 
