@@ -128,7 +128,7 @@ export const fetchConsolidateReports = async (token, start, end, user = "All Use
 // Company Details
 export const fetchCompanyDetails = async (token, reportType) => {
   const response = await axiosInstance.get(
-    `${backendUrl}/v1/guacamole/reports/${reportType}`,
+    `${backendUrl}/v1/guacamole/generate_reports/${reportType}`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
