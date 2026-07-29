@@ -14,8 +14,8 @@ let ProxmoxStorage = () => {
   const server = "prox2";
  
   const grafanaUrl = getEnv("GRAFANA_URL");
-  const dashboardUid = "IfgdXjtnk1"; // Dashboard UID for Proxmox 7 with InfluxDB2
-  const dashboardName = "proxmox-2024"; // Dashboard name/slug
+  const dashboardUid = getEnv("PX_STORAGE_DASHBOARD_UID");
+  const dashboardName = getEnv("PX_STORAGE_DASHBOARD_NAME");
  
   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +

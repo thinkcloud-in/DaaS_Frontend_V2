@@ -29,26 +29,26 @@ export const baseNavigation = [
         componentKey: "Proxmox",
         submenus: [
           {
-            name: "PX-Hosts",
+            name: "Hosts",
             href: "/proxmox/px-hosts",
             componentKey: "PX-Hosts",
           },
           {
-            name: "PX-Overview",
+            name: "Overview",
             href: "/proxmox/px-overview",
             componentKey: "PX-Overview",
           },
           {
-            name: "PX-Nodes",
+            name: "Nodes",
             href: "/proxmox/px-nodes",
             componentKey: "PX-Nodes",
           },
           {
-            name: "PX-Storage",
+            name: "Storage",
             href: "/proxmox/px-storage",
             componentKey: "PX-Storage",
           },
-          { name: "PX-VMs", href: "/proxmox/px-vms", componentKey: "PX-VMs" },
+          { name: "VMs", href: "/proxmox/px-vms", componentKey: "PX-VMs" },
         ],
       },
       {

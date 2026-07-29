@@ -10,8 +10,8 @@ let ProxmoxVMs = () => {
   let gc = useContext(GrafanaToolbarContext);
  
   const grafanaUrl = getEnv("GRAFANA_URL");
-  const dashboardUid = "e0b353ea-7df0-43b5-8f57-c0dcf5776022";
-  const dashboardName = "vms";
+  const dashboardUid = getEnv("PX_VM_DASHBOARD_UID");
+  const dashboardName = getEnv("PX_VM_DASHBOARD_NAME");
  
   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +
