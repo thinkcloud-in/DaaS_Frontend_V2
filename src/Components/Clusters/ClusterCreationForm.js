@@ -613,21 +613,20 @@ const ClusterCreationForm = () => {
 
     if (checked) {
       setMonitoringEnabled(true);
+      setInfluxAlreadyIntegrated(false);
+      // DevRaQ's own integration uses a distinct id on the Proxmox side
+      // (separate from any customer-configured metric server), so deleting
+      // it here only ever removes DevRaQ's own entry -- it can't touch a
+      // customer's own integration. This guarantees the values shown always
+      // match the current env vars instead of stale, previously-set ones.
       try {
-        const payload = await dispatch(
-          fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
+        await dispatch(
+          deleteInfluxdbThunk({ token, clusterId: createdClusterId }),
         ).unwrap();
-        if (payload && !payload.error && Object.keys(payload).length > 0) {
-          setMonitoringData(payload);
-          setInfluxAlreadyIntegrated(true);
-        } else {
-          setInfluxAlreadyIntegrated(false);
-          await addInfluxdbWrapper(true);
-        }
       } catch {
-        setInfluxAlreadyIntegrated(false);
-        await addInfluxdbWrapper(true);
+        // Nothing existed to delete -- fine, proceed to create.
       }
+      await addInfluxdbWrapper(true);
     } else {
       try {
         await dispatch(
