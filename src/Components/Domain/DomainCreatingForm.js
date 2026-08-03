@@ -381,7 +381,9 @@ export default function DomainCreationForm() {
         color="yellow"
       />
       {/*General options*/}
-      <div className={`flex-1 overflow-y-auto px-4 custom-scrollbar ${loading.submit ? "opacity-50 pointer-events-none select-none" : ""}`}>
+      <div
+        className={`flex-1 overflow-y-auto px-4 custom-scrollbar ${loading.submit ? "opacity-50 pointer-events-none select-none" : ""}`}
+      >
         <div className="p-3 pb-0 bg-white w-[95%] mx-auto">
           <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
             General options

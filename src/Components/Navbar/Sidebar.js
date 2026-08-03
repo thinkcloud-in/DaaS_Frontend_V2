@@ -56,13 +56,13 @@ const getIcon = (name, level = 0, parent = "") => {
         ActiveSessions: faUserShield,
         Schedule: faCalendarAlt,
         "VDI Pools": faLayerGroup,
-        Pools: faLayerGroup, 
+        Pools: faLayerGroup,
         "IP Pools": faNetworkWired,
         IpPools: faNetworkWired,
         Tasks: faListAlt,
         Settings: faCog,
         Cluster: faLayerGroup,
-        Library: faBook, 
+        Library: faBook,
       }[name] || faAngleRight
     );
   }
@@ -120,10 +120,10 @@ const getIcon = (name, level = 0, parent = "") => {
       Hosts: faServer,
       "Data Stores": faDatabase,
       VMS: faCloud,
-      "PX-Overview": faTachometerAlt,
-      "PX-Nodes": faServer,
-      "PX-Storage": faDatabase,
-      "PX-VMs": faCloud,
+      Overview: faTachometerAlt,
+      Nodes: faServer,
+      Storage: faDatabase,
+      VMs: faCloud,
       "IPMI Dashboard": faServer,
     };
     return icons[name] || faAngleRight;
@@ -175,13 +175,13 @@ const Sidebar = ({ tokenParsed }) => {
     // 2. Pools ke submenus aur routes set karna
     updatedItems = updatedItems.map((item) => {
       if (item.name === "VDI Pools" || item.name === "Pools") {
-        const originalHref = item.href || "/pools"; 
-        item.name = "Pools"; 
+        const originalHref = item.href || "/pools";
+        item.name = "Pools";
         item.href = undefined; // Parent toggle hoga, navigate nahi
         item.submenus = [
           {
             name: "Developer Desktop",
-            href: originalHref, 
+            href: originalHref,
             submenus: [],
           },
           {
@@ -222,7 +222,7 @@ const Sidebar = ({ tokenParsed }) => {
     updatedItems.forEach((item) => {
       finalItems.push(item);
       if (item.name === "IP Pools" || item.name === "IpPools") {
-        finalItems.push(libraryItem); 
+        finalItems.push(libraryItem);
         if (clusterItem) {
           finalItems.push(clusterItem);
         }

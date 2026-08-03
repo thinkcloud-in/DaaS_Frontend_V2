@@ -195,6 +195,8 @@ const LLMInferenceCreate = () => {
     nodes: [], // [{ node: "nodeName", gpu: ["gpuId", ...] }]
     storage: "",
     machine_name: "",
+    ssh_user: "",
+    ssh_pass: "",
   });
 
   const allClusters = useSelector(selectAllClusters) || [];
@@ -628,6 +630,27 @@ const LLMInferenceCreate = () => {
                   value={formData.machine_name}
                   onChange={handleChange}
                   placeholder="Naming Pattern (i.e example-{n:fixed=3})"
+                  required
+                />
+
+                <InputField
+                  label="VM SSH Username"
+                  name="ssh_user"
+                  iconClass="fa-user"
+                  value={formData.ssh_user}
+                  onChange={handleChange}
+                  placeholder="VM SSH Username"
+                  required
+                />
+
+                <InputField
+                  label="VM SSH Password"
+                  name="ssh_pass"
+                  iconClass="fa-lock"
+                  value={formData.ssh_pass}
+                  onChange={handleChange}
+                  placeholder="VM SSH Password"
+                  type="password"
                   required
                 />
               </div>

@@ -8,15 +8,12 @@ import { getEnv } from "utils/getEnv";
  
 let ProxmoxOverview = () => {
   let gc = useContext(GrafanaToolbarContext);
- 
-  // These values are from your URL and can be made dynamic if required
-  // const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
-  // const bucket = "proxmox-metrics";
+
   const server = "All";
  
   const grafanaUrl = getEnv("GRAFANA_URL");
-  const dashboardUid = "proxmox-overview"; // Proxmox SysOps dashboard UID
-  const dashboardName = "Proxmox Overview"; // Proxmox SysOps dashboard name
+  const dashboardUid = getEnv("PX_OVERVIEW_DASHBOARD_UID");
+  const dashboardName = getEnv("PX_OVERVIEW_DASHBOARD_NAME");
  
   const iframeSrc = `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +

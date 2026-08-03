@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -7,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import "./EditDomain.css";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchDomains,
   fetchDomainDetails,
@@ -19,9 +18,12 @@ import {
   updateDomain as updateDomainThunk,
   testLdapConnection,
   testLdapAuthentication,
-} from '../../redux/features/Domain/DomainThunks';
-import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors';
-import { selectDomainDetails, selectDomainLoading } from '../../redux/features/Domain/DomainSelectors';
+} from "../../redux/features/Domain/DomainThunks";
+import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
+import {
+  selectDomainDetails,
+  selectDomainLoading,
+} from "../../redux/features/Domain/DomainSelectors";
 function EditDomainSkeleton() {
   return (
     <div className="animate-pulse space-y-5 mt-4 w-[98%] m-auto mb-5 h-[90vh] rounded-md bg-white edit_domain flex flex-col justify-between">
@@ -64,9 +66,16 @@ const EditDomain = () => {
 
   const [editAD, setEditAD] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [loading, setLoading] = useState({ testConnection: false, testAuth: false, submit: false });
+  const [loading, setLoading] = useState({
+    testConnection: false,
+    testAuth: false,
+    submit: false,
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [syncSettingsEnable, setSyncSettingsEnable] = useState({ fullSyncEnabled: false, changedSyncEnabled: false });
+  const [syncSettingsEnable, setSyncSettingsEnable] = useState({
+    fullSyncEnabled: false,
+    changedSyncEnabled: false,
+  });
 
   function stringToBoolean(str) {
     return str === true || str === "true";
@@ -111,10 +120,16 @@ const EditDomain = () => {
           batchSizeForSync: src?.batchSizeForSync || "",
           fullSyncPeriod: src?.fullSyncPeriod || "-1",
           changedSyncPeriod: src?.changedSyncPeriod || "-1",
-          allowKerberosAuthentication: stringToBoolean(src?.allowKerberosAuthentication),
-          useKerberosForPasswordAuthentication: stringToBoolean(src?.useKerberosForPasswordAuthentication),
+          allowKerberosAuthentication: stringToBoolean(
+            src?.allowKerberosAuthentication,
+          ),
+          useKerberosForPasswordAuthentication: stringToBoolean(
+            src?.useKerberosForPasswordAuthentication,
+          ),
           cachePolicy: src?.cachePolicy || "DEFAULT",
-          usePasswordModifyExtendedOp: stringToBoolean(src?.usePasswordModifyExtendedOp),
+          usePasswordModifyExtendedOp: stringToBoolean(
+            src?.usePasswordModifyExtendedOp,
+          ),
           validatePasswordPolicy: stringToBoolean(src?.validatePasswordPolicy),
           trustEmail: stringToBoolean(src?.trustEmail),
           customUserSearchFilter: src?.customUserSearchFilter || "",
@@ -126,12 +141,22 @@ const EditDomain = () => {
           krbPrincipalAttribute: src?.krbPrincipalAttribute || "",
         });
         // Normalize full/changed sync enabled flags — backend may return number -1 or string "-1"
-        const fullEnabled = src?.fullSyncPeriod != null && String(src.fullSyncPeriod) !== "-1";
-        const changedEnabled = src?.changedSyncPeriod != null && String(src.changedSyncPeriod) !== "-1";
-        setSyncSettingsEnable({ fullSyncEnabled: fullEnabled, changedSyncEnabled: changedEnabled });
+        const fullEnabled =
+          src?.fullSyncPeriod != null && String(src.fullSyncPeriod) !== "-1";
+        const changedEnabled =
+          src?.changedSyncPeriod != null &&
+          String(src.changedSyncPeriod) !== "-1";
+        setSyncSettingsEnable({
+          fullSyncEnabled: fullEnabled,
+          changedSyncEnabled: changedEnabled,
+        });
       })
       .catch(() => {
-        toast.error("Failed to fetch domain data", { position: "top-right", autoClose: 3000, transition: Slide });
+        toast.error("Failed to fetch domain data", {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
       })
       .finally(() => setIsLoading(false));
   }, [token, domainID, dispatch]);
@@ -143,15 +168,28 @@ const EditDomain = () => {
   const handleDelete = async (id) => {
     if (!token) return;
     try {
-      const res = await dispatch(deleteDomainThunk({ token, domain_id: id })).unwrap();
+      const res = await dispatch(
+        deleteDomainThunk({ token, domain_id: id }),
+      ).unwrap();
       // show message (try several common shapes)
-      const msg = res?.msg || res?.data?.msg || 'Domain deleted';
-      toast.success(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+      const msg = res?.msg || res?.data?.msg || "Domain deleted";
+      toast.success(msg, {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
       dispatch(fetchDomains({ token }));
-      navigate('/domain');
+      navigate("/domain");
     } catch (err) {
-      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Deletion failed';
-      toast.error(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.data?.msg || err?.message || "Deletion failed";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
     }
   };
 
@@ -159,43 +197,95 @@ const EditDomain = () => {
     if (!token) return;
     try {
       switch (exp) {
-        case 'sync': {
-          const res = await dispatch(syncUsersThunk({ token, domain_id: id })).unwrap();
+        case "sync": {
+          const res = await dispatch(
+            syncUsersThunk({ token, domain_id: id }),
+          ).unwrap();
           const code = res?.code ?? res?.data?.code;
-          const status = res?.data?.data?.status ?? res?.data?.status ?? res?.payload?.status ?? res?.status ?? null;
-          const detailedStatus = status || res?.msg || res?.data?.msg || 'Sync completed';
-          if (code === 200) toast.success(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
-          else toast.error(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
+          const status =
+            res?.data?.data?.status ??
+            res?.data?.status ??
+            res?.payload?.status ??
+            res?.status ??
+            null;
+          const detailedStatus =
+            status || res?.msg || res?.data?.msg || "Sync completed";
+          if (code === 200)
+            toast.success(detailedStatus, {
+              position: "top-right",
+              autoClose: 3000,
+              transition: Slide,
+            });
+          else
+            toast.error(detailedStatus, {
+              position: "top-right",
+              autoClose: 3000,
+              transition: Slide,
+            });
           break;
         }
-        case 'syncChanged': {
-          const res = await dispatch(syncChangedUsersThunk({ token, domain_id: id })).unwrap();
+        case "syncChanged": {
+          const res = await dispatch(
+            syncChangedUsersThunk({ token, domain_id: id }),
+          ).unwrap();
           const code = res?.code ?? res?.data?.code;
-          const status = res?.data?.data?.status ?? res?.data?.status ?? res?.payload?.status ?? res?.status ?? null;
-          const detailedStatus = status || res?.msg || res?.data?.msg || 'Sync completed';
-          if (code === 200) toast.success(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
-          else toast.error(detailedStatus, { position: 'top-right', autoClose: 3000, transition: Slide });
+          const status =
+            res?.data?.data?.status ??
+            res?.data?.status ??
+            res?.payload?.status ??
+            res?.status ??
+            null;
+          const detailedStatus =
+            status || res?.msg || res?.data?.msg || "Sync completed";
+          if (code === 200)
+            toast.success(detailedStatus, {
+              position: "top-right",
+              autoClose: 3000,
+              transition: Slide,
+            });
+          else
+            toast.error(detailedStatus, {
+              position: "top-right",
+              autoClose: 3000,
+              transition: Slide,
+            });
           break;
         }
-        case 'unlink': {
-          const res = await dispatch(unlinkUsersThunk({ token, domain_id: id })).unwrap();
-          const msg = res?.msg || res?.data?.msg || 'Unlink completed';
-          toast.info(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+        case "unlink": {
+          const res = await dispatch(
+            unlinkUsersThunk({ token, domain_id: id }),
+          ).unwrap();
+          const msg = res?.msg || res?.data?.msg || "Unlink completed";
+          toast.info(msg, {
+            position: "top-right",
+            autoClose: 3000,
+            transition: Slide,
+          });
           break;
         }
-        case 'remove': {
-          const res = await dispatch(removeImportedUsersThunk({ token, domain_id: id })).unwrap();
-          const msg = res?.msg || res?.data?.msg || 'Remove completed';
-          toast.info(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+        case "remove": {
+          const res = await dispatch(
+            removeImportedUsersThunk({ token, domain_id: id }),
+          ).unwrap();
+          const msg = res?.msg || res?.data?.msg || "Remove completed";
+          toast.info(msg, {
+            position: "top-right",
+            autoClose: 3000,
+            transition: Slide,
+          });
           break;
         }
-        case 'delete':
+        case "delete":
           await handleDelete(id);
           break;
         default:
       }
     } catch (err) {
-      toast.error('Operation failed', { position: 'top-right', autoClose: 3000, transition: Slide });
+      toast.error("Operation failed", {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
     }
   };
 
@@ -203,19 +293,39 @@ const EditDomain = () => {
     if (!token || !domainID || !editAD) return;
     setLoading((prev) => ({ ...prev, submit: true }));
     try {
-      const res = await dispatch(updateDomainThunk({ token, domain_id: domainID, ad: editAD })).unwrap();
+      const res = await dispatch(
+        updateDomainThunk({ token, domain_id: domainID, ad: editAD }),
+      ).unwrap();
       const code = res?.code ?? res?.data?.code;
-      const msg = res?.msg || res?.data?.msg || 'Domain update completed';
+      const msg = res?.msg || res?.data?.msg || "Domain update completed";
       if (code === 200) {
-        toast.success(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+        toast.success(msg, {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
         dispatch(fetchDomains({ token }));
-        navigate('/domain');
+        navigate("/domain");
       } else {
-        toast.error(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+        toast.error(msg, {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
       }
     } catch (err) {
-      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Failed to update domain';
-      toast.error(msg, { position: 'top-right', autoClose: 3000, transition: Slide });
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.msg ||
+            err?.data?.msg ||
+            err?.message ||
+            "Failed to update domain";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
     } finally {
       setLoading((prev) => ({ ...prev, submit: false }));
     }
@@ -226,13 +336,17 @@ const EditDomain = () => {
   };
 
   const handleChange = (e) => {
-    if (e.target.name === 'fullSyncEnabled' || e.target.name === 'changedSyncEnabled') {
+    if (
+      e.target.name === "fullSyncEnabled" ||
+      e.target.name === "changedSyncEnabled"
+    ) {
       const name = e.target.name;
       const checked = e.target.checked;
       setSyncSettingsEnable({ ...syncSettingsEnable, [name]: checked });
       // keep the editAD period fields consistent: when disabling, set period to "-1"
       if (!checked) {
-        const periodField = name === 'fullSyncEnabled' ? 'fullSyncPeriod' : 'changedSyncPeriod';
+        const periodField =
+          name === "fullSyncEnabled" ? "fullSyncPeriod" : "changedSyncPeriod";
         setEditAD((prev) => (prev ? { ...prev, [periodField]: "-1" } : prev));
       }
     } else {
@@ -242,7 +356,7 @@ const EditDomain = () => {
 
   const handleOnSubmit = (e) => {
     // Basic required fields check
-    const basicRequired = (
+    const basicRequired =
       editAD?.name &&
       editAD?.vendor &&
       editAD?.connectionUrl &&
@@ -254,11 +368,14 @@ const EditDomain = () => {
       editAD?.rdnLDAPAttribute &&
       editAD?.uuidLDAPAttribute &&
       editAD?.userObjectClasses &&
-      editAD?.bindCredential
-    );
+      editAD?.bindCredential;
 
     if (!basicRequired) {
-      toast.error('Please enter all required details', { position: 'top-right', autoClose: 3000, transition: Slide });
+      toast.error("Please enter all required details", {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
       return;
     }
     sendData();
@@ -268,13 +385,35 @@ const EditDomain = () => {
     if (!token || !editAD) return;
     setLoading((prev) => ({ ...prev, testConnection: true }));
     try {
-      const res = await dispatch(testLdapConnection({ token, ad: editAD })).unwrap();
+      const res = await dispatch(
+        testLdapConnection({ token, ad: editAD }),
+      ).unwrap();
       const msg = res?.msg || res?.data?.msg;
-      if (msg) toast.success(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
-      else toast.error('Test ldap connection error occurred', { position: 'top-right', autoClose: 5000, transition: Slide });
+      if (msg)
+        toast.success(msg, {
+          position: "top-right",
+          autoClose: 5000,
+          transition: Slide,
+        });
+      else
+        toast.error("Test ldap connection error occurred", {
+          position: "top-right",
+          autoClose: 5000,
+          transition: Slide,
+        });
     } catch (err) {
-      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Test ldap connection error occurred';
-      toast.error(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.msg ||
+            err?.data?.msg ||
+            err?.message ||
+            "Test ldap connection error occurred";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 5000,
+        transition: Slide,
+      });
     } finally {
       setLoading((prev) => ({ ...prev, testConnection: false }));
     }
@@ -284,13 +423,36 @@ const EditDomain = () => {
     if (!token || !editAD) return;
     setLoading((prev) => ({ ...prev, testAuth: true }));
     try {
-      const res = await dispatch(testLdapAuthentication({ token, ad: editAD })).unwrap();
+      const res = await dispatch(
+        testLdapAuthentication({ token, ad: editAD }),
+      ).unwrap();
       const msg = res?.msg || res?.data?.msg;
-      if (msg) toast.success(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
-      else toast.error('Test ldap authentication error occurred', { position: 'top-right', autoClose: 5000, transition: Slide });
+      const code = res?.code;
+      if (msg && [200, 201, 202, 203, 204].includes(code))
+        toast.success(msg, {
+          position: "top-right",
+          autoClose: 5000,
+          transition: Slide,
+        });
+      else
+        toast.error(msg || "Test ldap authentication error occurred", {
+          position: "top-right",
+          autoClose: 5000,
+          transition: Slide,
+        });
     } catch (err) {
-      const msg = typeof err === 'string' ? err : err?.msg || err?.data?.msg || err?.message || 'Test ldap authentication error occurred';
-      toast.error(msg, { position: 'top-right', autoClose: 5000, transition: Slide });
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.msg ||
+            err?.data?.msg ||
+            err?.message ||
+            "Test ldap authentication error occurred";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 5000,
+        transition: Slide,
+      });
     } finally {
       setLoading((prev) => ({ ...prev, testAuth: false }));
     }
@@ -311,9 +473,20 @@ const EditDomain = () => {
           onClick={Goback}
           className="ml-4 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d]/50 focus:ring-opacity-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
         </div>
         <div className="flex items-center justify-center gap-10">
           <div className="flex justify-center items-center gap-2">
@@ -936,7 +1109,7 @@ const EditDomain = () => {
                     <div className=" domain-td">
                       <div className="mt-2 border-0">
                         <label className="switch">
-                          <input  
+                          <input
                             type="checkbox"
                             onChange={handleChange}
                             name="importEnabled"
@@ -1345,7 +1518,7 @@ const EditDomain = () => {
                   onClick={handleOnSubmit}
                   type="submit"
                   disabled={loading.submit}
-                  className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-[#f5f5f5] shadow-sm flex items-center gap-2 bg-[#1a365d]/80 hover:bg-[#1a365d] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d] ${loading.submit ? 'cursor-not-allowed opacity-50' : ''}`}
+                  className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-[#f5f5f5] shadow-sm flex items-center gap-2 bg-[#1a365d]/80 hover:bg-[#1a365d] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d] ${loading.submit ? "cursor-not-allowed opacity-50" : ""}`}
                 >
                   {loading.submit && (
                     <Loader2 className="h-4 w-4 animate-spin" />

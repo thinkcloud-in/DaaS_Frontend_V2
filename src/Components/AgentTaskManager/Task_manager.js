@@ -143,10 +143,16 @@ const TaskManagerPage = () => {
     const osType = osTypeFromProps;
     if (activeTab === "processes" && (vmDetails || vmName) && osType) {
       fetchAll();
-      intervalId = setInterval(fetchAll, 5000);
+      intervalId = setInterval(() => {
+        // Skip refresh while rows are selected so a checked row's index
+        // can't shift to a different process before Kill is clicked.
+        if (selectedRows.length === 0) {
+          fetchAll();
+        }
+      }, 5000);
     }
     return () => clearInterval(intervalId);
-  }, [activeTab, vmDetails, osTypeFromProps, vmName]);
+  }, [activeTab, vmDetails, osTypeFromProps, vmName, selectedRows]);
 
   const getInternalIp = (details) => {
     if (!details) return null;
@@ -219,11 +225,13 @@ const TaskManagerPage = () => {
       toast.error(
         "OS type is not available for this VM. Cannot kill processes.",
       );
+      setIsLoading(false);
       return;
     }
     const config = getVMConfig(osTypeFromProps);
     if (!config) {
       toast.error("Unsupported OS type config.");
+      setIsLoading(false);
       return;
     }
     const normalizedOS = osTypeFromProps.toLowerCase().includes("windows")
@@ -245,12 +253,15 @@ const TaskManagerPage = () => {
     }
     if (!pids.length) {
       toast.error("No valid process IDs found");
+      setIsLoading(false);
       return;
     }
-    const processHost = processData[selectedRows[0]]?.host;
+    const processHost =
+      processData[selectedRows[0]]?.host || processData[selectedRows[0]]?.source;
 
     if (!processHost) {
       toast.error("No host information found for selected processes");
+      setIsLoading(false);
       return;
     }
     try {

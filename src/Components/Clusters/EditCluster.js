@@ -124,7 +124,7 @@ const EditCluster = () => {
       try {
         await dispatch(
           addInfluxdbThunk({ token, clusterId, isCustomIntegration: true }),
-        );
+        ).unwrap();
         dispatch(fetchEditInfluxdbDetailsThunk({ token, clusterId }));
         toast.success("Monitoring integration added successfully");
         setMonitoringChecked(true);
@@ -608,7 +608,7 @@ const EditCluster = () => {
                     <div className="td flex-1">
                       <input
                         type="text"
-                        value={monitoring.monitoringData.token || ""}
+                        value="••••••••••••"
                         className={classNames(
                           "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}

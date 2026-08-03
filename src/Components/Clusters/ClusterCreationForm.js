@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import "./css/ClusterCreationForm.css";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { InputField, PasswordField, SelectField } from "../Common";
 import { Slide, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +9,7 @@ import {
   createClusterThunk,
   fetchInfluxdbDetailsThunk,
   addInfluxdbThunk,
-  migrateMonitoringDataThunk,
+  deleteInfluxdbThunk,
 } from "../../redux/features/Clusters/ClustersThunks";
 import {
   verifyHyperV,
@@ -26,13 +25,6 @@ import {
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
-
-// // ─── Build fresh per-node step list ──────────────────────────────────────────
-// const buildNodeSteps = () => [
-//   { id: "agent_running", label: "Agent is running", status: "idle" },
-//   { id: "credentials", label: "Verify Credentials", status: "idle" },
-//   { id: "hyperv", label: "Hyper-V Role Check", status: "idle" },
-// ];
 
 // ─── Shared step icon ─────────────────────────────────────────────────────────
 const StepIcon = ({ status }) => {
@@ -151,12 +143,8 @@ const ClusterCreationForm = () => {
   const [createdClusterId, setCreatedClusterId] = useState(null);
   const [monitoringEnabled, setMonitoringEnabled] = useState(false);
   const [monitoringData, setMonitoringData] = useState(null);
-  const [showMonitoringConfirm, setShowMonitoringConfirm] = useState(false);
   const [isClusterCreated, setIsClusterCreated] = useState(false);
   const [influxAlreadyIntegrated, setInfluxAlreadyIntegrated] = useState(false);
-  const [srcApiToken, setSrcApiToken] = useState("");
-  const [migrateLoading, setMigrateLoading] = useState(false);
-  const [showApiToken, setShowApiToken] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [showFailureConfirm, setShowFailureConfirm] = useState(false);
   const [failedNodes, setFailedNodes] = useState([]);
@@ -621,33 +609,41 @@ const ClusterCreationForm = () => {
 
   const handleMonitoringCheckbox = async (e) => {
     const checked = e.target.checked;
-    if (checked && createdClusterId) {
+    if (!createdClusterId) return;
+
+    if (checked) {
+      setMonitoringEnabled(true);
+      setInfluxAlreadyIntegrated(false);
+      // DevRaQ's own integration uses a distinct id on the Proxmox side
+      // (separate from any customer-configured metric server), so deleting
+      // it here only ever removes DevRaQ's own entry -- it can't touch a
+      // customer's own integration. This guarantees the values shown always
+      // match the current env vars instead of stale, previously-set ones.
       try {
-        const payload = await dispatch(
-          fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
+        await dispatch(
+          deleteInfluxdbThunk({ token, clusterId: createdClusterId }),
         ).unwrap();
-        if (payload && !payload.error && Object.keys(payload).length > 0) {
-          setMonitoringEnabled(true);
-          setMonitoringData(payload);
-          setShowMonitoringConfirm(false);
-          setInfluxAlreadyIntegrated(true);
-        } else {
-          setMonitoringEnabled(false);
-          setMonitoringData(null);
-          setShowMonitoringConfirm(true);
-          setInfluxAlreadyIntegrated(false);
-        }
       } catch {
+        // Nothing existed to delete -- fine, proceed to create.
+      }
+      await addInfluxdbWrapper(true);
+    } else {
+      try {
+        await dispatch(
+          deleteInfluxdbThunk({ token, clusterId: createdClusterId }),
+        ).unwrap();
+        toast.success("Monitoring integration removed");
+      } catch (error) {
+        const message =
+          typeof error === "string"
+            ? error
+            : error?.msg || error?.message || "Failed to remove monitoring integration";
+        toast.error(message);
+      } finally {
         setMonitoringEnabled(false);
         setMonitoringData(null);
-        setShowMonitoringConfirm(true);
         setInfluxAlreadyIntegrated(false);
       }
-    } else {
-      setMonitoringEnabled(false);
-      setShowMonitoringConfirm(false);
-      setMonitoringData(null);
-      setInfluxAlreadyIntegrated(false);
     }
   };
 
@@ -668,10 +664,13 @@ const ClusterCreationForm = () => {
       toast.success(
         res?.payload?.data?.msg || "InfluxDB integrated successfully",
       );
-      dispatch(
+      const details = await dispatch(
         fetchInfluxdbDetailsThunk({ token, clusterId: createdClusterId }),
-      );
-      setTimeout(() => navigate("/clusters"), 2000);
+      ).unwrap();
+      if (details && !details.error) {
+        setMonitoringData(details);
+        setMonitoringEnabled(true);
+      }
     } catch (error) {
       const message =
         typeof error === "string"
@@ -680,46 +679,6 @@ const ClusterCreationForm = () => {
       toast.error(message);
       setMonitoringEnabled(false);
       setMonitoringData(null);
-    }
-  };
-
-  const handleMonitoringConfirm = async (confirm) => {
-    setShowMonitoringConfirm(false);
-    if (createdClusterId) {
-      if (confirm) await addInfluxdbWrapper(true);
-      else {
-        setMonitoringEnabled(false);
-        setMonitoringData(null);
-      }
-    } else {
-      setMonitoringEnabled(false);
-      setMonitoringData(null);
-    }
-  };
-
-  const handleMigrate = async () => {
-    if (!srcApiToken) {
-      toast.error("API token is required");
-      return;
-    }
-    setMigrateLoading(true);
-    try {
-      const payload = {
-        src_url: `http://${monitoringData.server}:${monitoringData.port}`,
-        src_token: srcApiToken,
-        src_org: monitoringData.organization,
-        src_bucket: monitoringData.bucket,
-        cluster_id: createdClusterId,
-        email: userEmail,
-      };
-      await dispatch(migrateMonitoringDataThunk({ token, payload }));
-      toast.success("Migration has started!");
-      setSrcApiToken("");
-      setTimeout(() => navigate("/clusters"), 1000);
-    } catch {
-      toast.error("Migration failed to start");
-    } finally {
-      setMigrateLoading(false);
     }
   };
 
@@ -780,7 +739,7 @@ const ClusterCreationForm = () => {
 
         <div className="cluster-creation-form w-full">
           <div
-            className={`space-y-5 m-2 ${isLoading || monitoringLoading || migrateLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
+            className={`space-y-5 m-2 ${isLoading || monitoringLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
           >
             <div className="bg-white p-3 w-full max-w-4xl mx-auto">
               <h2 className="font-bold leading-7 text-[#1a365d]">
@@ -1184,30 +1143,6 @@ const ClusterCreationForm = () => {
               )}
             </label>
 
-            {showMonitoringConfirm && (
-              <div className="modal-overlay">
-                <div className="modal-content">
-                  <span className="text-base font-semibold text-gray-800 mb-4 text-center">
-                    You want to integrate InfluxDB into Proxmox ?
-                  </span>
-                  <div className="flex gap-6">
-                    <button
-                      className="px-4 py-1 rounded-md bg-[#1a365d]/80 text-white font-semibold hover:bg-[#1a365d]"
-                      onClick={() => handleMonitoringConfirm(true)}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      className="px-4 py-1 rounded-md bg-gray-300 text-gray-800 font-semibold hover:bg-gray-400"
-                      onClick={() => handleMonitoringConfirm(false)}
-                    >
-                      No
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {influxAlreadyIntegrated && (
               <div className="mb-2 p-2 text-indigo-900 font-semibold text-center">
                 InfluxDB integration to Proxmox is already there.
@@ -1274,57 +1209,36 @@ const ClusterCreationForm = () => {
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
                       <label className="block mt-2 text-sm font-medium text-gray-900">
-                        InfluxDB API Token{" "}
-                        <span className="text-red-500">*</span>
+                        Token
                       </label>
                     </div>
-                    <div className="td flex-1 flex items-center">
+                    <div className="td flex-1">
                       <input
-                        type={showApiToken ? "text" : "password"}
-                        value={srcApiToken}
-                        onChange={(e) => setSrcApiToken(e.target.value)}
-                        placeholder="Enter source API token"
-                        className="w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowApiToken((p) => !p)}
-                        className="ml-2 flex items-center px-2 focus:outline-none"
-                        tabIndex={-1}
-                        aria-label={
-                          showApiToken ? "Hide API token" : "Show API token"
-                        }
-                      >
-                        {showApiToken ? (
-                          <FaEyeSlash
-                            style={{
-                              border: "1px solid #d1d5db",
-                              borderRadius: "3px",
-                            }}
-                          />
-                        ) : (
-                          <FaEye
-                            style={{
-                              border: "1px solid #d1d5db",
-                              borderRadius: "3px",
-                            }}
-                          />
+                        type="text"
+                        readOnly
+                        value="••••••••••••"
+                        className={classNames(
+                          isDisabled
+                            ? "bg-gray-200 border-slate-300"
+                            : "bg-white bg-transparent",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2",
                         )}
-                      </button>
+                      />
                     </div>
-                    <button
-                      className="ml-4 px-4 py-2 bg-[#1a365d]/80 text-white rounded"
-                      onClick={handleMigrate}
-                      disabled={migrateLoading}
-                    >
-                      {migrateLoading ? "Starting..." : "OK"}
-                    </button>
                   </div>
+                </div>
+                <div className="flex justify-left mt-4">
+                  <button
+                    className="px-4 py-2 bg-[#1a365d]/80 text-white rounded"
+                    onClick={() => navigate("/clusters")}
+                  >
+                    OK
+                  </button>
                 </div>
               </div>
             )}
 
-            {!monitoringEnabled && !showMonitoringConfirm && (
+            {!monitoringEnabled && (
               <div className="flex justify-left mt-4">
                 <button
                   className="px-4 py-2 bg-[#1a365d]/80 text-white rounded"
