@@ -510,21 +510,8 @@ const LLMInferenceCreate = () => {
                   onChange={handleChange}
                   required
                   disabled={!formData.clusterName}
-<<<<<<< HEAD
-                  options={[
-                    {
-                      value: "",
-                      label: formData.clusterName
-                        ? "Select Template"
-                        : "Select a cluster first",
-                      disabled: true,
-                    },
-                    ...templateOptions,
-                  ]}
-=======
                   placeholder={formData.clusterName ? "Select Template" : "Select a cluster first"}
                   options={templateOptions}
->>>>>>> f15918c2c264fe0a6eb85627df970ca5124ce452
                 />
 
                 {/* Node list with inline GPU multi-select */}
@@ -630,22 +617,8 @@ const LLMInferenceCreate = () => {
                   onChange={handleChange}
                   required
                   disabled={formData.nodes.length === 0}
-<<<<<<< HEAD
-                  options={[
-                    {
-                      value: "",
-                      label:
-                        formData.nodes.length > 0
-                          ? "Select Storage"
-                          : "Select nodes first",
-                      disabled: true,
-                    },
-                    ...storageOptions.map((s) => ({ value: s, label: s })),
-                  ]}
-=======
                   placeholder={formData.nodes.length > 0 ? "Select Storage" : "Select nodes first"}
                   options={storageOptions.map((s) => ({ value: s, label: s }))}
->>>>>>> f15918c2c264fe0a6eb85627df970ca5124ce452
                 />
 
                 <InputField

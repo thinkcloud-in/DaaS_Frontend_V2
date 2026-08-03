@@ -60,9 +60,13 @@ const LibraryManagement = React.lazy(() => import("./Components/Library/LibraryU
 const LibraryList = React.lazy(() => import("./Components/Library/LibraryList"));
 const HarborList   = React.lazy(() => import("./Components/Library/HarborList"));
 const HarborDeploy = React.lazy(() => import("./Components/Library/HarborDeploy"));
+const HarborDetail = React.lazy(() => import("./Components/Library/HarborDetail"));
 const ClusterMachinesList = React.lazy(() => import("./Components/LLMInference/LLMInferenceMachines"));
 const KubernetesList = React.lazy(() => import("./Components/Kubernetes/KubernetesList"));
 const KubernetesDetail = React.lazy(() => import("./Components/Kubernetes/KubernetesDetail"));
+const ApplicationList   = React.lazy(() => import("./Components/Application/ApplicationList"));
+const ApplicationDeploy = React.lazy(() => import("./Components/Application/ApplicationDeploy"));
+const ApplicationDetail = React.lazy(() => import("./Components/Application/ApplicationDetail"));
 
 const ManagePool = React.lazy(
   () => import("./Components/PoolCreation/ManagePool"),
@@ -531,6 +535,36 @@ function App() {
                     }
                   />
                   <Route
+                    path="/application"
+                    element={
+                      <ProtectedRoute
+                        component={ApplicationList}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/application/deploy"
+                    element={
+                      <ProtectedRoute
+                        component={ApplicationDeploy}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
+                    path="/application/detail/:id"
+                    element={
+                      <ProtectedRoute
+                        component={ApplicationDetail}
+                        componentKey="Pools"
+                        token={refreshToken}
+                      />
+                    }
+                  />
+                  <Route
                     path="/library"
                     element={<LibraryList token={refreshToken} />}
                   />
@@ -545,6 +579,10 @@ function App() {
                   <Route
                     path="/harbor/deploy"
                     element={<HarborDeploy token={refreshToken} />}
+                  />
+                  <Route
+                    path="/harbor/detail/:id"
+                    element={<HarborDetail token={refreshToken} />}
                   />
                   <Route
                     path="/ip-pools"

@@ -1,20 +1,58 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
     CheckCircle, Loader2, AlertCircle,
     RefreshCw, ChevronLeft, ChevronRight, Rocket,
-    Activity, Clock, Cpu, Wifi, Server,
+    Activity, Clock, Cpu, Wifi, Server, Trash2, Eye,
 } from "lucide-react";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
-import { fetchDeployments } from "../../Services/LibraryService";
+import { fetchDeployments, deleteDeployment } from "../../Services/LibraryService";
+
+// Known fields get a friendly label + priority slot; anything else the API
+// returns is still shown, generically, further down — so new backend fields
+// show up here without needing a code change. Exported for reuse by the
+// standalone HarborDetail page.
+export const KNOWN_FIELD_LABELS = {
+    ip_address:       "IP Address",
+    node:             "Node",
+    vmid:             "VMID",
+    node_name:        "Node",
+    node_ip:          "Node IP",
+    created_at:       "Created",
+    updated_at:       "Updated",
+    template_name:    "Template",
+    template_version: "Template Version",
+    template_type:    "Template Type",
+    cluster_name:     "Cluster",
+    cluster_ip:       "Cluster IP",
+    namespace:        "Namespace",
+};
+// Fields either shown up top with dedicated treatment (status badge, progress
+// bar, harbor URL link, error banner, log panel) or purely internal bookkeeping.
+export const HIDDEN_FIELDS = [
+    "job_id", "deploy_id", "id", "cluster_id", "library_item_id",
+    "deployment_type", "progress", "steps_log", "deploy_dir",
+    "workflow_id", "name", "status", "harbor_url", "error_message",
+    "node_ip", "cluster_ip", "updated_at",
+];
+
+export const prettifyKey = (key) =>
+    key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+export const formatValue = (val) => {
+    if (val === null || val === undefined || val === "") return "—";
+    if (typeof val === "object") return JSON.stringify(val, null, 2);
+    return String(val);
+};
 
 const PAGE_SIZE = 10;
 
 const ACTIVE_STATUSES = ["running", "provisioning", "deploying", "pending"];
 const isActive = (s) => ACTIVE_STATUSES.includes(s?.toLowerCase());
 
-const DeployStatusBadge = ({ status }) => {
+export const DeployStatusBadge = ({ status }) => {
     if (!status) return null;
     const s = status.toLowerCase();
     if (s === "running") return (
@@ -56,6 +94,8 @@ const HarborList = () => {
     const [page,              setPage]              = useState(1);
     const [meta,              setMeta]              = useState({ total: 0, totalPages: 1 });
     const [loading,           setLoading]           = useState(false);
+    const [deleteConfirm,     setDeleteConfirm]     = useState(null);
+    const [deleting,          setDeleting]          = useState(false);
 
     const loadDeployments = useCallback(async () => {
         setLoading(true);
@@ -84,6 +124,32 @@ const HarborList = () => {
         const t = setTimeout(loadDeployments, 5000);
         return () => clearTimeout(t);
     }, [deployments, loadDeployments]);
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirm) return;
+        const { job_id, name } = deleteConfirm;
+        setDeleting(true);
+        try {
+            await deleteDeployment(token, job_id);
+            toast.success(`"${name}" deleted.`);
+            setDeleteConfirm(null);
+            if (deployments.length === 1 && page > 1) setPage((p) => p - 1);
+            else loadDeployments();
+        } catch (err) {
+            const msg = err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Delete failed.";
+            toast.error(msg);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const handleViewDetail = (job) => {
+        const id = job.id ?? job.job_id ?? job.deploy_id;
+        // The list records carry their own deployment_type ("kubernetes" |
+        // "lxc") — trust that over any id-field heuristic.
+        const type = job.deployment_type || (job.deploy_id != null ? "kubernetes" : "lxc");
+        navigate(`/harbor/detail/${id}?type=${type}`, { state: { name: job.name } });
+    };
 
     const formatDateTime = (str) => {
         if (!str) return "—";
@@ -148,56 +214,89 @@ const HarborList = () => {
                                 <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[18%]">
                                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Created</span>
                                 </th>
+                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[8%] text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {loading && deployments.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="p-12 text-center">
+                                    <td colSpan="7" className="p-12 text-center">
                                         <Loader2 className="h-5 w-5 text-[#1a365d] animate-spin mx-auto mb-2" />
                                         <p className="text-xs text-gray-400">Loading deployments...</p>
                                     </td>
                                 </tr>
                             ) : deployments.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="p-12 text-center">
+                                    <td colSpan="7" className="p-12 text-center">
                                         <Activity className="h-7 w-7 text-gray-300 mx-auto mb-2" />
                                         <p className="text-sm font-medium text-gray-500">No deployments yet</p>
                                         <p className="text-xs text-gray-400 mt-1">Click <span className="font-semibold">Deploy</span> to start a new deployment.</p>
                                     </td>
                                 </tr>
                             ) : (
-                                deployments.map((job) => (
-                                    <tr key={job.job_id} className={`transition-colors ${isActive(job.status) ? "bg-blue-50/20" : "hover:bg-gray-50/40"}`}>
-                                        <td className="p-4 text-xs text-gray-400 font-mono">
-                                            #{job.job_id}
-                                        </td>
-                                        <td className="p-4">
-                                            <p className="text-sm font-semibold text-gray-900">{job.name || "—"}</p>
-                                            {job.template_name && (
-                                                <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
-                                                    <Server className="h-2.5 w-2.5" />
-                                                    {job.template_name}
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className="p-4">
-                                            <DeployStatusBadge status={job.status} />
-                                        </td>
-                                        <td className="p-4 text-xs font-mono text-gray-700">
-                                            {job.ip_address || <span className="text-gray-300">—</span>}
-                                        </td>
-                                        <td className="p-4">
-                                            <span className="text-xs font-medium text-gray-700">{job.node || "—"}</span>
-                                            {job.vmid && (
-                                                <span className="ml-1.5 text-xs text-gray-400 font-mono">· VM {job.vmid}</span>
-                                            )}
-                                        </td>
-                                        <td className="p-4 text-xs text-gray-500 whitespace-nowrap">
-                                            {formatDateTime(job.created_at)}
-                                        </td>
-                                    </tr>
-                                ))
+                                deployments.map((job) => {
+                                    const jobId = job.job_id ?? job.deploy_id ?? job.id;
+                                    return (
+                                        <tr key={jobId} className={`transition-colors ${isActive(job.status) ? "bg-blue-50/20" : "hover:bg-gray-50/40"}`}>
+                                            <td className="p-4 text-xs text-gray-400 font-mono">
+                                                #{jobId}
+                                            </td>
+                                            <td className="p-4">
+                                                <p className="text-sm font-semibold text-gray-900">{job.name || "—"}</p>
+                                                {job.template_name && (
+                                                    <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                                                        <Server className="h-2.5 w-2.5" />
+                                                        {job.template_name}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className="p-4">
+                                                <DeployStatusBadge status={job.status} />
+                                            </td>
+                                            <td className="p-4 text-xs font-mono text-gray-700 max-w-[220px] truncate">
+                                                {job.harbor_url ? (
+                                                    <a
+                                                        href={job.harbor_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="text-blue-600 hover:underline break-all"
+                                                    >
+                                                        {job.harbor_url}
+                                                    </a>
+                                                ) : job.ip_address || <span className="text-gray-300">—</span>}
+                                            </td>
+                                            <td className="p-4">
+                                                <span className="text-xs font-medium text-gray-700">{job.node_name || job.node || "—"}</span>
+                                                {job.vmid && (
+                                                    <span className="ml-1.5 text-xs text-gray-400 font-mono">· VM {job.vmid}</span>
+                                                )}
+                                            </td>
+                                            <td className="p-4 text-xs text-gray-500 whitespace-nowrap">
+                                                {formatDateTime(job.created_at)}
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleViewDetail(job)}
+                                                        title="View Details"
+                                                        className="p-1.5 text-gray-400 hover:text-[#1a365d] bg-white hover:bg-gray-100 rounded border border-gray-200 transition-colors shadow-2xs"
+                                                    >
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setDeleteConfirm({ job_id: jobId, name: job.name })}
+                                                        title="Delete"
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 bg-white hover:bg-red-50 rounded border border-gray-200 transition-colors shadow-2xs"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
@@ -227,6 +326,42 @@ const HarborList = () => {
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm mx-4 overflow-hidden">
+                        <div className="p-5 flex items-start gap-3">
+                            <div className="flex-shrink-0 h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-900">Delete Deployment</h3>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Are you sure you want to delete <span className="font-semibold text-gray-700">"{deleteConfirm.name}"</span>? This action cannot be undone.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-50 border-t border-gray-200 px-5 py-3 flex justify-end gap-2">
+                            <button
+                                onClick={() => setDeleteConfirm(null)}
+                                disabled={deleting}
+                                className="px-4 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                disabled={deleting}
+                                className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded transition-colors uppercase tracking-wider disabled:opacity-50"
+                            >
+                                {deleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

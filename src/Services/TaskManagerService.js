@@ -15,7 +15,7 @@ export const fetchVmDetails = async (vmId) => {
 export const fetchBackgroundProcesses = async (config, hostForApi, osType) => {
   const res = await axiosInstance.get(`${agentBackendUrl}/influxdb/fetch-background-processes`, {
     params: {
-      bucket: config.bucket,
+      bucket: "test-bucket", //config.bucket,
       range_start: "-1m",
       host: hostForApi,
       os_type: osType

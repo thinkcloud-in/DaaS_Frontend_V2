@@ -4,34 +4,31 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     Plus, Search, Trash2, Download,
     FileText, Loader2,
-    RefreshCw, Server, Globe, HardDrive, Box, Database, ChevronLeft, ChevronRight,
+    RefreshCw, Server, HardDrive, Box, Brain, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import { fetchLibraryListThunk, deleteLibraryItemThunk } from "../../redux/features/Library/LibraryThunks";
 import {
     selectLibraryItems,
+    selectLibraryFilters,
     selectLibraryPagination,
     selectLibraryListLoading,
     selectLibraryDeleteLoading,
 } from "../../redux/features/Library/LibrarySelectors";
 import { downloadLibraryFile } from "../../Services/LibraryService";
 
-const TYPE_TABS = [
-    { key: "",                label: "All"        },
-    { key: "harbor_template", label: "Harbor"     },
-    { key: "openwebui",       label: "Open WebUI" },
-    { key: "os",              label: "OS"         },
-    { key: "podman",          label: "Podman"     },
-    { key: "vectordb",        label: "Vector DB"  },
-];
-
-const TYPE_META = {
-    harbor_template: { label: "Harbor",     Icon: Server   },
-    openwebui:       { label: "Open WebUI", Icon: Globe    },
-    os:              { label: "OS",         Icon: HardDrive },
-    podman:          { label: "Podman",     Icon: Box      },
-    vectordb:        { label: "Vector DB",  Icon: Database },
+// Filter tabs and their labels/counts come from the API's `filters` array
+// (data.filters: [{type, label, count}]) so new upload types show up here
+// automatically. The API doesn't send an icon per type, so we keep a small
+// local type→icon lookup with a generic fallback for any type it doesn't cover.
+const TYPE_ICONS = {
+    harbor_template: Server,
+    container:       Box,
+    os:              HardDrive,
+    podman:          Box,
+    llm_model:       Brain,
+    llm_template:    HardDrive,
 };
 
 const PAGE_SIZE = 10;
@@ -57,6 +54,7 @@ const LibraryList = () => {
     const dispatch   = useDispatch();
     const token      = useSelector(selectAuthToken);
     const items      = useSelector(selectLibraryItems);
+    const filters    = useSelector(selectLibraryFilters);
     const pagination = useSelector(selectLibraryPagination);
     const listLoading  = useSelector(selectLibraryListLoading);
     const deleteLoading = useSelector(selectLibraryDeleteLoading);
@@ -126,6 +124,15 @@ const LibraryList = () => {
 
     const totalPages = pagination.totalPages || Math.ceil((pagination.total || 0) / PAGE_SIZE);
 
+    const typeTabs = [
+        { key: "", label: "All" },
+        ...filters.map((f) => ({ key: f.type, label: f.label || f.type, count: f.count })),
+    ];
+    const labelByType = filters.reduce((acc, f) => {
+        acc[f.type] = f.label || f.type;
+        return acc;
+    }, {});
+
     const formatDate = (str) => {
         if (!str) return "—";
         try { return new Date(str).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); }
@@ -164,7 +171,7 @@ const LibraryList = () => {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 mb-4 flex-wrap">
-                {TYPE_TABS.map((tab) => (
+                {typeTabs.map((tab) => (
                     <button
                         key={tab.key}
                         onClick={() => handleTabChange(tab.key)}
@@ -175,6 +182,11 @@ const LibraryList = () => {
                             }`}
                     >
                         {tab.label}
+                        {tab.count != null && (
+                            <span className={`ml-1.5 ${activeTab === tab.key ? "text-white/70" : "text-gray-400"}`}>
+                                {tab.count}
+                            </span>
+                        )}
                     </button>
                 ))}
                 {pagination.total > 0 && (
@@ -226,7 +238,10 @@ const LibraryList = () => {
                                 </tr>
                             ) : (
                                 filteredItems.map((item) => {
-                                    const meta          = TYPE_META[item.type] || { label: item.type || "General", Icon: FileText };
+                                    const meta          = {
+                                        label: labelByType[item.type] || item.type || "General",
+                                        Icon:  TYPE_ICONS[item.type] || FileText,
+                                    };
                                     const itemReady     = isReady(item.status);
                                     const itemUploading = isUploading(item.status);
                                     const isDeleting    = deleteLoading === item.id;

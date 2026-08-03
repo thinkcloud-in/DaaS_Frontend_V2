@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     UploadCloud, CheckCircle,
     Loader2, ChevronDown, ArrowLeft, AlertCircle,
-    Server, Globe, HardDrive, Box, Database,
+    Server, Brain, HardDrive, Box,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
@@ -13,6 +13,9 @@ import { selectLibraryUploadLoading } from "../../redux/features/Library/Library
 import { clearUploadResult } from "../../redux/features/Library/LibrarySlice";
 import { streamLibraryFile, fetchDeployments } from "../../Services/LibraryService";
 
+// Open WebUI and Vector DB packages are both uploaded through this single
+// "Container" upload type — no further sub-selection, the file just goes
+// straight into the library tagged as a container package.
 const UPLOAD_TYPES = [
     {
         value:       "harbor_template",
@@ -20,51 +23,169 @@ const UPLOAD_TYPES = [
         label:       "Harbor",
         icon:        Server,
         description: "Harbor container registry templates",
-        accept:      ".zst,.tar,.gz,.tar.gz",
-        placeholder: "e.g. Harbor v1",
-        fileHint:    ".tar.zst / .tar.gz",
+        accept:      ".zst,.tar,.gz,.tar.gz,.zip,.rar",
+        fileHint:    ".tar.zst / .tar.gz / .zip / .rar",
     },
     {
-        value:       "openwebui",
-        apiType:     "openwebui",
-        label:       "Open WebUI",
-        icon:        Globe,
-        description: "Open WebUI application packages",
-        accept:      ".zst,.tar,.gz,.tar.gz",
-        placeholder: "e.g. OpenWebUI v1",
-        fileHint:    ".tar.zst / .tar.gz",
-    },
-    {
-        value:       "os",
-        apiType:     "os",
-        label:       "OS",
-        icon:        HardDrive,
-        description: "Operating system images",
-        accept:      ".iso,.img,.qcow2,.tar,.zst",
-        placeholder: "e.g. Ubuntu-22.04-LTS",
-        fileHint:    ".iso / .img / .qcow2",
-    },
-    {
-        value:       "podman",
-        apiType:     "podman",
-        label:       "Podman",
+        value:       "container",
+        apiType:     "container",
+        label:       "Container",
         icon:        Box,
-        description: "Podman container image packages",
-        accept:      ".zst,.tar,.gz,.tar.gz",
-        placeholder: "e.g. Podman Image v1",
-        fileHint:    ".tar.zst / .tar.gz",
+        description: "Open WebUI or Vector DB application packages",
+        accept:      ".zst,.tar,.gz,.tar.gz,.zip,.rar",
+        fileHint:    ".tar.zst / .tar.gz / .zip / .rar",
+        needsHarbor: true,
     },
     {
-        value:       "vectordb",
-        apiType:     "vectordb",
-        label:       "Vector DB",
-        icon:        Database,
-        description: "Vector database packages",
-        accept:      ".zst,.tar,.gz,.tar.gz",
-        placeholder: "e.g. Milvus v2.4",
-        fileHint:    ".tar.zst / .tar.gz",
+        value:       "llm_model",
+        apiType:     "llm_model",
+        label:       "LLM Model",
+        icon:        Brain,
+        description: "Large language model packages",
+        accept:      ".zst,.tar,.gz,.tar.gz,.gguf,.bin,.safetensors,.zip,.rar",
+        fileHint:    ".gguf / .safetensors / .tar.zst / .zip / .rar",
+        needsHarbor: true,
+    },
+    {
+        value:       "llm_template",
+        apiType:     "llm_template",
+        label:       "LLM-Model Proxmox Template",
+        icon:        HardDrive,
+        description: "Proxmox VM templates pre-loaded with an LLM model",
+        accept:      ".iso,.img,.qcow2,.tar,.zst,.tar.gz,.zip,.rar",
+        fileHint:    ".qcow2 / .img / .tar.zst / .zip / .rar",
+        needsHarbor: true,
     },
 ];
+
+// Browser `accept` attributes are advisory only (drag-drop and "All Files"
+// bypass them), so extensions are re-checked here before a file is accepted.
+const isAllowedExtension = (fileName, accept) => {
+    const exts  = accept.split(",").map((e) => e.trim().toLowerCase());
+    const lower = fileName.toLowerCase();
+    return exts.some((ext) => lower.endsWith(ext));
+};
+
+// .zip uploads only — other archive formats (.tar.gz, .tar.zst, .rar) aren't
+// practical to parse in the browser. This reads ONLY the ZIP's central
+// directory (a small index near the end of the file) plus the one entry we
+// want — it never loads the whole archive into memory, which matters here
+// since these are often multi-hundred-MB to multi-GB LLM model packages.
+// Note: does not support Zip64 (>4GB archives / >65535 entries) — falls
+// back to "error" status for those rather than misreading offsets.
+const EOCD_SIGNATURE = 0x06054b50;
+const CENTRAL_DIR_SIGNATURE = 0x02014b50;
+const ZIP64_SENTINEL = 0xffffffff;
+
+const readBlobBytes = async (file, start, end) =>
+    new Uint8Array(await file.slice(start, end).arrayBuffer());
+
+// Standard PKZIP/zlib CRC-32 — used to verify decompressed bytes against the
+// checksum the zip itself stores, so a bad inflate is caught precisely
+// instead of surfacing as a confusing downstream JSON.parse error.
+let crc32Table = null;
+const crc32 = (bytes) => {
+    if (!crc32Table) {
+        crc32Table = new Uint32Array(256);
+        for (let n = 0; n < 256; n++) {
+            let c = n;
+            for (let k = 0; k < 8; k++) c = c & 1 ? (0xedb88320 ^ (c >>> 1)) : c >>> 1;
+            crc32Table[n] = c >>> 0;
+        }
+    }
+    let crc = 0xffffffff;
+    for (let i = 0; i < bytes.length; i++) crc = crc32Table[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+};
+
+const findEndOfCentralDirectory = async (file) => {
+    const maxCommentSize = 65535;
+    const searchSize = Math.min(file.size, 22 + maxCommentSize);
+    const tail = await readBlobBytes(file, file.size - searchSize, file.size);
+    const view = new DataView(tail.buffer);
+    for (let i = tail.length - 22; i >= 0; i--) {
+        if (view.getUint32(i, true) === EOCD_SIGNATURE) {
+            return {
+                centralDirSize:   view.getUint32(i + 12, true),
+                centralDirOffset: view.getUint32(i + 16, true),
+            };
+        }
+    }
+    return null;
+};
+
+const inflateIfNeeded = async (bytes, method) => {
+    if (method === 0) return bytes; // stored, no compression
+    if (method !== 8) throw new Error(`Unsupported zip compression method: ${method}`);
+    if (typeof DecompressionStream === "undefined") throw new Error("Browser lacks DecompressionStream");
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+};
+
+const readZipTextEntry = async (file, entryName) => {
+    const eocd = await findEndOfCentralDirectory(file);
+    if (!eocd) throw new Error("Not a valid zip (no end-of-central-directory record found)");
+    if (eocd.centralDirOffset === ZIP64_SENTINEL || eocd.centralDirSize === ZIP64_SENTINEL) {
+        throw new Error("Zip64 archives are not supported for browser-side metadata extraction");
+    }
+
+    const centralDir = await readBlobBytes(file, eocd.centralDirOffset, eocd.centralDirOffset + eocd.centralDirSize);
+    const view = new DataView(centralDir.buffer);
+    const decoder = new TextDecoder("utf-8");
+
+    let offset = 0;
+    while (offset + 46 <= centralDir.length && view.getUint32(offset, true) === CENTRAL_DIR_SIGNATURE) {
+        const method           = view.getUint16(offset + 10, true);
+        const expectedCrc      = view.getUint32(offset + 16, true);
+        const compressedSize   = view.getUint32(offset + 20, true);
+        const nameLen          = view.getUint16(offset + 28, true);
+        const extraLen         = view.getUint16(offset + 30, true);
+        const commentLen       = view.getUint16(offset + 32, true);
+        const localHeaderOffset = view.getUint32(offset + 42, true);
+        const name = decoder.decode(centralDir.slice(offset + 46, offset + 46 + nameLen));
+
+        if (name.toLowerCase() === entryName.toLowerCase() || name.toLowerCase().endsWith(`/${entryName.toLowerCase()}`)) {
+            const localHeader  = await readBlobBytes(file, localHeaderOffset, localHeaderOffset + 30);
+            const localView    = new DataView(localHeader.buffer);
+            const localNameLen  = localView.getUint16(26, true);
+            const localExtraLen = localView.getUint16(28, true);
+            const dataStart = localHeaderOffset + 30 + localNameLen + localExtraLen;
+            const compressed = await readBlobBytes(file, dataStart, dataStart + compressedSize);
+            const raw = await inflateIfNeeded(compressed, method);
+            const actualCrc = crc32(raw);
+            if (actualCrc !== expectedCrc) {
+                throw new Error(
+                    `CRC mismatch reading "${name}" — expected ${expectedCrc.toString(16)}, got ${actualCrc.toString(16)} ` +
+                    `(compressedSize=${compressedSize}, method=${method}, dataStart=${dataStart}, localHeaderOffset=${localHeaderOffset})`
+                );
+            }
+            return decoder.decode(raw);
+        }
+
+        offset += 46 + nameLen + extraLen + commentLen;
+    }
+    return null;
+};
+
+const extractVersionMetadata = async (file) => {
+    if (!file.name.toLowerCase().endsWith(".zip")) return { metadata: null, status: "skipped" };
+    try {
+        const text = await readZipTextEntry(file, "version_metadata.json");
+        if (!text) return { metadata: null, status: "not_found" };
+        try {
+            return { metadata: JSON.parse(text), status: "found" };
+        } catch (parseErr) {
+            // CRC passed (bytes are provably correct) but the content itself
+            // isn't valid JSON — log the raw text so this is diagnosable.
+            console.error("version_metadata.json extracted correctly (CRC OK) but failed to parse as JSON:", parseErr);
+            console.error("Raw extracted text:", JSON.stringify(text));
+            return { metadata: null, status: "error" };
+        }
+    } catch (err) {
+        console.error("Failed to read version_metadata.json from zip:", err);
+        return { metadata: null, status: "error" };
+    }
+};
 
 // phase: idle | creating | streaming | done
 const LibraryUpload = () => {
@@ -75,20 +196,22 @@ const LibraryUpload = () => {
 
     const [selectedType, setSelectedType] = useState("");
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [name, setName] = useState("");
     const [file, setFile] = useState(null);
     const fileInputRef = useRef(null);
+
+    // Extracted from version_metadata.json inside the uploaded .zip, if present.
+    const [metadata, setMetadata] = useState(null);
+    const [metadataStatus, setMetadataStatus] = useState(null); // found | not_found | error | null
+    const [metadataLoading, setMetadataLoading] = useState(false);
 
     const [phase,        setPhase]        = useState("idle");
     const [httpProgress, setHttpProgress] = useState(0);
     const [error,        setError]        = useState("");
 
-    // Machine selection — only for openwebui & vectordb
-    const [machineId,       setMachineId]       = useState("");
-    const [machines,        setMachines]        = useState([]);
-    const [machinesLoading, setMachinesLoading] = useState(false);
-
-    const NEEDS_MACHINE = ["openwebui", "vectordb"];
+    // Target Harbor registry selection — only for effective types with needsHarbor
+    const [harborRegistryId, setHarborRegistryId] = useState("");
+    const [harbors,          setHarbors]          = useState([]);
+    const [harborsLoading,   setHarborsLoading]   = useState(false);
 
     // XHR ref for cancel support
     const xhrRef     = useRef(null);
@@ -104,24 +227,34 @@ const LibraryUpload = () => {
         };
     }, [dispatch]);
 
-    // Fetch deployed machines when type needs one
+    const activeType   = UPLOAD_TYPES.find((t) => t.value === selectedType);
+    const needsHarbor  = !!activeType?.needsHarbor;
+
+    // Fetch deployed Harbor registries when the type needs one
     useEffect(() => {
-        if (!NEEDS_MACHINE.includes(selectedType)) { setMachines([]); setMachineId(""); return; }
-        setMachinesLoading(true);
-        setMachineId("");
+        if (!needsHarbor) { setHarbors([]); setHarborRegistryId(""); return; }
+        setHarborsLoading(true);
+        setHarborRegistryId("");
         fetchDeployments(token, { page: 1, pageSize: 100 })
             .then((res) => {
                 const raw  = res?.data ?? res;
                 const list = Array.isArray(raw) ? raw : (raw?.data ?? raw?.items ?? []);
-                setMachines(list.filter((m) => ["deployed_successfully", "running", "completed"].includes(m.status)));
+                // Only Kubernetes-hosted Harbor deployments (identified by a harbor_url) that are live.
+                setHarbors(
+                    list.filter(
+                        (d) =>
+                            d.harbor_url &&
+                            ["deployed", "running", "completed", "success"].includes((d.status || "").toLowerCase())
+                    )
+                );
             })
-            .catch(() => setMachines([]))
-            .finally(() => setMachinesLoading(false));
+            .catch(() => setHarbors([]))
+            .finally(() => setHarborsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedType, token]);
+    }, [needsHarbor, token]);
 
     const resetFields = () => {
-        setName(""); setFile(null); setMachineId("");
+        setFile(null); setHarborRegistryId(""); setMetadata(null); setMetadataStatus(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -132,21 +265,34 @@ const LibraryUpload = () => {
         resetFields();
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const f = e.target.files[0];
         if (!f) return;
+        if (activeType && !isAllowedExtension(f.name, activeType.accept)) {
+            toast.error(`Invalid file type. Allowed: ${activeType.fileHint}`);
+            e.target.value = "";
+            return;
+        }
         setFile(f);
         setError("");
-        if (!name) setName(f.name.replace(/\.[^.]+$/, ""));
+        setMetadata(null);
+        setMetadataStatus(null);
+
+        if (f.name.toLowerCase().endsWith(".zip")) {
+            setMetadataLoading(true);
+            const { metadata: found, status } = await extractVersionMetadata(f);
+            setMetadataLoading(false);
+            setMetadata(found);
+            setMetadataStatus(status);
+        }
     };
 
-    const activeType      = UPLOAD_TYPES.find((t) => t.value === selectedType);
-    const needsMachine    = NEEDS_MACHINE.includes(selectedType);
-    const isFormValid     = !!(selectedType && name.trim() && file && (!needsMachine || machineId));
-    const isBusy          = phase === "creating" || phase === "streaming";
+    const isFormValid = !!(activeType && file && (!needsHarbor || harborRegistryId) && !metadataLoading);
+    const isBusy       = phase === "creating" || phase === "streaming";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (metadataLoading) { toast.error("Still reading version_metadata.json from the zip — please wait."); return; }
         if (!isFormValid) { toast.error("Please fill all required fields."); return; }
 
         setError("");
@@ -157,10 +303,11 @@ const LibraryUpload = () => {
         try {
             const result = await dispatch(uploadLibraryThunk({
                 token,
-                name:      name.trim(),
-                fileName:  file.name,
-                type:      activeType?.apiType || null,
-                machineId: machineId || undefined,
+                fileName:         file.name,
+                fileSize:         file.size,
+                type:             activeType?.apiType || null,
+                harborRegistryId: harborRegistryId || undefined,
+                metadata:         metadata || undefined,
             })).unwrap();
             itemId = result?.id ?? result?.item_id ?? result?.data?.id;
             if (!itemId) throw new Error("Server did not return item ID");
@@ -183,7 +330,7 @@ const LibraryUpload = () => {
                 xhrRef,
             );
             // XHR done — navigate to list regardless of mount state
-            toast.success(`"${name}" uploaded! Temporal is processing it in background.`);
+            toast.success(`"${file.name}" uploaded! Temporal is processing it in background.`);
             dispatch(clearUploadResult());
             // If already navigated away, this nav is a no-op since component unmounted
             if (mountedRef.current) nav("/library");
@@ -233,7 +380,7 @@ const LibraryUpload = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-2xl overflow-hidden flex flex-col">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-2xl flex flex-col">
                 <form onSubmit={handleSubmit} className="w-full flex flex-col">
                     <div className="p-6 space-y-5">
 
@@ -344,48 +491,31 @@ const LibraryUpload = () => {
                                     </h2>
                                 </div>
 
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                                        Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={name}
-                                        disabled={isBusy}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder={activeType.placeholder}
-                                        className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
-                                    />
-                                </div>
-
-                                {/* Machine selector — only for openwebui & vectordb */}
-                                {needsMachine && (
+                                {/* Harbor registry selector — only for types with needsHarbor */}
+                                {needsHarbor && (
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
-                                            Target Machine <span className="text-red-500">*</span>
+                                            Harbor Registry <span className="text-red-500">*</span>
                                         </label>
-                                        {machinesLoading ? (
+                                        {harborsLoading ? (
                                             <div className="flex items-center gap-2 py-2 px-3 rounded border border-gray-200 bg-gray-50 text-xs text-gray-400">
-                                                <Loader2 className="h-3 w-3 animate-spin" /> Loading deployed machines...
+                                                <Loader2 className="h-3 w-3 animate-spin" /> Loading Harbor registries...
                                             </div>
-                                        ) : machines.length === 0 ? (
+                                        ) : harbors.length === 0 ? (
                                             <div className="py-2 px-3 rounded border border-amber-200 bg-amber-50 text-xs text-amber-700">
-                                                No running machines found. Deploy a Harbor template first.
+                                                No Harbor registries deployed. Go to <strong>Settings → Harbor</strong> and deploy one first.
                                             </div>
                                         ) : (
                                             <select
-                                                value={machineId}
-                                                onChange={(e) => setMachineId(e.target.value)}
+                                                value={harborRegistryId}
+                                                onChange={(e) => setHarborRegistryId(e.target.value)}
                                                 disabled={isBusy}
                                                 className="w-full rounded border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                                             >
-                                                <option value="">Select a machine...</option>
-                                                {machines.map((m) => (
-                                                    <option key={m.job_id} value={m.job_id}>
-                                                        {m.name}
-                                                        {m.ip_address ? ` — ${m.ip_address}` : ""}
-                                                        {m.node ? ` (${m.node}` : ""}
-                                                        {m.vmid ? ` · VM ${m.vmid})` : (m.node ? ")" : "")}
+                                                <option value="">Select a Harbor registry...</option>
+                                                {harbors.map((h) => (
+                                                    <option key={h.deploy_id ?? h.job_id ?? h.id} value={h.deploy_id ?? h.job_id ?? h.id}>
+                                                        {h.name} — {h.harbor_url}
                                                     </option>
                                                 ))}
                                             </select>
@@ -428,6 +558,41 @@ const LibraryUpload = () => {
                                             </>
                                         )}
                                     </div>
+
+                                    {metadataLoading && (
+                                        <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                            Reading version_metadata.json from zip...
+                                        </div>
+                                    )}
+                                    {!metadataLoading && metadataStatus === "found" && (
+                                        <div className="flex items-start gap-2 rounded border border-green-200 bg-green-50 px-3 py-2">
+                                            <CheckCircle className="h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                                            <div className="text-[11px] text-green-800">
+                                                <p className="font-semibold">version_metadata.json found</p>
+                                                <p className="text-green-700">
+                                                    {metadata.display_name || metadata.name}
+                                                    {metadata.version ? ` — ${metadata.version}` : ""}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {!metadataLoading && metadataStatus === "not_found" && (
+                                        <div className="flex items-center gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2">
+                                            <AlertCircle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                                            <p className="text-[11px] text-amber-700">
+                                                No version_metadata.json found inside this zip — uploading without metadata.
+                                            </p>
+                                        </div>
+                                    )}
+                                    {!metadataLoading && metadataStatus === "error" && (
+                                        <div className="flex items-center gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2">
+                                            <AlertCircle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                                            <p className="text-[11px] text-amber-700">
+                                                Could not read this zip in the browser to extract metadata — uploading without it. (See console for details.)
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
