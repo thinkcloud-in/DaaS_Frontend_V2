@@ -70,11 +70,16 @@ const isAllowedExtension = (fileName, accept) => {
 // practical to parse in the browser. This reads ONLY the ZIP's central
 // directory (a small index near the end of the file) plus the one entry we
 // want — it never loads the whole archive into memory, which matters here
-// since these are often multi-hundred-MB to multi-GB LLM model packages.
-// Note: does not support Zip64 (>4GB archives / >65535 entries) — falls
-// back to "error" status for those rather than misreading offsets.
+// since these are often multi-hundred-MB to multi-GB (even 20-100GB+ VM
+// backup / disk image) packages. Zip64 (used by archives/entries whose size
+// or offset exceeds 4GB — i.e. almost any archive over ~4GB) is supported by
+// following the Zip64 locator/record and per-entry Zip64 extra fields; only
+// the tiny index structures are read, never the huge file payloads.
 const EOCD_SIGNATURE = 0x06054b50;
 const CENTRAL_DIR_SIGNATURE = 0x02014b50;
+const ZIP64_EOCD_LOCATOR_SIGNATURE = 0x07064b50;
+const ZIP64_EOCD_SIGNATURE = 0x06064b50;
+const ZIP64_EXTRA_TAG = 0x0001;
 const ZIP64_SENTINEL = 0xffffffff;
 
 const readBlobBytes = async (file, start, end) =>
@@ -98,20 +103,70 @@ const crc32 = (bytes) => {
     return (crc ^ 0xffffffff) >>> 0;
 };
 
+// 8-byte little-endian unsigned int. Real file offsets/sizes stay far below
+// Number.MAX_SAFE_INTEGER (2^53), so converting the BigInt result is safe.
+const readUint64 = (view, offset) => Number(view.getBigUint64(offset, true));
+
 const findEndOfCentralDirectory = async (file) => {
     const maxCommentSize = 65535;
     const searchSize = Math.min(file.size, 22 + maxCommentSize);
-    const tail = await readBlobBytes(file, file.size - searchSize, file.size);
+    const tailStart = file.size - searchSize;
+    const tail = await readBlobBytes(file, tailStart, file.size);
     const view = new DataView(tail.buffer);
+
     for (let i = tail.length - 22; i >= 0; i--) {
-        if (view.getUint32(i, true) === EOCD_SIGNATURE) {
-            return {
-                centralDirSize:   view.getUint32(i + 12, true),
-                centralDirOffset: view.getUint32(i + 16, true),
-            };
+        if (view.getUint32(i, true) !== EOCD_SIGNATURE) continue;
+
+        let centralDirSize   = view.getUint32(i + 12, true);
+        let centralDirOffset = view.getUint32(i + 16, true);
+
+        // Sentinel 0xFFFFFFFF means the real values live in the Zip64 EOCD
+        // record, reachable via a fixed-size locator sitting right before
+        // this regular EOCD record.
+        if (centralDirSize === ZIP64_SENTINEL || centralDirOffset === ZIP64_SENTINEL) {
+            const locatorStart = tailStart + i - 20;
+            const locator = await readBlobBytes(file, locatorStart, locatorStart + 20);
+            const locatorView = new DataView(locator.buffer);
+            if (locatorView.getUint32(0, true) !== ZIP64_EOCD_LOCATOR_SIGNATURE) {
+                throw new Error("Zip64 end-of-central-directory locator not found where expected");
+            }
+            const zip64EocdOffset = readUint64(locatorView, 8);
+            const zip64Eocd = await readBlobBytes(file, zip64EocdOffset, zip64EocdOffset + 56);
+            const zip64View = new DataView(zip64Eocd.buffer);
+            if (zip64View.getUint32(0, true) !== ZIP64_EOCD_SIGNATURE) {
+                throw new Error("Zip64 end-of-central-directory record not found where expected");
+            }
+            centralDirSize   = readUint64(zip64View, 40);
+            centralDirOffset = readUint64(zip64View, 48);
         }
+
+        return { centralDirSize, centralDirOffset };
     }
     return null;
+};
+
+// Reads the Zip64 extended-information extra field (tag 0x0001), which holds
+// the real 64-bit values for whichever of uncompressedSize/compressedSize/
+// localHeaderOffset were sentinel-valued (0xFFFFFFFF) in the 32-bit central
+// directory fields — present in that fixed order, only for the fields that
+// actually needed it.
+const resolveZip64Sizes = (extraBytes, base) => {
+    const view = new DataView(extraBytes.buffer, extraBytes.byteOffset, extraBytes.byteLength);
+    let pos = 0;
+    while (pos + 4 <= extraBytes.length) {
+        const tag  = view.getUint16(pos, true);
+        const size = view.getUint16(pos + 2, true);
+        if (tag === ZIP64_EXTRA_TAG) {
+            let dataPos = pos + 4;
+            const result = { ...base };
+            if (base.uncompressedSize === ZIP64_SENTINEL) { result.uncompressedSize = readUint64(view, dataPos); dataPos += 8; }
+            if (base.compressedSize === ZIP64_SENTINEL)   { result.compressedSize   = readUint64(view, dataPos); dataPos += 8; }
+            if (base.localHeaderOffset === ZIP64_SENTINEL) { result.localHeaderOffset = readUint64(view, dataPos); dataPos += 8; }
+            return result;
+        }
+        pos += 4 + size;
+    }
+    return base;
 };
 
 const inflateIfNeeded = async (bytes, method) => {
@@ -125,9 +180,6 @@ const inflateIfNeeded = async (bytes, method) => {
 const readZipTextEntry = async (file, entryName) => {
     const eocd = await findEndOfCentralDirectory(file);
     if (!eocd) throw new Error("Not a valid zip (no end-of-central-directory record found)");
-    if (eocd.centralDirOffset === ZIP64_SENTINEL || eocd.centralDirSize === ZIP64_SENTINEL) {
-        throw new Error("Zip64 archives are not supported for browser-side metadata extraction");
-    }
 
     const centralDir = await readBlobBytes(file, eocd.centralDirOffset, eocd.centralDirOffset + eocd.centralDirSize);
     const view = new DataView(centralDir.buffer);
@@ -137,14 +189,23 @@ const readZipTextEntry = async (file, entryName) => {
     while (offset + 46 <= centralDir.length && view.getUint32(offset, true) === CENTRAL_DIR_SIGNATURE) {
         const method           = view.getUint16(offset + 10, true);
         const expectedCrc      = view.getUint32(offset + 16, true);
-        const compressedSize   = view.getUint32(offset + 20, true);
+        let compressedSize     = view.getUint32(offset + 20, true);
+        let uncompressedSize   = view.getUint32(offset + 24, true);
         const nameLen          = view.getUint16(offset + 28, true);
         const extraLen         = view.getUint16(offset + 30, true);
         const commentLen       = view.getUint16(offset + 32, true);
-        const localHeaderOffset = view.getUint32(offset + 42, true);
+        let localHeaderOffset  = view.getUint32(offset + 42, true);
         const name = decoder.decode(centralDir.slice(offset + 46, offset + 46 + nameLen));
 
         if (name.toLowerCase() === entryName.toLowerCase() || name.toLowerCase().endsWith(`/${entryName.toLowerCase()}`)) {
+            if (compressedSize === ZIP64_SENTINEL || uncompressedSize === ZIP64_SENTINEL || localHeaderOffset === ZIP64_SENTINEL) {
+                const extraBytes = centralDir.slice(offset + 46 + nameLen, offset + 46 + nameLen + extraLen);
+                const resolved = resolveZip64Sizes(extraBytes, { compressedSize, uncompressedSize, localHeaderOffset });
+                compressedSize    = resolved.compressedSize;
+                uncompressedSize  = resolved.uncompressedSize;
+                localHeaderOffset = resolved.localHeaderOffset;
+            }
+
             const localHeader  = await readBlobBytes(file, localHeaderOffset, localHeaderOffset + 30);
             const localView    = new DataView(localHeader.buffer);
             const localNameLen  = localView.getUint16(26, true);
@@ -203,6 +264,7 @@ const LibraryUpload = () => {
     const [metadata, setMetadata] = useState(null);
     const [metadataStatus, setMetadataStatus] = useState(null); // found | not_found | error | null
     const [metadataLoading, setMetadataLoading] = useState(false);
+    const [metadataExpanded, setMetadataExpanded] = useState(false);
 
     const [phase,        setPhase]        = useState("idle");
     const [httpProgress, setHttpProgress] = useState(0);
@@ -254,7 +316,7 @@ const LibraryUpload = () => {
     }, [needsHarbor, token]);
 
     const resetFields = () => {
-        setFile(null); setHarborRegistryId(""); setMetadata(null); setMetadataStatus(null);
+        setFile(null); setHarborRegistryId(""); setMetadata(null); setMetadataStatus(null); setMetadataExpanded(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -277,6 +339,7 @@ const LibraryUpload = () => {
         setError("");
         setMetadata(null);
         setMetadataStatus(null);
+        setMetadataExpanded(false);
 
         if (f.name.toLowerCase().endsWith(".zip")) {
             setMetadataLoading(true);
@@ -566,15 +629,27 @@ const LibraryUpload = () => {
                                         </div>
                                     )}
                                     {!metadataLoading && metadataStatus === "found" && (
-                                        <div className="flex items-start gap-2 rounded border border-green-200 bg-green-50 px-3 py-2">
-                                            <CheckCircle className="h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
-                                            <div className="text-[11px] text-green-800">
-                                                <p className="font-semibold">version_metadata.json found</p>
-                                                <p className="text-green-700">
-                                                    {metadata.display_name || metadata.name}
-                                                    {metadata.version ? ` — ${metadata.version}` : ""}
-                                                </p>
-                                            </div>
+                                        <div className="rounded border border-green-200 bg-green-50 overflow-hidden">
+                                            <button
+                                                type="button"
+                                                onClick={() => setMetadataExpanded((s) => !s)}
+                                                className="w-full flex items-start gap-2 px-3 py-2 text-left"
+                                            >
+                                                <CheckCircle className="h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                                                <div className="text-[11px] text-green-800 flex-1 min-w-0">
+                                                    <p className="font-semibold">version_metadata.json found</p>
+                                                    <p className="text-green-700 truncate">
+                                                        {metadata.display_name || metadata.name}
+                                                        {metadata.version ? ` — ${metadata.version}` : ""}
+                                                    </p>
+                                                </div>
+                                                <ChevronDown className={`h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5 transition-transform ${metadataExpanded ? "rotate-180" : ""}`} />
+                                            </button>
+                                            {metadataExpanded && (
+                                                <pre className="text-[10px] text-green-900 bg-green-100/60 border-t border-green-200 px-3 py-2 overflow-x-auto max-h-56 overflow-y-auto whitespace-pre-wrap break-all">
+                                                    {JSON.stringify(metadata, null, 2)}
+                                                </pre>
+                                            )}
                                         </div>
                                     )}
                                     {!metadataLoading && metadataStatus === "not_found" && (
