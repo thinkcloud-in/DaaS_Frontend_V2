@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import { fetchLibraryList, fetchDeployments } from "../../Services/LibraryService";
 import { fetchKubernetesClusters } from "../../Services/KubernetesService";
-import { deployApplication } from "../../Services/ApplicationService";
+import { deployApplication, fetchApplications } from "../../Services/ApplicationService";
 import { APP_TYPES, getAppType } from "./appTypes";
 
 // Kubernetes namespace names must be lowercase DNS-1123 labels.
@@ -61,6 +61,8 @@ const ApplicationDeploy = () => {
     const [versionsLoading, setVersionsLoading] = useState(false);
     const [versionId,       setVersionId]       = useState("");
 
+    const [deployedNamespace, setDeployedNamespace] = useState("");
+
     const [submitting, setSubmitting] = useState(false);
 
     // Kubernetes clusters + deployed Harbor registries — independent of app type.
@@ -85,6 +87,13 @@ const ApplicationDeploy = () => {
             })
             .catch(() => setHarbors([]))
             .finally(() => setHarborsLoading(false));
+
+        fetchApplications({ page: 1, pageSize: 100 })
+            .then(({ items }) => {
+                const firstNamespace = items.find((item) => item.namespace)?.namespace ?? "";
+                setDeployedNamespace(firstNamespace);
+            })
+            .catch(() => setDeployedNamespace(""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
@@ -111,13 +120,19 @@ const ApplicationDeploy = () => {
     // TODO: once a "list deployed applications" API exists, prefer reusing the
     // namespace already used for this app type + cluster instead of the name.
     useEffect(() => {
-        if (!namespaceTouched) setNamespace(slugifyNamespace(name));
-    }, [name, namespaceTouched]);
+        if (!namespaceTouched) {
+            if (deployedNamespace) {
+                setNamespace(deployedNamespace);
+            } else {
+                setNamespace(slugifyNamespace(name));
+            }
+        }
+    }, [name, namespaceTouched, deployedNamespace]);
 
     const handleAppTypeChange = (id) => {
         setSelectedAppType(id);
         setName("");
-        setNamespace("");
+        setNamespace(deployedNamespace || "");
         setNamespaceTouched(false);
     };
 
@@ -296,7 +311,11 @@ const ApplicationDeploy = () => {
                                 <Field
                                     label="Namespace"
                                     required
-                                    hint="Defaults to the application name — edit if you want to reuse an existing namespace."
+                                    hint={
+                                        deployedNamespace
+                                            ? "Defaults to the most recently deployed namespace — edit if you want a different one."
+                                            : "Defaults to the application name — edit if you want to reuse an existing namespace."
+                                    }
                                 >
                                     <input
                                         type="text"
