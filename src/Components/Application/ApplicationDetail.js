@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import {
     ChevronLeft, ChevronDown, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
@@ -8,11 +8,11 @@ import {
 } from "lucide-react";
 import { getAppType } from "./appTypes";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
+import { connectPrivateLLM as connectPrivateLLMThunk, disconnectPrivateLLM as disconnectPrivateLLMThunk } from "../../redux/features/Application/ApplicationThunks";
 import {
     fetchApplicationDetail,
     fetchApplications,
     fetchDeployedPrivateLLMs,
-    connectPrivateLLM,
     setOpenWebUiKeycloakConfig,
     linkVectorDb,
     unlinkVectorDb,
@@ -87,24 +87,7 @@ const ServicePanel = ({ application }) => {
 // one page at a time and fetches the next page as the panel is scrolled.
 const PRIVATE_LLM_PAGE_SIZE = 10;
 
-const PrivateLLMStatusBadge = ({ status }) => {
-    const s = (status || "").toLowerCase();
-    if (s === "running") {
-        return (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 flex-shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Running
-            </span>
-        );
-    }
-    return (
-        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-300 flex-shrink-0">
-            {status || "Unknown"}
-        </span>
-    );
-};
-
-const PrivateLLMPanel = ({ applicationId }) => {
+const PrivateLLMPanel = ({ application, onChanged }) => {
     const [items, setItems] = useState([]);
     const [page, setPage] = useState(1);
     const [hasNext, setHasNext] = useState(false);
@@ -115,6 +98,7 @@ const PrivateLLMPanel = ({ applicationId }) => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [selected, setSelected] = useState(null);
     const [connecting, setConnecting] = useState(false);
+    const [disconnecting, setDisconnecting] = useState(false);
     const listRef = useRef(null);
 
     const loadPage = useCallback((pageNum, append) => {
@@ -144,18 +128,39 @@ const PrivateLLMPanel = ({ applicationId }) => {
         }
     };
 
+    const dispatch = useDispatch();
+
     const handleConnect = async () => {
         if (!selected || connecting) return;
         setConnecting(true);
         try {
-            await connectPrivateLLM(applicationId, selected.id);
+            await dispatch(connectPrivateLLMThunk({ openWebUiId: application.id, privateLlmId: selected.id })).unwrap();
             toast.success(`Connected to "${selected.name}".`);
+            onChanged?.();
         } catch (err) {
-            toast.error(err?.message || "Unable to connect right now.");
+            const msg = err || err?.message || "Unable to connect right now.";
+            toast.error(msg);
         } finally {
             setConnecting(false);
         }
     };
+
+    const handleDisconnect = async () => {
+        if (disconnecting) return;
+        setDisconnecting(true);
+        try {
+            await dispatch(disconnectPrivateLLMThunk({ openWebUiId: application.id })).unwrap();
+            toast.success("Disconnected Private LLM.");
+            onChanged?.();
+        } catch (err) {
+            const msg = err || err?.message || "Unable to disconnect right now.";
+            toast.error(msg);
+        } finally {
+            setDisconnecting(false);
+        }
+    };
+
+    const connectedLLM = items.find((item) => String(item.id) === String(application.connectedPrivateLLMId));
 
     return (
         <Panel title="Private LLM" icon={Cpu}>
@@ -167,6 +172,22 @@ const PrivateLLMPanel = ({ applicationId }) => {
             ) : loading ? (
                 <div className="flex items-center gap-2 py-6 justify-center text-xs text-gray-400">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Private LLM instances...
+                </div>
+            ) : connectedLLM ? (
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                        <span className="text-sm font-semibold text-gray-800">Connected to {connectedLLM.name}</span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleDisconnect}
+                        disabled={disconnecting}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                        {disconnecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2Off className="h-3.5 w-3.5" />}
+                        Disconnect
+                    </button>
                 </div>
             ) : items.length === 0 ? (
                 <div className="py-6 text-center">
@@ -184,10 +205,7 @@ const PrivateLLMPanel = ({ applicationId }) => {
                             className="w-full flex items-center justify-between rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                         >
                             {selected ? (
-                                <span className="flex items-center gap-2 truncate">
-                                    <span className="truncate">{selected.name}</span>
-                                    <PrivateLLMStatusBadge status={selected.status} />
-                                </span>
+                                <span className="truncate">{selected.name}</span>
                             ) : (
                                 <span className="text-gray-400">Select a Private LLM...</span>
                             )}
@@ -205,11 +223,10 @@ const PrivateLLMPanel = ({ applicationId }) => {
                                         key={item.id}
                                         type="button"
                                         onClick={() => { setSelected(item); setDropdownOpen(false); }}
-                                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-blue-50 transition-colors
+                                        className={`w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors
                                             ${selected?.id === item.id ? "bg-blue-50/60" : ""}`}
                                     >
-                                        <span className="text-sm text-gray-800 truncate">{item.name}</span>
-                                        <PrivateLLMStatusBadge status={item.status} />
+                                        <span className="text-sm text-gray-800 truncate block">{item.name}</span>
                                     </button>
                                 ))}
                                 {loadingMore && (
@@ -636,7 +653,7 @@ const ApplicationDetail = () => {
                 <ServicePanel application={application} />
                 {activeApp?.id === "openwebui" && <VectorDbLinkPanel application={application} onChanged={refreshApplication} />}
                 {activeApp?.id === "vectordb" && <LinkedAppsPanel />}
-                {activeApp?.id === "openwebui" && <PrivateLLMPanel applicationId={application.id} />}
+                {activeApp?.id === "openwebui" && <PrivateLLMPanel application={application} onChanged={refreshApplication} />}
                 {activeApp?.id === "openwebui" && <KeycloakConfigPanel applicationId={application.id} />}
             </div>
         </div>
