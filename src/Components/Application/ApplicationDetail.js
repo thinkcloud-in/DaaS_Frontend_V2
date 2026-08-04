@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
-    ChevronLeft, Loader2, Plus, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
-    ShieldCheck, Eye, EyeOff,
+    ChevronLeft, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
+    ShieldCheck, Eye, EyeOff, Plus,
 } from "lucide-react";
 import { getAppType } from "./appTypes";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import {
     fetchApplicationDetail,
     fetchApplications,
-    addOpenWebUiModel,
+    fetchDeployedPrivateLLMs,
     setOpenWebUiKeycloakConfig,
     linkVectorDb,
     unlinkVectorDb,
@@ -80,68 +80,89 @@ const ServicePanel = ({ application }) => {
     );
 };
 
-// ── Open WebUI: Models panel ──────────────────────────────────────────────────
-const ModelsPanel = ({ applicationId }) => {
-    const [showForm, setShowForm] = useState(false);
-    const [modelName, setModelName] = useState("");
-    const [submitting, setSubmitting] = useState(false);
+// ── Open WebUI: Private LLM panel ─────────────────────────────────────────────
+// Lists already-deployed, running Private LLM instances (from the separate
+// /v1/llm-inference-v2/deployed endpoint — not the app-deploy list). Loads
+// one page at a time and fetches the next page as the panel is scrolled.
+const PRIVATE_LLM_PAGE_SIZE = 10;
 
-    const handleAddModel = async (e) => {
-        e.preventDefault();
-        if (!modelName.trim() || submitting) return;
-        setSubmitting(true);
-        try {
-            await addOpenWebUiModel(applicationId, { name: modelName.trim() });
-            toast.success(`Model "${modelName}" added.`);
-            setModelName("");
-            setShowForm(false);
-        } catch (err) {
-            toast.error(err?.message || "Unable to add model right now.");
-        } finally {
-            setSubmitting(false);
+const PrivateLLMStatusBadge = ({ status }) => {
+    const s = (status || "").toLowerCase();
+    if (s === "running") {
+        return (
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 flex-shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                Running
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-300 flex-shrink-0">
+            {status || "Unknown"}
+        </span>
+    );
+};
+
+const PrivateLLMPanel = () => {
+    const [items, setItems] = useState([]);
+    const [page, setPage] = useState(1);
+    const [hasNext, setHasNext] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const scrollRef = useRef(null);
+
+    const loadPage = useCallback((pageNum, append) => {
+        (append ? setLoadingMore : setLoading)(true);
+        fetchDeployedPrivateLLMs({ page: pageNum, pageSize: PRIVATE_LLM_PAGE_SIZE })
+            .then(({ items: newItems, pagination }) => {
+                setItems((prev) => (append ? [...prev, ...newItems] : newItems));
+                setHasNext(!!pagination.hasNext);
+                setPage(pageNum);
+            })
+            .catch(() => { if (!append) setItems([]); })
+            .finally(() => (append ? setLoadingMore : setLoading)(false));
+    }, []);
+
+    useEffect(() => { loadPage(1, false); }, [loadPage]);
+
+    const handleScroll = () => {
+        const el = scrollRef.current;
+        if (!el || loading || loadingMore || !hasNext) return;
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 32) {
+            loadPage(page + 1, true);
         }
     };
 
     return (
-        <Panel
-            title="Models"
-            icon={Cpu}
-            action={
-                <button
-                    type="button"
-                    onClick={() => setShowForm((s) => !s)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
-                >
-                    <Plus className="h-3.5 w-3.5" />
-                    Add Model
-                </button>
-            }
-        >
-            {showForm && (
-                <form onSubmit={handleAddModel} className="flex items-center gap-2 mb-4">
-                    <input
-                        type="text"
-                        value={modelName}
-                        onChange={(e) => setModelName(e.target.value)}
-                        placeholder="e.g. llama3:8b"
-                        disabled={submitting}
-                        className="flex-1 rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
-                    />
-                    <button
-                        type="submit"
-                        disabled={submitting || !modelName.trim()}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-[#1a365d] hover:bg-[#122744] rounded-lg transition-colors disabled:opacity-50"
-                    >
-                        {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                        Add
-                    </button>
-                </form>
+        <Panel title="Private LLM" icon={Cpu}>
+            {loading ? (
+                <div className="flex items-center gap-2 py-8 justify-center text-xs text-gray-400">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Private LLM instances...
+                </div>
+            ) : items.length === 0 ? (
+                <div className="py-8 text-center">
+                    <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-500">No deployed Private LLM instances</p>
+                    <p className="text-xs text-gray-400 mt-1">Deploy one from Pools → Private LLM.</p>
+                </div>
+            ) : (
+                <div ref={scrollRef} onScroll={handleScroll} className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    {items.map((item) => (
+                        <div
+                            key={item.id}
+                            className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2"
+                        >
+                            <span className="text-sm font-medium text-gray-800 truncate">{item.name}</span>
+                            <PrivateLLMStatusBadge status={item.status} />
+                        </div>
+                    ))}
+                    {loadingMore && (
+                        <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-400">
+                            <Loader2 className="h-3 w-3 animate-spin" /> Loading more...
+                        </div>
+                    )}
+                </div>
             )}
-            <div className="py-8 text-center">
-                <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-500">No models added yet</p>
-                <p className="text-xs text-gray-400 mt-1">Add a model to make it available in this Open WebUI instance.</p>
-            </div>
         </Panel>
     );
 };
@@ -547,7 +568,7 @@ const ApplicationDetail = () => {
                 <ServicePanel application={application} />
                 {activeApp?.id === "openwebui" && <VectorDbLinkPanel application={application} onChanged={refreshApplication} />}
                 {activeApp?.id === "vectordb" && <LinkedAppsPanel />}
-                {activeApp?.id === "openwebui" && <ModelsPanel applicationId={application.id} />}
+                {activeApp?.id === "openwebui" && <PrivateLLMPanel />}
                 {activeApp?.id === "openwebui" && <KeycloakConfigPanel applicationId={application.id} />}
             </div>
         </div>

@@ -85,10 +85,29 @@ export const deleteApplication = async (id) => {
     return res.data;
 };
 
-// Adds a model to a deployed Open WebUI instance.
-// TODO: no endpoint published for this yet — wire up once available.
-export const addOpenWebUiModel = async (applicationId, payload) => {
-    throw new Error("Open WebUI model management API is not available yet.");
+// Lists already-deployed Private LLM instances (separate from /v1/app-deploy)
+// for display on the Open WebUI detail page. Only pagination is sent — the
+// endpoint itself returns just the deployed/running instances.
+export const fetchDeployedPrivateLLMs = async ({ page = 1, pageSize = 10 } = {}) => {
+    const params = new URLSearchParams({ page, page_size: pageSize });
+
+    const res = await axiosInstance.get(`${backendUrl}/v1/llm-inference-v2/deployed?${params}`);
+    const envelope = res.data ?? {};
+    const body = envelope.data ?? envelope;
+    const items = Array.isArray(body.items) ? body.items : (Array.isArray(body) ? body : []);
+    const pg = body.pagination || {};
+
+    return {
+        items,
+        pagination: {
+            page:       pg.page ?? page,
+            pageSize:   pg.page_size ?? pageSize,
+            total:      pg.total ?? items.length,
+            totalPages: pg.total_pages ?? (Math.ceil((pg.total ?? items.length) / pageSize) || 1),
+            hasNext:    pg.has_next ?? false,
+            hasPrev:    pg.has_prev ?? false,
+        },
+    };
 };
 
 // Configures Keycloak SSO login for a deployed Open WebUI instance.
