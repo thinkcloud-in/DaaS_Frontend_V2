@@ -129,3 +129,9 @@ export const unlinkVectorDb = async (openWebUiId) => {
     const res = await axiosInstance.delete(`${backendUrl}/v1/app-deploy/${openWebUiId}/connect-vectordb`);
     return res.data;
 };
+
+// Connects a deployed Private LLM instance to a deployed Open WebUI instance.
+// TODO: no endpoint published for this yet — wire up once available.
+export const connectPrivateLLM = async (openWebUiId, privateLlmId) => {
+    throw new Error("Private LLM connect API is not available yet.");
+};

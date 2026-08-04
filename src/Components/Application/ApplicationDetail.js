@@ -3,8 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
-    ChevronLeft, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
-    ShieldCheck, Eye, EyeOff, Plus,
+    ChevronLeft, ChevronDown, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
+    ShieldCheck, Eye, EyeOff, Plus, AlertCircle,
 } from "lucide-react";
 import { getAppType } from "./appTypes";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
@@ -12,6 +12,7 @@ import {
     fetchApplicationDetail,
     fetchApplications,
     fetchDeployedPrivateLLMs,
+    connectPrivateLLM,
     setOpenWebUiKeycloakConfig,
     linkVectorDb,
     unlinkVectorDb,
@@ -103,64 +104,131 @@ const PrivateLLMStatusBadge = ({ status }) => {
     );
 };
 
-const PrivateLLMPanel = () => {
+const PrivateLLMPanel = ({ applicationId }) => {
     const [items, setItems] = useState([]);
     const [page, setPage] = useState(1);
     const [hasNext, setHasNext] = useState(false);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
-    const scrollRef = useRef(null);
+    const [loadError, setLoadError] = useState("");
+
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [selected, setSelected] = useState(null);
+    const [connecting, setConnecting] = useState(false);
+    const listRef = useRef(null);
 
     const loadPage = useCallback((pageNum, append) => {
         (append ? setLoadingMore : setLoading)(true);
+        if (!append) setLoadError("");
         fetchDeployedPrivateLLMs({ page: pageNum, pageSize: PRIVATE_LLM_PAGE_SIZE })
             .then(({ items: newItems, pagination }) => {
                 setItems((prev) => (append ? [...prev, ...newItems] : newItems));
                 setHasNext(!!pagination.hasNext);
                 setPage(pageNum);
             })
-            .catch(() => { if (!append) setItems([]); })
+            .catch((err) => {
+                if (append) return;
+                setItems([]);
+                setLoadError(err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Failed to load Private LLM instances.");
+            })
             .finally(() => (append ? setLoadingMore : setLoading)(false));
     }, []);
 
     useEffect(() => { loadPage(1, false); }, [loadPage]);
 
-    const handleScroll = () => {
-        const el = scrollRef.current;
+    const handleListScroll = () => {
+        const el = listRef.current;
         if (!el || loading || loadingMore || !hasNext) return;
         if (el.scrollTop + el.clientHeight >= el.scrollHeight - 32) {
             loadPage(page + 1, true);
         }
     };
 
+    const handleConnect = async () => {
+        if (!selected || connecting) return;
+        setConnecting(true);
+        try {
+            await connectPrivateLLM(applicationId, selected.id);
+            toast.success(`Connected to "${selected.name}".`);
+        } catch (err) {
+            toast.error(err?.message || "Unable to connect right now.");
+        } finally {
+            setConnecting(false);
+        }
+    };
+
     return (
         <Panel title="Private LLM" icon={Cpu}>
-            {loading ? (
-                <div className="flex items-center gap-2 py-8 justify-center text-xs text-gray-400">
+            {loadError ? (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-red-700">{loadError}</span>
+                </div>
+            ) : loading ? (
+                <div className="flex items-center gap-2 py-6 justify-center text-xs text-gray-400">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Private LLM instances...
                 </div>
             ) : items.length === 0 ? (
-                <div className="py-8 text-center">
+                <div className="py-6 text-center">
                     <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
                     <p className="text-sm font-medium text-gray-500">No deployed Private LLM instances</p>
                     <p className="text-xs text-gray-400 mt-1">Deploy one from Pools → Private LLM.</p>
                 </div>
             ) : (
-                <div ref={scrollRef} onScroll={handleScroll} className="max-h-72 overflow-y-auto space-y-2 pr-1">
-                    {items.map((item) => (
-                        <div
-                            key={item.id}
-                            className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2"
+                <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                        <button
+                            type="button"
+                            onClick={() => setDropdownOpen((o) => !o)}
+                            disabled={connecting}
+                            className="w-full flex items-center justify-between rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                         >
-                            <span className="text-sm font-medium text-gray-800 truncate">{item.name}</span>
-                            <PrivateLLMStatusBadge status={item.status} />
-                        </div>
-                    ))}
-                    {loadingMore && (
-                        <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-400">
-                            <Loader2 className="h-3 w-3 animate-spin" /> Loading more...
-                        </div>
-                    )}
+                            {selected ? (
+                                <span className="flex items-center gap-2 truncate">
+                                    <span className="truncate">{selected.name}</span>
+                                    <PrivateLLMStatusBadge status={selected.status} />
+                                </span>
+                            ) : (
+                                <span className="text-gray-400">Select a Private LLM...</span>
+                            )}
+                            <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {dropdownOpen && (
+                            <div
+                                ref={listRef}
+                                onScroll={handleListScroll}
+                                className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg"
+                            >
+                                {items.map((item) => (
+                                    <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => { setSelected(item); setDropdownOpen(false); }}
+                                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left hover:bg-blue-50 transition-colors
+                                            ${selected?.id === item.id ? "bg-blue-50/60" : ""}`}
+                                    >
+                                        <span className="text-sm text-gray-800 truncate">{item.name}</span>
+                                        <PrivateLLMStatusBadge status={item.status} />
+                                    </button>
+                                ))}
+                                {loadingMore && (
+                                    <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-400">
+                                        <Loader2 className="h-3 w-3 animate-spin" /> Loading more...
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleConnect}
+                        disabled={!selected || connecting}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-[#1a365d] hover:bg-[#122744] rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
+                    >
+                        {connecting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                        Connect
+                    </button>
                 </div>
             )}
         </Panel>
@@ -568,7 +636,7 @@ const ApplicationDetail = () => {
                 <ServicePanel application={application} />
                 {activeApp?.id === "openwebui" && <VectorDbLinkPanel application={application} onChanged={refreshApplication} />}
                 {activeApp?.id === "vectordb" && <LinkedAppsPanel />}
-                {activeApp?.id === "openwebui" && <PrivateLLMPanel />}
+                {activeApp?.id === "openwebui" && <PrivateLLMPanel applicationId={application.id} />}
                 {activeApp?.id === "openwebui" && <KeycloakConfigPanel applicationId={application.id} />}
             </div>
         </div>
