@@ -398,9 +398,9 @@ const LibraryUpload = () => {
                                     <div className="flex items-center gap-2">
                                         <Loader2 className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
                                         <span className="text-sm font-semibold text-blue-800">
-                                            {httpProgress < 99
+                                            {httpProgress < 100
                                                 ? "Uploading file..."
-                                                : "Transfer complete — awaiting server acknowledgement..."}
+                                                : "Upload complete — finishing up..."}
                                         </span>
                                     </div>
                                     <span className="text-sm font-bold text-blue-700 tabular-nums">{httpProgress}%</span>

@@ -31,7 +31,10 @@ export const streamLibraryFile = (token, itemId, file, onProgress, xhrRef) => {
 
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable && onProgress) {
-                onProgress(Math.round((e.loaded / e.total) * 99)); // cap at 99 — 100 = Temporal done
+                // 100% here means "browser finished sending the bytes" — what the
+                // server does with them after that (write to storage, Temporal
+                // processing) is tracked separately via the item's own status.
+                onProgress(Math.round((e.loaded / e.total) * 100));
             }
         };
         xhr.onload = () => {
