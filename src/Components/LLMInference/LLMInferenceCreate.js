@@ -8,7 +8,7 @@ import {
 import { Loader2, ChevronDown, X } from "lucide-react";
 import { toast } from "react-toastify";
 import "../PoolCreation/css/PoolCreationForm.css";
-import { SelectField, InputField } from "../Common";
+import { SelectField, InputField, PasswordField } from "../Common";
 
 import { fetchClustersThunk } from "../../redux/features/Clusters/ClustersThunks";
 import { selectAllClusters } from "../../redux/features/Clusters/ClustersSelectors";
@@ -403,10 +403,31 @@ const LLMInferenceCreate = () => {
       }
     }
 
+    // Validate/normalize the machine naming pattern.
+    // - Plain name (no "{n:fixed=N}") -> auto-append the default pattern.
+    // - Name containing "{"/"}" -> must match "<prefix>{n:fixed=N}<suffix>" exactly.
+    let machineName = formData.machine_name.trim();
+    if (machineName) {
+      if (machineName.includes("{") || machineName.includes("}")) {
+        if (!/^.*\{n:fixed=\d+\}.*$/.test(machineName)) {
+          const prefix = machineName.split("{")[0] || "example";
+          toast.error(
+            `Invalid naming pattern. Use the exact format: "${prefix}{n:fixed=3}"`,
+          );
+          return;
+        }
+      } else {
+        machineName = `${machineName}-{n:fixed=3}`;
+      }
+    }
+
     try {
       dispatch(fetchFooterTasksThunk(userName));
       await dispatch(
-        createPrivateLLMThunk({ token, requestData: formData }),
+        createPrivateLLMThunk({
+          token,
+          requestData: { ...formData, machine_name: machineName },
+        }),
       ).unwrap();
       toast.success("Private LLM pool created successfully!");
       dispatch(fetchFooterTasksThunk(userName));
@@ -643,7 +664,7 @@ const LLMInferenceCreate = () => {
                   required
                 />
 
-                <InputField
+                <PasswordField
                   label="VM SSH Password"
                   name="ssh_pass"
                   iconClass="fa-lock"
