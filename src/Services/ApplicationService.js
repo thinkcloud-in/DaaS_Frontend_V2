@@ -25,10 +25,22 @@ const normalizeApplication = (raw) => {
         // Currently-linked Vector DB (Open WebUI deployments only) — field name
         // isn't documented on the detail response yet, so check a few likely ones.
         linkedVectorDbId: raw.vectordb_deploy_id ?? raw.connected_vectordb_id ?? raw.linked_vectordb_id ?? null,
-        // Currently-linked Private LLM instance — field name isn't documented,
-        // so tolerate a few likely backend names.
+        // Currently-linked Private LLM instance(s) — `linked_llm_id` is the
+        // real field; the rest are tolerated fallbacks in case that changes.
         connectedPrivateLLMId:
-            raw.connected_llm_id ?? raw.llm_id ?? raw.private_llm_id ?? raw.connected_private_llm_id ?? raw.private_llm_deploy_id ?? null,
+            raw.linked_llm_id ?? raw.connected_llm_id ?? raw.llm_id ?? raw.private_llm_id ?? raw.connected_private_llm_id ?? raw.private_llm_deploy_id ?? null,
+        // Full connected-LLM objects (name, machine_name, endpoint_url, head_ip)
+        // — an array since more than one can be connected at once. Field is
+        // `linked_llms` (plural); `linked_llm` tolerated as a fallback.
+        linkedLLMs: Array.isArray(raw.linked_llms ?? raw.linked_llm)
+            ? (raw.linked_llms ?? raw.linked_llm).map((llm) => ({
+                  id:          llm.id,
+                  name:        llm.name ?? "",
+                  machineName: llm.machine_name ?? "",
+                  endpointUrl: llm.endpoint_url ?? "",
+                  headIp:      llm.head_ip ?? "",
+              }))
+            : [],
         // { step, label, pct } while deploying; stepsLog is the raw event timeline.
         progress:     raw.progress ?? null,
         stepsLog:     raw.steps_log ?? [],
@@ -134,16 +146,20 @@ export const unlinkVectorDb = async (openWebUiId) => {
     return res.data;
 };
 
-// Connects a deployed Private LLM instance to a deployed Open WebUI instance.
-export const connectPrivateLLM = async (openWebUiId, privateLlmId) => {
+// Connects one or more deployed Private LLM instances to a deployed Open
+// WebUI instance in a single call.
+export const connectPrivateLLM = async (openWebUiId, privateLlmIds) => {
+    const llmIds = (Array.isArray(privateLlmIds) ? privateLlmIds : [privateLlmIds]).map(Number);
     const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy/${openWebUiId}/connect-llm`, {
-        llm_id: Number(privateLlmId),
+        llm_ids: llmIds,
     });
     return normalizeApplication(res.data?.data || res.data);
 };
 
-// Disconnects any Private LLM instance currently connected to an Open WebUI instance.
-export const disconnectPrivateLLM = async (openWebUiId) => {
-    const res = await axiosInstance.delete(`${backendUrl}/v1/app-deploy/${openWebUiId}/connect-llm`);
+// Disconnects a Private LLM instance from a deployed Open WebUI instance.
+// Pass privateLlmId to disconnect just that one; omit it to disconnect all.
+export const disconnectPrivateLLM = async (openWebUiId, privateLlmId) => {
+    const params = privateLlmId != null ? `?llm_id=${Number(privateLlmId)}` : "";
+    const res = await axiosInstance.delete(`${backendUrl}/v1/app-deploy/${openWebUiId}/connect-llm${params}`);
     return normalizeApplication(res.data?.data || res.data);
 };

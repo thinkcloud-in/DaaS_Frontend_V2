@@ -95,10 +95,14 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [loadError, setLoadError] = useState("");
 
+    const [showConnectForm, setShowConnectForm] = useState(false);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [selected, setSelected] = useState(null);
+    const [selectedToConnect, setSelectedToConnect] = useState([]); // array of item objects, multi-select
     const [connecting, setConnecting] = useState(false);
+
+    const [selectedToDisconnect, setSelectedToDisconnect] = useState([]); // array of llm ids, multi-select (bulk)
     const [disconnecting, setDisconnecting] = useState(false);
+    const [disconnectingId, setDisconnectingId] = useState(null); // single-row quick disconnect
     const listRef = useRef(null);
 
     const loadPage = useCallback((pageNum, append) => {
@@ -130,12 +134,37 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
 
     const dispatch = useDispatch();
 
+    const toggleToConnect = (item) => {
+        setSelectedToConnect((prev) =>
+            prev.some((i) => i.id === item.id) ? prev.filter((i) => i.id !== item.id) : [...prev, item]
+        );
+    };
+
+    const toggleToDisconnect = (id) => {
+        setSelectedToDisconnect((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+    };
+
+    const handleToggleConnectForm = () => {
+        setShowConnectForm((s) => !s);
+        setDropdownOpen(false);
+        setSelectedToConnect([]);
+    };
+
     const handleConnect = async () => {
-        if (!selected || connecting) return;
+        if (selectedToConnect.length === 0 || connecting) return;
         setConnecting(true);
         try {
-            await dispatch(connectPrivateLLMThunk({ openWebUiId: application.id, privateLlmId: selected.id })).unwrap();
-            toast.success(`Connected to "${selected.name}".`);
+            await dispatch(connectPrivateLLMThunk({
+                openWebUiId: application.id,
+                privateLlmIds: selectedToConnect.map((i) => i.id),
+            })).unwrap();
+            toast.success(
+                selectedToConnect.length === 1
+                    ? `Connected to "${selectedToConnect[0].name}".`
+                    : `Connected ${selectedToConnect.length} Private LLMs.`
+            );
+            setSelectedToConnect([]);
+            setDropdownOpen(false);
             onChanged?.();
         } catch (err) {
             const msg = err || err?.message || "Unable to connect right now.";
@@ -145,12 +174,19 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
         }
     };
 
-    const handleDisconnect = async () => {
-        if (disconnecting) return;
+    const handleDisconnectSelected = async () => {
+        if (selectedToDisconnect.length === 0 || disconnecting) return;
         setDisconnecting(true);
         try {
-            await dispatch(disconnectPrivateLLMThunk({ openWebUiId: application.id })).unwrap();
-            toast.success("Disconnected Private LLM.");
+            await Promise.all(
+                selectedToDisconnect.map((llmId) =>
+                    dispatch(disconnectPrivateLLMThunk({ openWebUiId: application.id, privateLlmId: llmId })).unwrap()
+                )
+            );
+            toast.success(
+                selectedToDisconnect.length === 1 ? "Disconnected Private LLM." : `Disconnected ${selectedToDisconnect.length} Private LLMs.`
+            );
+            setSelectedToDisconnect([]);
             onChanged?.();
         } catch (err) {
             const msg = err || err?.message || "Unable to disconnect right now.";
@@ -160,94 +196,189 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
         }
     };
 
-    const connectedLLM = items.find((item) => String(item.id) === String(application.connectedPrivateLLMId));
+    const handleDisconnectOne = async (llmId, name) => {
+        if (disconnectingId || disconnecting) return;
+        setDisconnectingId(llmId);
+        try {
+            await dispatch(disconnectPrivateLLMThunk({ openWebUiId: application.id, privateLlmId: llmId })).unwrap();
+            toast.success(`Disconnected "${name}".`);
+            setSelectedToDisconnect((prev) => prev.filter((id) => id !== llmId));
+            onChanged?.();
+        } catch (err) {
+            const msg = err || err?.message || "Unable to disconnect right now.";
+            toast.error(msg);
+        } finally {
+            setDisconnectingId(null);
+        }
+    };
+
+    // The app-deploy detail response already returns the full connected LLM
+    // object(s) directly (as an array — more than one can be connected at
+    // once), so there's no need to cross-reference the paginated dropdown list.
+    const connectedLLMs = application.linkedLLMs || [];
 
     return (
-        <Panel title="Private LLM" icon={Cpu}>
-            {loadError ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-2.5">
-                    <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                    <span className="text-xs font-semibold text-red-700">{loadError}</span>
-                </div>
-            ) : loading ? (
-                <div className="flex items-center gap-2 py-6 justify-center text-xs text-gray-400">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Private LLM instances...
-                </div>
-            ) : connectedLLM ? (
-                <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
-                        <span className="text-sm font-semibold text-gray-800">Connected to {connectedLLM.name}</span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleDisconnect}
-                        disabled={disconnecting}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                        {disconnecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2Off className="h-3.5 w-3.5" />}
-                        Disconnect
-                    </button>
-                </div>
-            ) : items.length === 0 ? (
-                <div className="py-6 text-center">
-                    <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-500">No deployed Private LLM instances</p>
-                    <p className="text-xs text-gray-400 mt-1">Deploy one from Pools → Private LLM.</p>
-                </div>
-            ) : (
-                <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                        <button
-                            type="button"
-                            onClick={() => setDropdownOpen((o) => !o)}
-                            disabled={connecting}
-                            className="w-full flex items-center justify-between rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
-                        >
-                            {selected ? (
-                                <span className="truncate">{selected.name}</span>
-                            ) : (
-                                <span className="text-gray-400">Select a Private LLM...</span>
-                            )}
-                            <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
-                        </button>
-
-                        {dropdownOpen && (
-                            <div
-                                ref={listRef}
-                                onScroll={handleListScroll}
-                                className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg"
-                            >
-                                {items.map((item) => (
+        <Panel
+            title="Private LLM"
+            icon={Cpu}
+            action={
+                <button
+                    type="button"
+                    onClick={handleToggleConnectForm}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
+                >
+                    <Plus className="h-3.5 w-3.5" />
+                    Connect
+                </button>
+            }
+        >
+            <div className="space-y-4">
+                {/* Connect form — shown above the connected list, toggled via the header button */}
+                {showConnectForm && (
+                    <div className="pb-4 border-b border-gray-100">
+                        {loadError ? (
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-2.5">
+                                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                                <span className="text-xs font-semibold text-red-700">{loadError}</span>
+                            </div>
+                        ) : loading ? (
+                            <div className="flex items-center gap-2 py-4 justify-center text-xs text-gray-400">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Private LLM instances...
+                            </div>
+                        ) : items.length === 0 ? (
+                            <div className="py-4 text-center">
+                                <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                                <p className="text-sm font-medium text-gray-500">No deployed Private LLM instances</p>
+                                <p className="text-xs text-gray-400 mt-1">Deploy one from Pools → Private LLM.</p>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex-1">
                                     <button
-                                        key={item.id}
                                         type="button"
-                                        onClick={() => { setSelected(item); setDropdownOpen(false); }}
-                                        className={`w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors
-                                            ${selected?.id === item.id ? "bg-blue-50/60" : ""}`}
+                                        onClick={() => setDropdownOpen((o) => !o)}
+                                        disabled={connecting}
+                                        className="w-full flex items-center justify-between rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                                     >
-                                        <span className="text-sm text-gray-800 truncate block">{item.name}</span>
+                                        {selectedToConnect.length > 0 ? (
+                                            <span className="truncate">
+                                                {selectedToConnect.length === 1
+                                                    ? selectedToConnect[0].name
+                                                    : `${selectedToConnect.length} Private LLMs selected`}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400">Select Private LLM(s)...</span>
+                                        )}
+                                        <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
                                     </button>
-                                ))}
-                                {loadingMore && (
-                                    <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-400">
-                                        <Loader2 className="h-3 w-3 animate-spin" /> Loading more...
-                                    </div>
-                                )}
+
+                                    {dropdownOpen && (
+                                        <div
+                                            ref={listRef}
+                                            onScroll={handleListScroll}
+                                            className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg"
+                                        >
+                                            {items.map((item) => {
+                                                const checked = selectedToConnect.some((i) => i.id === item.id);
+                                                return (
+                                                    <label
+                                                        key={item.id}
+                                                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-blue-50 transition-colors cursor-pointer
+                                                            ${checked ? "bg-blue-50/60" : ""}`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={checked}
+                                                            onChange={() => toggleToConnect(item)}
+                                                            className="h-3.5 w-3.5 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] flex-shrink-0"
+                                                        />
+                                                        <span className="text-sm text-gray-800 truncate">{item.name}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                            {loadingMore && (
+                                                <div className="flex items-center justify-center gap-2 py-2 text-xs text-gray-400">
+                                                    <Loader2 className="h-3 w-3 animate-spin" /> Loading more...
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleConnect}
+                                    disabled={selectedToConnect.length === 0 || connecting}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-[#1a365d] hover:bg-[#122744] rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
+                                >
+                                    {connecting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                    Connect{selectedToConnect.length > 1 ? ` (${selectedToConnect.length})` : ""}
+                                </button>
                             </div>
                         )}
                     </div>
-                    <button
-                        type="button"
-                        onClick={handleConnect}
-                        disabled={!selected || connecting}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-[#1a365d] hover:bg-[#122744] rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
-                    >
-                        {connecting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                        Connect
-                    </button>
-                </div>
-            )}
+                )}
+
+                {/* Connected list — each row has its own Disconnect button; checkboxes
+                    are only for the optional bulk "Disconnect Selected" action. */}
+                {connectedLLMs.length > 0 ? (
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                                Connected ({connectedLLMs.length})
+                            </span>
+                            {selectedToDisconnect.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handleDisconnectSelected}
+                                    disabled={disconnecting}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors disabled:opacity-50"
+                                >
+                                    {disconnecting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2Off className="h-3 w-3" />}
+                                    Disconnect Selected ({selectedToDisconnect.length})
+                                </button>
+                            )}
+                        </div>
+                        {connectedLLMs.map((llm) => (
+                            <div
+                                key={llm.id}
+                                className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50/50 px-3 py-2"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedToDisconnect.includes(llm.id)}
+                                    onChange={() => toggleToDisconnect(llm.id)}
+                                    disabled={disconnecting || disconnectingId === llm.id}
+                                    className="h-3.5 w-3.5 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] flex-shrink-0"
+                                />
+                                <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-gray-800 truncate">{llm.name}</p>
+                                    {llm.endpointUrl && (
+                                        <p className="text-[11px] text-gray-500 font-mono truncate">{llm.endpointUrl}</p>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDisconnectOne(llm.id, llm.name)}
+                                    disabled={disconnecting || disconnectingId === llm.id}
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50 border border-red-200 rounded transition-colors disabled:opacity-50 flex-shrink-0"
+                                >
+                                    {disconnectingId === llm.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2Off className="h-3 w-3" />}
+                                    Disconnect
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    !showConnectForm && (
+                        <div className="py-6 text-center">
+                            <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm font-medium text-gray-500">No Private LLM connected</p>
+                            <p className="text-xs text-gray-400 mt-1">Click Connect to link one.</p>
+                        </div>
+                    )
+                )}
+            </div>
         </Panel>
     );
 };

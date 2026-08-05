@@ -6,9 +6,9 @@ import {
 
 export const connectPrivateLLM = createAsyncThunk(
     "application/connectPrivateLLM",
-    async ({ openWebUiId, privateLlmId }, { rejectWithValue }) => {
+    async ({ openWebUiId, privateLlmIds }, { rejectWithValue }) => {
         try {
-            const response = await connectPrivateLLMService(openWebUiId, privateLlmId);
+            const response = await connectPrivateLLMService(openWebUiId, privateLlmIds);
             return response;
         } catch (err) {
             return rejectWithValue(
@@ -21,11 +21,12 @@ export const connectPrivateLLM = createAsyncThunk(
     },
 );
 
+// privateLlmId omitted disconnects all connected Private LLMs.
 export const disconnectPrivateLLM = createAsyncThunk(
     "application/disconnectPrivateLLM",
-    async ({ openWebUiId }, { rejectWithValue }) => {
+    async ({ openWebUiId, privateLlmId }, { rejectWithValue }) => {
         try {
-            const response = await disconnectPrivateLLMService(openWebUiId);
+            const response = await disconnectPrivateLLMService(openWebUiId, privateLlmId);
             return response;
         } catch (err) {
             return rejectWithValue(
