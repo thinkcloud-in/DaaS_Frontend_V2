@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import {
     ChevronLeft, ChevronDown, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
-    ShieldCheck, Eye, EyeOff, Plus, AlertCircle,
+    ShieldCheck, Plus, AlertCircle,
 } from "lucide-react";
 import { getAppType } from "./appTypes";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
@@ -13,7 +13,8 @@ import {
     fetchApplicationDetail,
     fetchApplications,
     fetchDeployedPrivateLLMs,
-    setOpenWebUiKeycloakConfig,
+    connectOpenWebUiKeycloak,
+    disconnectOpenWebUiKeycloak,
     linkVectorDb,
     unlinkVectorDb,
 } from "../../Services/ApplicationService";
@@ -383,118 +384,57 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
     );
 };
 
-// ── Open WebUI: Keycloak SSO login configuration ─────────────────────────────
-const KeycloakConfigPanel = ({ applicationId }) => {
-    const [showForm, setShowForm]   = useState(false);
-    const [kcUrl, setKcUrl]         = useState("");
-    const [kcRealm, setKcRealm]     = useState("");
-    const [kcClientId, setKcClientId] = useState("");
-    const [kcClientSecret, setKcClientSecret] = useState("");
-    const [showSecret, setShowSecret] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [configured, setConfigured] = useState(false);
+// ── Open WebUI: Keycloak SSO toggle ───────────────────────────────────────────
+const KeycloakConfigPanel = ({ application, onChanged }) => {
+    const connected = !!application.keycloakConnected;
+    const [toggling, setToggling] = useState(false);
 
-    const handleSave = async (e) => {
-        e.preventDefault();
-        if (!kcUrl.trim() || !kcRealm.trim() || !kcClientId.trim() || !kcClientSecret.trim() || submitting) return;
-        setSubmitting(true);
+    const handleToggle = async () => {
+        if (toggling) return;
+        setToggling(true);
         try {
-            await setOpenWebUiKeycloakConfig(applicationId, {
-                keycloakUrl:  kcUrl.trim(),
-                realm:        kcRealm.trim(),
-                clientId:     kcClientId.trim(),
-                clientSecret: kcClientSecret.trim(),
-            });
-            toast.success("Keycloak SSO configured for this Open WebUI instance.");
-            setConfigured(true);
-            setShowForm(false);
+            if (connected) {
+                await disconnectOpenWebUiKeycloak(application.id);
+                toast.success("Keycloak SSO disconnected.");
+            } else {
+                await connectOpenWebUiKeycloak(application.id);
+                toast.success("Keycloak SSO connected.");
+            }
+            onChanged?.();
         } catch (err) {
-            toast.error(err?.message || "Unable to save Keycloak configuration right now.");
+            const msg = err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Unable to update Keycloak SSO right now.";
+            toast.error(msg);
         } finally {
-            setSubmitting(false);
+            setToggling(false);
         }
     };
 
     return (
-        <Panel
-            title="Keycloak Configuration"
-            icon={ShieldCheck}
-            action={
+        <Panel title="Keycloak Configuration" icon={ShieldCheck}>
+            <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-800">
+                        {connected ? "Keycloak SSO connected" : "Keycloak SSO not connected"}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">Let users sign in to this Open WebUI instance with Keycloak.</p>
+                </div>
                 <button
                     type="button"
-                    onClick={() => setShowForm((s) => !s)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
+                    role="switch"
+                    aria-checked={connected}
+                    onClick={handleToggle}
+                    disabled={toggling}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors disabled:opacity-50
+                        ${connected ? "bg-[#1a365d]" : "bg-gray-300"}`}
                 >
-                    <Plus className="h-3.5 w-3.5" />
-                    {configured ? "Edit Configuration" : "Add Configuration"}
+                    <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform flex items-center justify-center
+                            ${connected ? "translate-x-6" : "translate-x-1"}`}
+                    >
+                        {toggling && <Loader2 className="h-3 w-3 animate-spin text-gray-400" />}
+                    </span>
                 </button>
-            }
-        >
-            {showForm && (
-                <form onSubmit={handleSave} className="space-y-2 mb-4">
-                    <input
-                        type="text"
-                        value={kcUrl}
-                        onChange={(e) => setKcUrl(e.target.value)}
-                        placeholder="Keycloak URL — e.g. http://172.16.0.103:8443"
-                        disabled={submitting}
-                        className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 font-mono focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
-                    />
-                    <input
-                        type="text"
-                        value={kcRealm}
-                        onChange={(e) => setKcRealm(e.target.value)}
-                        placeholder="Realm — e.g. guacamole"
-                        disabled={submitting}
-                        className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
-                    />
-                    <input
-                        type="text"
-                        value={kcClientId}
-                        onChange={(e) => setKcClientId(e.target.value)}
-                        placeholder="Client ID"
-                        disabled={submitting}
-                        className="w-full rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
-                    />
-                    <div className="flex items-center gap-2">
-                        <div className="relative flex-1">
-                            <input
-                                type={showSecret ? "text" : "password"}
-                                value={kcClientSecret}
-                                onChange={(e) => setKcClientSecret(e.target.value)}
-                                placeholder="Client Secret"
-                                disabled={submitting}
-                                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-9 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowSecret((s) => !s)}
-                                tabIndex={-1}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                                {showSecret ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                            </button>
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={submitting || !kcUrl.trim() || !kcRealm.trim() || !kcClientId.trim() || !kcClientSecret.trim()}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-[#1a365d] hover:bg-[#122744] rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
-                        >
-                            {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                            Save
-                        </button>
-                    </div>
-                </form>
-            )}
-            {!showForm && (
-                <div className="py-8 text-center">
-                    <ShieldCheck className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-500">
-                        {configured ? "Keycloak SSO configured" : "Keycloak SSO not configured yet"}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">Let users sign in to this Open WebUI instance with Keycloak.</p>
-                </div>
-            )}
+            </div>
         </Panel>
     );
 };
@@ -785,7 +725,7 @@ const ApplicationDetail = () => {
                 {activeApp?.id === "openwebui" && <VectorDbLinkPanel application={application} onChanged={refreshApplication} />}
                 {activeApp?.id === "vectordb" && <LinkedAppsPanel />}
                 {activeApp?.id === "openwebui" && <PrivateLLMPanel application={application} onChanged={refreshApplication} />}
-                {activeApp?.id === "openwebui" && <KeycloakConfigPanel applicationId={application.id} />}
+                {activeApp?.id === "openwebui" && <KeycloakConfigPanel application={application} onChanged={refreshApplication} />}
             </div>
         </div>
     );
