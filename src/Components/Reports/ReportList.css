@@ -71,8 +71,6 @@
 .table-container {
     width: 98%;
     height: 90vh;
-    background-color: #ffffff;
-    padding: 24px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -81,8 +79,7 @@
     overflow: hidden;
     min-height: 75vh;
     margin-top: 1.25rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(229, 231, 235, 0.5);
+
 }
 
 .report_container {

@@ -9,6 +9,14 @@ import {
 import { toast } from "react-toastify";
 import { getEnv } from "utils/getEnv";
 import { Loader2 } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  CpuChipIcon,
+  CircleStackIcon,
+  ServerIcon,
+  TrashIcon,
+  ChartBarIcon,
+} from "@heroicons/react/24/outline";
 
 const TABS = [
   { key: "details", label: "Details" },
@@ -309,35 +317,27 @@ const TaskManagerPage = () => {
   };
 
   return (
-    <div className="w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
-      {/* Back Button */}
-      <div className="flex items-center gap-6 border-b pt-6 mb-2">
+    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center gap-4 pb-6 border-b border-gray-200 mb-6 w-full">
         <div
           onClick={Goback}
-          className="flex items-center justify-center bg-gray-100 text-sm font-semibold text-gray-700 py-2 rounded-md hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 cursor-pointer"
-          style={{ minWidth: 40 }}
+          className="flex-shrink-0 p-2.5 bg-[#1a365d]/80 hover:bg-[#1a365d] rounded-md text-white cursor-pointer transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
         </div>
-        {/* VM ID */}
-        <h2 className="text-lg font-semibold text-gray-700 whitespace-nowrap">
-          <span className="text-[#1a365d] font-semibold">{vmName || vmId}</span>
-        </h2>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1a365d] flex items-center gap-2">
+            <ServerIcon className="h-5 w-5" />
+            {vmName || vmId}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Live CPU/process monitoring and process management for this
+            machine.
+          </p>
+        </div>
         {/* Tabs */}
-        <div className="flex gap-6 ">
+        <div className="flex gap-6 md:ml-auto border-b-0">
           {TABS.map((tab) => (
             <button
               key={tab.key}
@@ -353,28 +353,41 @@ const TaskManagerPage = () => {
           ))}
         </div>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 w-full">
         {activeTab === "details" && (
-          <div className="px-4 py-6">
-            <div className="font-semibold text-[18px] mb-4">VM</div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-y-2 gap-x-4 text-[15px] mb-2">
-              <div>
-                <div className="text-gray-500">Computer Name:</div>
-                <div className="font-medium break-all">{vmName || "-"}</div>
+          <div className="w-full">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
+              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <ServerIcon className="h-4 w-4 text-[#1a365d]" />
+                Virtual Machine
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-y-3 gap-x-4 text-sm">
+                <div>
+                  <span className="text-gray-400 font-semibold uppercase tracking-wide text-[10px] block">
+                    Computer Name
+                  </span>
+                  <span className="font-semibold text-gray-900 break-all">
+                    {vmName || "-"}
+                  </span>
+                </div>
               </div>
             </div>
+
             {/* Grafana Dashboard */}
             {vmName && osTypeFromProps ? (
-              <div className="mt-8">
-                <div className="font-semibold text-[16px] mb-2">
-                  VM Metrics Dashboard
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="px-5 py-3 border-b border-gray-100">
+                  <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <ChartBarIcon className="h-4 w-4 text-[#1a365d]" />
+                    VM Metrics Dashboard
+                  </h3>
                 </div>
                 {(() => {
                   const osType = osTypeFromProps;
                   const config = getVMConfig(osType);
                   if (!config) {
                     return (
-                      <div className="text-red-500">
+                      <div className="p-5 text-sm text-red-500">
                         Unsupported or missing OS type for dashboard.
                       </div>
                     );
@@ -388,20 +401,32 @@ const TaskManagerPage = () => {
                     "";
                   return (
                     <>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Operating System:{" "}
-                        <span className="font-medium">
-                          {osType.toUpperCase()}
-                        </span>{" "}
-                        | Datasource:{" "}
-                        <span className="font-medium">{config.datasource}</span>{" "}
-                        | Bucket:{" "}
-                        <span className="font-medium">{config.bucket}</span>{" "}
+                      <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                        <span>
+                          OS:{" "}
+                          <span className="font-semibold text-gray-800">
+                            {osType.toUpperCase()}
+                          </span>
+                        </span>
+                        <span>
+                          Datasource:{" "}
+                          <span className="font-semibold text-gray-800">
+                            {config.datasource}
+                          </span>
+                        </span>
+                        <span>
+                          Bucket:{" "}
+                          <span className="font-semibold text-gray-800">
+                            {config.bucket}
+                          </span>
+                        </span>
                         {internalIp && (
-                          <>
-                            | Detected IP:{" "}
-                            <span className="font-medium">{internalIp}</span>
-                          </>
+                          <span>
+                            Detected IP:{" "}
+                            <span className="font-semibold text-gray-800">
+                              {internalIp}
+                            </span>
+                          </span>
                         )}
                       </div>
                       <iframe
@@ -416,10 +441,7 @@ const TaskManagerPage = () => {
                         }
                         width="100%"
                         height="800"
-                        style={{
-                          border: "1px solid #ccc",
-                          borderRadius: "8px",
-                        }}
+                        style={{ border: "none" }}
                         allowFullScreen
                       />
                     </>
@@ -427,7 +449,8 @@ const TaskManagerPage = () => {
                 })()}
               </div>
             ) : (
-              <div className="mt-8 font-medium text-gray-600 mb-2">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center text-sm text-gray-400">
+                <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
                 Dashboards are loading....
               </div>
             )}
@@ -435,40 +458,74 @@ const TaskManagerPage = () => {
         )}
 
         {activeTab === "processes" && (
-          <div className="flex flex-col h-full px-4 py-6">
-            {/* Top summary */}
-            <div className="flex flex-wrap items-center gap-8 text-[15px] mb-4">
-              <div>
-                <span className="text-gray-500">Host CPU:</span>{" "}
-                <span className="font-medium">{hostCpu}</span>
+          <div className="flex flex-col h-full w-full">
+            {/* Stat tiles + End Process */}
+            <div className="flex flex-wrap items-stretch gap-3 mb-5">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-md bg-blue-50">
+                  <CpuChipIcon className="h-5 w-5 text-[#1a365d]" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">
+                    Host CPU
+                  </span>
+                  <span className="text-base font-bold text-gray-900">
+                    {hostCpu}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-gray-500">Host Memory:</span>{" "}
-                <span className="font-medium">{hostMemory}</span>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-md bg-violet-50">
+                  <CircleStackIcon className="h-5 w-5 text-violet-700" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">
+                    Host Memory
+                  </span>
+                  <span className="text-base font-bold text-gray-900">
+                    {hostMemory}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-gray-500">Processes:</span>{" "}
-                <span className="font-medium">{processesCount}</span>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-3">
+                <div className="p-2 rounded-md bg-emerald-50">
+                  <ServerIcon className="h-5 w-5 text-emerald-700" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">
+                    Processes
+                  </span>
+                  <span className="text-base font-bold text-gray-900">
+                    {processesCount}
+                  </span>
+                </div>
               </div>
+
               <button
-                className={`ml-auto px-3 py-1 text-sm border border-gray-300 rounded bg-gray-100 flex items-center gap-1 ${
-                  selectedRows.length > 0
-                    ? "text-gray-700 cursor-pointer hover:bg-gray-200"
-                    : "bg-gray-50 text-gray-300 cursor-not-allowed"
+                className={`ml-auto flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold shadow-sm transition-all ${
+                  selectedRows.length > 0 && !isLoading
+                    ? "bg-red-600 text-white hover:bg-red-700"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
                 disabled={selectedRows.length === 0 || isLoading}
                 onClick={handleKillProcess}
               >
-                {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                <span>{isLoading ? "Processing" : "End Process"}</span>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <TrashIcon className="h-4 w-4" />
+                )}
+                <span>{isLoading ? "Processing..." : "End Process"}</span>
               </button>
             </div>
+
             {/* Table */}
-            <div className="flex-1 overflow-auto rounded-md bg-white border custom-scrollbar">
+            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="overflow-auto max-h-full custom-scrollbar">
               <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
+                <thead>
+                  <tr className="bg-[#1a365d] text-white text-xs font-semibold uppercase tracking-wider select-none">
+                    <th className="py-3 px-4 text-left">
                       <input
                         type="checkbox"
                         checked={isAllSelected}
@@ -477,39 +534,28 @@ const TaskManagerPage = () => {
                         }}
                         onChange={handleSelectAll}
                         aria-label="Select all processes"
+                        className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
                       />
                       {selectedRows.length > 0 && (
-                        <span className="inline-flex items-center justify-center ml-2 h-4 px-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-400">
+                        <span className="inline-flex items-center justify-center ml-2 h-4 px-1 rounded-full bg-emerald-400 text-[#1a365d] text-[10px] font-bold">
                           {selectedRows.length}
                         </span>
                       )}
                     </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
-                      Process Name
-                    </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
-                      Process ID
-                    </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
-                      CPU %
-                    </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
-                      Memory %
-                    </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
-                      Disk %
-                    </th>
-                    <th className="py-2 px-3 font-semibold text-left border-b">
-                      Username
-                    </th>
+                    <th className="py-3 px-4 text-left">Process Name</th>
+                    <th className="py-3 px-4 text-left">Process ID</th>
+                    <th className="py-3 px-4 text-left">CPU %</th>
+                    <th className="py-3 px-4 text-left">Memory %</th>
+                    <th className="py-3 px-4 text-left">Disk %</th>
+                    <th className="py-3 px-4 text-left">Username</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-100 text-gray-700">
                   {processData.length === 0 ? (
                     <tr>
                       <td
                         colSpan={7}
-                        className="text-center py-4 text-gray-400"
+                        className="text-center py-12 text-gray-400"
                       >
                         No process data available.
                       </td>
@@ -525,41 +571,42 @@ const TaskManagerPage = () => {
                         return (
                           <tr
                             key={proc.ID_Process || idx}
-                            className="hover:bg-gray-50"
+                            className="hover:bg-blue-50/20 transition-colors"
                             onClick={(e) => {
                               if (e.target.type !== "checkbox")
                                 handleSelectRow(idx);
                             }}
                             style={{ cursor: "pointer" }}
                           >
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               <input
                                 type="checkbox"
                                 checked={selectedRows.includes(idx)}
                                 onChange={() => handleSelectRow(idx)}
                                 aria-label={`Select process ${proc.ID_Process || idx}`}
                                 onClick={(e) => e.stopPropagation()}
+                                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
                               />
                             </td>
-                            <td className="py-2 px-3 text-left border-b font-medium break-all">
+                            <td className="py-3.5 px-4 text-left font-medium break-all">
                               {proc.instance || "-"}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {proc.ID_Process !== undefined &&
                               proc.ID_Process !== null
                                 ? proc.ID_Process
                                 : "-"}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {formatProcessCpu(proc.Percent_Processor_Time)}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {formatProcessMemory(proc.Working_Set)}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {formatProcessDisk(proc.Private_Bytes)}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {proc.source || proc.host || "N/A"}
                             </td>
                           </tr>
@@ -570,38 +617,39 @@ const TaskManagerPage = () => {
                         return (
                           <tr
                             key={proc[pidField] || proc.process_name || idx}
-                            className="hover:bg-gray-50"
+                            className="hover:bg-blue-50/20 transition-colors"
                             onClick={(e) => {
                               if (e.target.type !== "checkbox")
                                 handleSelectRow(idx);
                             }}
                             style={{ cursor: "pointer" }}
                           >
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               <input
                                 type="checkbox"
                                 checked={selectedRows.includes(idx)}
                                 onChange={() => handleSelectRow(idx)}
                                 aria-label={`Select process ${proc.process_name || idx}`}
                                 onClick={(e) => e.stopPropagation()}
+                                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
                               />
                             </td>
-                            <td className="py-2 px-3 text-left border-b font-medium break-all">
+                            <td className="py-3.5 px-4 text-left font-medium break-all">
                               {proc.process_name || "-"}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {proc[pidField] || "-"}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {formatProcessCpu(proc.cpu_usage)}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {formatProcessMemory(proc.memory_usage)}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {formatProcessDisk(proc.disk_usage)}
                             </td>
-                            <td className="py-2 px-3 text-left border-b">
+                            <td className="py-3.5 px-4 text-left">
                               {proc.user || "N/A"}
                             </td>
                           </tr>
@@ -611,6 +659,7 @@ const TaskManagerPage = () => {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}

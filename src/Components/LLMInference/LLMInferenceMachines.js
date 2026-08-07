@@ -907,12 +907,32 @@ const LLMInferenceMachines = () => {
 
             </div>
 
-            <div className="p-4 bg-gray-50 border-t border-gray-200">
+            <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-2">
               <button
                 onClick={() => setSelectedMachineForDrawer(null)}
-                className="w-full py-2 border border-gray-300 rounded bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-colors shadow-sm"
+                className="flex-1 py-2 border border-gray-300 rounded bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-colors shadow-sm"
               >
                 Close
+              </button>
+              <button
+                onClick={() =>
+                  navigate(
+                    `/pools/${poolId}/vm/${selectedMachineForDrawer.vm_id}/task-manager`,
+                    {
+                      state: {
+                        // LLM pool VMs are always Rocky Linux -- no OS
+                        // detection needed here, unlike Developer Desktop
+                        // pools which can be Windows or Linux.
+                        os_type: "linux",
+                        vm_name: selectedMachineForDrawer.name,
+                      },
+                    },
+                  )
+                }
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded bg-[#1a365d] hover:bg-[#153056] text-xs font-bold text-white transition-colors shadow-sm"
+              >
+                <ChartBarIcon className="h-4 w-4" />
+                Task Manager
               </button>
             </div>
           </div>

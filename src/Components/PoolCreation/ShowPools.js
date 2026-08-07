@@ -27,8 +27,8 @@ const ShowPools = () => {
   const pagination = useSelector(selectPoolsPagination);
   const poolsLoading = useSelector(selectPoolsLoading);
 
-  const [selectedPools, setSelectedPools] = useState([]);
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  // const [selectedPools, setSelectedPools] = useState([]);
+  // const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -75,21 +75,18 @@ const ShowPools = () => {
   let handlePoolSelection = (pool) => {
     navigate(`/pools/manage-pool/${pool.id}`, { state: { pool: pool } });
   };
-  const Goback = () => {
-    navigate("/");
-  };
 
-  const handleStatusAction = async (action) => {
-    if (selectedPools.length === 0) return;
-    const status = action === "enable" ? "enabled" : "disabled";
-    try {
-      const data = await updatePoolStatus(selectedPools, status);
-      alert(`Pools updated: ${data.updated_pools.join(", ")}`);
-      setShowStatusDropdown(false);
-    } catch (error) {
-      alert("Error updating pool status");
-    }
-  };
+  // const handleStatusAction = async (action) => {
+  //   if (selectedPools.length === 0) return;
+  //   const status = action === "enable" ? "enabled" : "disabled";
+  //   try {
+  //     const data = await updatePoolStatus(selectedPools, status);
+  //     alert(`Pools updated: ${data.updated_pools.join(", ")}`);
+  //     setShowStatusDropdown(false);
+  //   } catch (error) {
+  //     alert("Error updating pool status");
+  //   }
+  // };
 
   const {
     total = 0,
@@ -122,29 +119,10 @@ const ShowPools = () => {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+    <div className=" bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
         <div className="flex items-center gap-3">
-          <div
-            onClick={Goback}
-            className="bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </div>
           <div>
             <h1 className="text-2xl font-bold text-[#1a365d]">
               Developer Desktop Pools
