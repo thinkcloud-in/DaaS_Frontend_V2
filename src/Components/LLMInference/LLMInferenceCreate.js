@@ -43,7 +43,7 @@ const MODEL_TYPE_OPTIONS = [
 ];
 
 // Mirrors the backend's actual built-in defaults in _build_vllm_commands
-// (activities_llm_inference_v2.py) so what the user sees here is exactly
+// (activities_llm_inference.py) so what the user sees here is exactly
 // what would run if they never touched the field. Shown pre-filled and
 // editable rather than blank, so it's clear what's actually applied and
 // the "Reset" button has something concrete to restore.

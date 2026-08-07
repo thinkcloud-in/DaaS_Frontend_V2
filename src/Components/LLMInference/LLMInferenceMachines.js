@@ -41,6 +41,8 @@ import {
   ArrowPathRoundedSquareIcon,
   StopIcon,
   ChevronDownIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 
 const MACHINE_STATUS_CONFIG = {
@@ -75,23 +77,59 @@ const ROLE_BADGE = {
 // Full pool-lifecycle status set: provisioning -> running/failed;
 // starting/restarting/stopping -> running/stopped or their *_failed variant.
 // Keep in sync with backend's _POOL_ACTION_STATUS / _POOL_ACTION_FAILED_STATUS
-// in workflows_llm_inference_v2.py.
+// in workflows_llm_inference.py.
 const POOL_STATUS_CONFIG = {
-  provisioning:   { label: "Provisioning",  cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse" },
-  running:        { label: "Running",       cls: "bg-green-100 text-green-700 border-green-200" },
-  stopped:        { label: "Stopped",       cls: "bg-gray-100 text-gray-600 border-gray-200" },
-  starting:       { label: "Starting",      cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse" },
-  restarting:     { label: "Restarting",    cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse" },
-  stopping:       { label: "Stopping",      cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse" },
-  deleting:       { label: "Deleting",      cls: "bg-orange-100 text-orange-700 border-orange-200 animate-pulse" },
-  failed:         { label: "Failed",        cls: "bg-red-100 text-red-700 border-red-200" },
-  start_failed:   { label: "Start Failed",  cls: "bg-red-100 text-red-700 border-red-200" },
-  restart_failed: { label: "Restart Failed", cls: "bg-red-100 text-red-700 border-red-200" },
-  stop_failed:    { label: "Stop Failed",   cls: "bg-red-100 text-red-700 border-red-200" },
-  delete_failed:  { label: "Delete Failed", cls: "bg-red-100 text-red-700 border-red-200" },
+  provisioning: {
+    label: "Provisioning",
+    cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse",
+  },
+  running: {
+    label: "Running",
+    cls: "bg-green-100 text-green-700 border-green-200",
+  },
+  stopped: {
+    label: "Stopped",
+    cls: "bg-gray-100 text-gray-600 border-gray-200",
+  },
+  starting: {
+    label: "Starting",
+    cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse",
+  },
+  restarting: {
+    label: "Restarting",
+    cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse",
+  },
+  stopping: {
+    label: "Stopping",
+    cls: "bg-yellow-100 text-yellow-700 border-yellow-200 animate-pulse",
+  },
+  deleting: {
+    label: "Deleting",
+    cls: "bg-orange-100 text-orange-700 border-orange-200 animate-pulse",
+  },
+  failed: { label: "Failed", cls: "bg-red-100 text-red-700 border-red-200" },
+  start_failed: {
+    label: "Start Failed",
+    cls: "bg-red-100 text-red-700 border-red-200",
+  },
+  restart_failed: {
+    label: "Restart Failed",
+    cls: "bg-red-100 text-red-700 border-red-200",
+  },
+  stop_failed: {
+    label: "Stop Failed",
+    cls: "bg-red-100 text-red-700 border-red-200",
+  },
+  delete_failed: {
+    label: "Delete Failed",
+    cls: "bg-red-100 text-red-700 border-red-200",
+  },
 };
 const getPoolStatus = (status) =>
-  POOL_STATUS_CONFIG[status] || { label: status || "Unknown", cls: "bg-gray-100 text-gray-600 border-gray-200" };
+  POOL_STATUS_CONFIG[status] || {
+    label: status || "Unknown",
+    cls: "bg-gray-100 text-gray-600 border-gray-200",
+  };
 
 const LLMInferenceMachines = () => {
   const navigate = useNavigate();
@@ -118,9 +156,12 @@ const LLMInferenceMachines = () => {
   const [machinePage, setMachinePage] = useState(1);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
+  const [showConnectionInfo, setShowConnectionInfo] = useState(false);
+  const [endpointCopied, setEndpointCopied] = useState(false);
 
   const MACHINE_PAGE_SIZE = 5;
   const actionDropdownRef = useRef(null);
+  const connectionInfoRef = useRef(null);
 
   // Derive machines synchronously from Redux state — no setState timing gap
   const machines = React.useMemo(() => {
@@ -150,6 +191,11 @@ const LLMInferenceMachines = () => {
         !actionDropdownRef.current.contains(e.target)
       )
         setShowActionDropdown(false);
+      if (
+        connectionInfoRef.current &&
+        !connectionInfoRef.current.contains(e.target)
+      )
+        setShowConnectionInfo(false);
     };
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
@@ -158,6 +204,40 @@ const LLMInferenceMachines = () => {
   const handleRefresh = () => {
     if (token && poolId)
       dispatch(fetchPrivateLLMByIdThunk({ token, id: poolId }));
+  };
+
+  const handleCopyEndpoint = (url) => {
+    const showCopied = () => {
+      setEndpointCopied(true);
+      setTimeout(() => setEndpointCopied(false), 2000);
+    };
+
+    // navigator.clipboard is only available in a secure context (HTTPS or
+    // localhost) -- on plain HTTP (e.g. an internal IP like this app is
+    // often accessed on) it's undefined, so fall back to the legacy
+    // execCommand approach via a temporary offscreen textarea.
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(showCopied).catch(() => {
+        toast.error("Failed to copy to clipboard");
+      });
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = url;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      showCopied();
+    } catch (err) {
+      toast.error("Failed to copy to clipboard");
+    } finally {
+      document.body.removeChild(textarea);
+    }
   };
 
   const handlePoolAction = async (action) => {
@@ -269,6 +349,66 @@ const LLMInferenceMachines = () => {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+          {/* Connection Info */}
+          {pool.endpoint_url && (
+            <div className="relative" ref={connectionInfoRef}>
+              <button
+                onClick={() => setShowConnectionInfo((v) => !v)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-gradient-to-r from-[#1a365d] to-[#274a7a] text-white hover:from-[#153056] hover:to-[#1e3d66] text-xs font-semibold shadow-sm transition-all"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+                </span>
+                <CommandLineIcon className="h-4 w-4" />
+                Connection Info
+              </button>
+
+              {showConnectionInfo && (
+                <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#1a365d] to-[#274a7a] px-4 py-3 flex items-center gap-2">
+                    <CommandLineIcon className="h-4 w-4 text-white/80" />
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Deployed LLM Endpoint
+                    </h3>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-[11px] text-gray-400 mb-2">
+                      Use this URL to connect your application to the deployed
+                      model.
+                    </p>
+                    <div className="flex items-center gap-2 bg-[#0f172a] rounded-lg p-3 border border-gray-700/50 shadow-inner">
+                      <span className="flex-1 font-mono text-xs text-emerald-400 break-all leading-relaxed">
+                        {pool.endpoint_url}
+                      </span>
+                      <button
+                        onClick={() => handleCopyEndpoint(pool.endpoint_url)}
+                        className={`flex-shrink-0 p-2 rounded-md transition-all ${
+                          endpointCopied
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-white/10 hover:bg-white/20 text-gray-200"
+                        }`}
+                        title="Copy to clipboard"
+                      >
+                        {endpointCopied ? (
+                          <CheckIcon className="h-4 w-4" />
+                        ) : (
+                          <ClipboardDocumentIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    {endpointCopied && (
+                      <p className="text-[11px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                        <CheckIcon className="h-3 w-3" />
+                        Copied to clipboard
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Action Dropdown */}
           <div className="relative" ref={actionDropdownRef}>
             <button
@@ -323,7 +463,9 @@ const LLMInferenceMachines = () => {
                     // actions on top of one already in flight.
                     const inProgress =
                       !!actionLoading ||
-                      ["starting", "restarting", "stopping"].includes(pool.status);
+                      ["starting", "restarting", "stopping"].includes(
+                        pool.status,
+                      );
                     const isDisabled = inProgress && action !== "stop";
                     return (
                       <button
@@ -381,9 +523,8 @@ const LLMInferenceMachines = () => {
             <thead>
               <tr className="bg-[#1a365d] text-white text-xs font-semibold uppercase tracking-wider select-none">
                 <th className="py-3 px-5">VM ID</th>
+                <th className="py-3 px-4">Machine Name</th>
                 <th className="py-3 px-4">IP Address</th>
-                <th className="py-3 px-4">Protocol</th>
-                <th className="py-3 px-4 text-center">Port</th>
                 <th className="py-3 px-4">Node</th>
                 <th className="py-3 px-4">GPU(s)</th>
                 <th className="py-3 px-4 text-center">Role</th>
@@ -394,14 +535,14 @@ const LLMInferenceMachines = () => {
             <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
               {detailLoading ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-gray-400">
+                  <td colSpan="7" className="py-12 text-center text-gray-400">
                     <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto mb-2" />
                     Loading machines...
                   </td>
                 </tr>
               ) : machines.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-12 text-center text-gray-400">
+                  <td colSpan="7" className="py-12 text-center text-gray-400">
                     No machines found in this pool.
                   </td>
                 </tr>
@@ -430,17 +571,14 @@ const LLMInferenceMachines = () => {
                       <td className="py-3.5 px-5 text-gray-900 font-mono font-semibold">
                         #{machine.vm_id ?? machine.id ?? idx + 1}
                       </td>
+                      <td className="py-3.5 px-4 text-gray-900 font-semibold">
+                        {machine.name || "-"}
+                      </td>
                       <td className="py-3.5 px-4 font-mono text-xs text-gray-700">
                         {machine.ip_address ||
                           machine.hostname ||
                           machine.ip ||
                           "-"}
-                      </td>
-                      <td className="py-3.5 px-4 uppercase text-gray-600 font-semibold text-xs">
-                        {machine.protocol || "-"}
-                      </td>
-                      <td className="py-3.5 px-4 text-center font-mono text-gray-600">
-                        {machine.port ?? "-"}
                       </td>
                       <td className="py-3.5 px-4 text-gray-600">
                         {machine.node || "-"}
@@ -687,20 +825,12 @@ const LLMInferenceMachines = () => {
                   </span>
                 </div>
                 <div className="border-t border-gray-200/60 pt-2 col-span-2" />
-                <div>
+                <div className="col-span-2">
                   <span className="text-gray-400 font-semibold uppercase tracking-wide block">
-                    Protocol
+                    Machine Name
                   </span>
-                  <span className="text-gray-900 font-semibold uppercase block mt-0.5">
-                    {selectedMachineForDrawer.protocol || "-"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400 font-semibold uppercase tracking-wide block">
-                    Port
-                  </span>
-                  <span className="text-gray-900 font-mono font-bold block mt-0.5 bg-white border border-gray-200 px-1.5 py-0.5 rounded w-max">
-                    {selectedMachineForDrawer.port ?? "-"}
+                  <span className="text-gray-900 font-semibold block mt-0.5">
+                    {selectedMachineForDrawer.name || "-"}
                   </span>
                 </div>
                 <div className="border-t border-gray-200/60 pt-2 col-span-2" />
@@ -775,24 +905,6 @@ const LLMInferenceMachines = () => {
                 ) : null;
               })()}
 
-              {/* Connection Info */}
-              <div className="mt-4 border-t border-gray-100 pt-4">
-                <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <CommandLineIcon className="h-4 w-4 text-gray-500" />
-                  Connection Info
-                </h3>
-                <div className="bg-[#1e293b] rounded p-3 font-mono text-[11px] text-green-400 space-y-1">
-                  <p className="text-gray-400">
-                    # Connect via{" "}
-                    {selectedMachineForDrawer.protocol?.toUpperCase()}
-                  </p>
-                  <p>
-                    {selectedMachineForDrawer.protocol?.toLowerCase() === "ssh"
-                      ? `ssh ${selectedMachineForDrawer.username || "user"}@${selectedMachineForDrawer.ip_address || selectedMachineForDrawer.hostname} -p ${selectedMachineForDrawer.port || 22}`
-                      : `${selectedMachineForDrawer.protocol?.toUpperCase()} → ${selectedMachineForDrawer.ip_address}:${selectedMachineForDrawer.port}`}
-                  </p>
-                </div>
-              </div>
             </div>
 
             <div className="p-4 bg-gray-50 border-t border-gray-200">

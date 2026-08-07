@@ -41,7 +41,7 @@ import {
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 // Full pool-lifecycle status set -- keep in sync with backend's
-// _POOL_ACTION_STATUS / _POOL_ACTION_FAILED_STATUS in workflows_llm_inference_v2.py
+// _POOL_ACTION_STATUS / _POOL_ACTION_FAILED_STATUS in workflows_llm_inference.py
 // and the matching config in LLMInferenceMachines.js.
 const STATUS_CONFIG = {
   provisioning: {

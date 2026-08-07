@@ -107,7 +107,7 @@ export const deleteApplication = async (id) => {
 export const fetchDeployedPrivateLLMs = async ({ page = 1, pageSize = 10 } = {}) => {
     const params = new URLSearchParams({ page, page_size: pageSize });
 
-    const res = await axiosInstance.get(`${backendUrl}/v1/llm-inference-v2/deployed?${params}`);
+    const res = await axiosInstance.get(`${backendUrl}/v1/llm-inference/deployed?${params}`);
     const envelope = res.data ?? {};
     const body = envelope.data ?? envelope;
     const items = Array.isArray(body.items) ? body.items : (Array.isArray(body) ? body : []);
