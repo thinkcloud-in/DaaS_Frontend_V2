@@ -1,4 +1,5 @@
 export const selectLibraryItems       = (state) => state.library.items;
+export const selectLibraryFilters     = (state) => state.library.filters;
 export const selectLibraryPagination  = (state) => state.library.pagination;
 export const selectLibraryListLoading = (state) => state.library.listLoading;
 export const selectLibraryUploadLoading = (state) => state.library.uploadLoading;

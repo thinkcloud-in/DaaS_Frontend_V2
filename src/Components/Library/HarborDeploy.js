@@ -17,7 +17,8 @@ import {
     selectCreationNodesLoading,
     selectProxmoxStoragesLoading,
 } from "../../redux/features/Pools/PoolsSelectors";
-import { fetchLibraryList, deployLibraryItem } from "../../Services/LibraryService";
+import { fetchLibraryList, deployLibraryItem, fetchKubernetesDeploymentStatus } from "../../Services/LibraryService";
+import { fetchKubernetesClusters } from "../../Services/KubernetesService";
 
 // ── MultiSelect component ─────────────────────────────────────────────────────
 const MultiSelect = ({ options = [], selected = [], onChange, placeholder, disabled, loading }) => {
@@ -165,9 +166,11 @@ const HarborDeploy = () => {
 
     // Kubernetes-specific
     const [k8sClusters, setK8sClusters] = useState([]);
+    const [k8sClustersLoading, setK8sClustersLoading] = useState(true);
     const [selectedK8s, setSelectedK8s] = useState("");
 
     const [submitting, setSubmitting] = useState(false);
+    const [deployStatusMessage, setDeployStatusMessage] = useState("");
 
     useEffect(() => {
         dispatch(fetchClustersThunk(token));
@@ -182,14 +185,11 @@ const HarborDeploy = () => {
             .catch(() => setTemplates([]))
             .finally(() => setTemplatesLoading(false));
 
-        // Load connected Kubernetes clusters from localStorage
-        try {
-            const stored = localStorage.getItem("thinkcloud_k8s_clusters");
-            const parsed = stored ? JSON.parse(stored) : [];
-            setK8sClusters(Array.isArray(parsed) ? parsed : []);
-        } catch {
-            setK8sClusters([]);
-        }
+        // Load connected Kubernetes clusters from the backend
+        fetchKubernetesClusters()
+            .then((list) => setK8sClusters(Array.isArray(list) ? list : []))
+            .catch(() => setK8sClusters([]))
+            .finally(() => setK8sClustersLoading(false));
     }, [dispatch, token]);
 
     // Reset all dependent fields when template changes
@@ -243,35 +243,71 @@ const HarborDeploy = () => {
     const isK8sValid = deployTarget === "kubernetes" && templateId && deployName.trim() && selectedK8s;
     const isValid    = isLxcValid || isK8sValid;
 
+    // Kubernetes Harbor deploys return immediately with status "deploying" and
+    // harbor_url: null — poll until the URL shows up (or the job fails/times out).
+    const pollKubernetesDeployment = async (clusterId, deployId, { intervalMs = 6000, maxAttempts = 40 } = {}) => {
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            await new Promise((resolve) => setTimeout(resolve, intervalMs));
+            let data;
+            try {
+                const res = await fetchKubernetesDeploymentStatus(token, clusterId, deployId);
+                data = res?.data || res;
+            } catch {
+                continue; // transient polling error — keep trying
+            }
+            if (data?.status === "failed" || data?.status === "error") {
+                throw new Error(data?.message || "Kubernetes Harbor deployment failed");
+            }
+            if (data?.harbor_url || data?.status === "deployed") {
+                return data;
+            }
+            setDeployStatusMessage(`Waiting for Harbor to come online... (${data?.status || "deploying"})`);
+        }
+        return null; // timed out — still deploying in the background
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isValid || submitting) return;
 
         setSubmitting(true);
+        const tpl = templates.find((t) => String(t.id) === String(templateId));
         try {
             if (deployTarget === "lxc") {
                 const clusterId = getClusterId(clusterName);
                 if (!clusterId) { toast.error("Invalid cluster selection"); setSubmitting(false); return; }
                 await deployLibraryItem(token, templateId, {
-                    name:       deployName.trim(),
-                    cluster_id: Number(clusterId),
-                    ip_pools:   selectedPools,
-                    storage:    selectedStorage,
+                    deployment_type: "lxc",
+                    name:            deployName.trim(),
+                    cluster_id:      Number(clusterId),
+                    ip_pools:        selectedPools,
+                    storage:         selectedStorage,
                 });
+                toast.success(`"${tpl?.name || "Template"}" deployment started successfully!`);
+                navigate("/harbor");
             } else {
-                await deployLibraryItem(token, templateId, {
-                    name:              deployName.trim(),
-                    deployment_target: "kubernetes",
-                    k8s_cluster:       selectedK8s,
+                const res = await deployLibraryItem(token, templateId, {
+                    deployment_type: "kubernetes",
+                    name:            deployName.trim(),
+                    cluster_id:      Number(selectedK8s),
                 });
+                const initial = res?.data || res;
+                toast.info(`"${tpl?.name || "Harbor"}" deployment started on Kubernetes — waiting for it to come online...`);
+                setDeployStatusMessage("Deployment started, waiting for Harbor to come online...");
+
+                const final = await pollKubernetesDeployment(initial.cluster_id, initial.deploy_id);
+                if (final?.harbor_url) {
+                    toast.success(`Harbor deployed successfully! Available at ${final.harbor_url}`);
+                } else {
+                    toast.info("Harbor is still deploying in the background — check back shortly.");
+                }
+                navigate("/harbor");
             }
-            const tpl = templates.find((t) => String(t.id) === String(templateId));
-            toast.success(`"${tpl?.name || "Template"}" deployment started successfully!`);
-            navigate("/harbor");
         } catch (err) {
             const msg = err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Deploy failed";
             toast.error(msg);
             setSubmitting(false);
+            setDeployStatusMessage("");
         }
     };
 
@@ -404,21 +440,23 @@ const HarborDeploy = () => {
                                         <select
                                             value={selectedK8s}
                                             onChange={(e) => setSelectedK8s(e.target.value)}
-                                            disabled={submitting || k8sClusters.length === 0}
-                                            className={inputCls(submitting || k8sClusters.length === 0)}
+                                            disabled={submitting || k8sClustersLoading || k8sClusters.length === 0}
+                                            className={inputCls(submitting || k8sClustersLoading || k8sClusters.length === 0)}
                                         >
                                             <option value="">
-                                                {k8sClusters.length === 0
+                                                {k8sClustersLoading
+                                                    ? "Loading Kubernetes clusters..."
+                                                    : k8sClusters.length === 0
                                                     ? "No Kubernetes clusters available"
                                                     : "Select a Kubernetes cluster"}
                                             </option>
                                             {k8sClusters.map((k) => (
                                                 <option key={k.id} value={k.id}>
-                                                    {k.name} — {k.ip}:{k.port}
+                                                    {k.name} — {k.headIp}:{k.port}
                                                 </option>
                                             ))}
                                         </select>
-                                        {k8sClusters.length === 0 && (
+                                        {!k8sClustersLoading && k8sClusters.length === 0 && (
                                             <p className="text-xs text-amber-600 mt-1">
                                                 Go to <strong>Pools → Kubernetes</strong> and connect a cluster first.
                                             </p>
@@ -431,27 +469,35 @@ const HarborDeploy = () => {
                     </div>
 
                     {/* Footer buttons */}
-                    <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={() => navigate("/harbor")}
-                            disabled={submitting}
-                            className="px-5 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={submitting || !isValid}
-                            className={`inline-flex items-center gap-2 px-6 py-2 text-xs font-bold text-white rounded-lg transition-colors uppercase tracking-wider
-                                ${submitting || !isValid
-                                    ? "bg-[#1a365d]/50 cursor-not-allowed"
-                                    : "bg-[#1a365d] hover:bg-[#122744]"
-                                }`}
-                        >
-                            {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                            {submitting ? "Deploying..." : "Deploy"}
-                        </button>
+                    <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between gap-3">
+                        {deployStatusMessage && (
+                            <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                                <Loader2 className="h-3 w-3 animate-spin text-[#1a365d]" />
+                                {deployStatusMessage}
+                            </p>
+                        )}
+                        <div className="flex items-center gap-3 ml-auto">
+                            <button
+                                type="button"
+                                onClick={() => navigate("/harbor")}
+                                disabled={submitting}
+                                className="px-5 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={submitting || !isValid}
+                                className={`inline-flex items-center gap-2 px-6 py-2 text-xs font-bold text-white rounded-lg transition-colors uppercase tracking-wider
+                                    ${submitting || !isValid
+                                        ? "bg-[#1a365d]/50 cursor-not-allowed"
+                                        : "bg-[#1a365d] hover:bg-[#122744]"
+                                    }`}
+                            >
+                                {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                {submitting ? "Deploying..." : "Deploy"}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

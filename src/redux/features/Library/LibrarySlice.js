@@ -8,6 +8,7 @@ import {
 
 const initialState = {
     items: [],
+    filters: [],
     pagination: { total: 0, page: 1, pageSize: 10, totalPages: 1, hasNext: false, hasPrev: false },
     listLoading: false,
     uploadLoading: false,
@@ -57,6 +58,7 @@ const librarySlice = createSlice({
             .addCase(fetchLibraryListThunk.fulfilled, (state, action) => {
                 state.listLoading = false;
                 state.items = action.payload.items;
+                state.filters = action.payload.filters;
                 state.pagination = action.payload.pagination;
             })
             .addCase(fetchLibraryListThunk.rejected, (state, action) => {

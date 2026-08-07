@@ -20,6 +20,7 @@ import clustersReducer from './features/Clusters/ClustersSlice';
 import namespaceReducer from './features/Namespace/NamespaceSlice';
 import sslReducer from './features/SSL/SSLSlice';
 import libraryReducer from './features/Library/LibrarySlice';
+import applicationReducer from './features/Application/ApplicationSlice';
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -43,6 +44,7 @@ const rootReducer = combineReducers({
   namespace: namespaceReducer,
   ssl: sslReducer,
   library: libraryReducer,
+  application: applicationReducer,
 });
 
 export default rootReducer;

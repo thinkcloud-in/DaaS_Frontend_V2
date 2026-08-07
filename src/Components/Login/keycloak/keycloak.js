@@ -8,7 +8,6 @@ const KeycloakConfig = new Keycloak({
   realm: "guacamole",
   clientId: "react-client",
   // clientId: "lucky",
-  
 });
 
 export default KeycloakConfig;

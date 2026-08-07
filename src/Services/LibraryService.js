@@ -4,10 +4,16 @@ import { getEnv } from "utils/getEnv";
 const backendUrl = getEnv("BACKEND_URL");
 
 // Step 1: POST metadata only — returns item_id in <100ms
-export const createLibraryItem = async (token, { name, fileName, type, machineId }) => {
-    const body = { name, file_name: fileName };
-    if (type)      body.type       = type;
-    if (machineId) body.machine_id = machineId;
+// The backend derives the item's name from the uploaded file itself, so no
+// `name` field is sent here.
+export const createLibraryItem = async (token, { fileName, fileSize, type, harborRegistryId, version, metadata }) => {
+    const body = { file_name: fileName };
+    if (fileSize != null)  body.file_size          = fileSize;
+    if (type)               body.type              = type;
+    if (harborRegistryId)  body.harbor_registry_id = harborRegistryId;
+    if (version)            body.version           = version;
+    // Extracted client-side from the uploaded .zip's version_metadata.json, if present.
+    if (metadata)            body.metadata          = metadata;
     const response = await axiosInstance.post(
         `${backendUrl}/v1/library/upload`,
         body,
@@ -25,7 +31,10 @@ export const streamLibraryFile = (token, itemId, file, onProgress, xhrRef) => {
 
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable && onProgress) {
-                onProgress(Math.round((e.loaded / e.total) * 99)); // cap at 99 — 100 = Temporal done
+                // 100% here means "browser finished sending the bytes" — what the
+                // server does with them after that (write to storage, Temporal
+                // processing) is tracked separately via the item's own status.
+                onProgress(Math.round((e.loaded / e.total) * 100));
             }
         };
         xhr.onload = () => {
@@ -86,6 +95,16 @@ export const deployLibraryItem = async (token, id, payload) => {
     return response.data;
 };
 
+// Polls a Kubernetes Harbor deployment's status/harbor_url after
+// deployLibraryItem() is called with deployment_type: "kubernetes".
+export const fetchKubernetesDeploymentStatus = async (token, clusterId, deployId) => {
+    const response = await axiosInstance.get(
+        `${backendUrl}/v1/kubernetes/clusters/${clusterId}/deployments/${deployId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+};
+
 export const fetchDeployments = async (token, { page = 1, pageSize = 10 } = {}) => {
     const params = new URLSearchParams({ page, page_size: pageSize });
     const response = await axiosInstance.get(
@@ -95,8 +114,22 @@ export const fetchDeployments = async (token, { page = 1, pageSize = 10 } = {}) 
     return response.data;
 };
 
-export const fetchDeployment = async (token, id) => {
+// type: "kubernetes" | "lxc" — the deployments list mixes both job kinds
+// (kubernetes rows carry a deploy_id, lxc rows carry a job_id), and the
+// detail endpoint needs to know which table to look the id up in.
+export const fetchDeployment = async (token, id, type) => {
+    const params = type ? `?type=${type}` : "";
     const response = await axiosInstance.get(
+        `${backendUrl}/v1/library/deployments/${id}${params}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+};
+
+// Deletes a deployment job — backend checks lxc_restore_jobs first, then
+// kubernetes_deployments, and 404s if found in neither.
+export const deleteDeployment = async (token, id) => {
+    const response = await axiosInstance.delete(
         `${backendUrl}/v1/library/deployments/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
     );

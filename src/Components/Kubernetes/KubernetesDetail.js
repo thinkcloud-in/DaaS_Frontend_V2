@@ -1,23 +1,67 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   ArrowLeftIcon,
-  CpuChipIcon,
-  CircleStackIcon,
   Square3Stack3DIcon,
   ServerIcon,
-  BoltIcon,
   ArrowTrendingUpIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
+import { fetchKubernetesClusterDetail } from "Services/KubernetesService";
 
 // Helper to generate initial random history data for charts
 const generateInitialHistory = (pointsCount = 15, min = 20, max = 50) => {
   return Array.from({ length: pointsCount }, () =>
     Math.floor(Math.random() * (max - min + 1)) + min
   );
+};
+
+const computeUptime = (isoString) => {
+  const created = new Date(isoString);
+  if (!isoString || Number.isNaN(created.getTime())) return "-";
+  const diffMs = Date.now() - created.getTime();
+  if (diffMs < 0) return "-";
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+  return `${days}d ${hours}h`;
+};
+
+// Node capacity values come back as human strings ("3.6 GB", "63.1 GB", or
+// older "64648Mi") — normalize any of those to a plain GB number.
+const parseSizeToGb = (sizeStr) => {
+  if (!sizeStr) return 0;
+  const match = /([\d.]+)\s*([A-Za-z]+)?/.exec(String(sizeStr));
+  if (!match) return 0;
+  const value = parseFloat(match[1]);
+  const unit = (match[2] || "").toLowerCase();
+  if (unit.startsWith("ti") || unit === "tb") return value * 1024;
+  if (unit.startsWith("mi") || unit === "mb") return value / 1024;
+  return value; // Gi/GB, or unitless already treated as GB
+};
+
+// Maps a node from the real /v1/kubernetes/clusters/:id "nodes" payload
+// (master_nodes / worker_nodes) into the shape the topology UI renders.
+const mapApiNode = (n, isMaster) => {
+  const podsLimit = parseInt(n.pod_capacity ?? n.capacity?.pods, 10) || 110;
+
+  return {
+    id: n.name,
+    name: n.name,
+    role: isMaster ? "Control Plane, Master" : "Worker",
+    ip: n.internal_ip || n.external_ip || "-",
+    cpuCores: parseInt(n.capacity?.cpu, 10) || 0,
+    ramGb: parseSizeToGb(n.capacity?.memory),
+    diskGb: parseSizeToGb(n.capacity?.storage),
+    status: n.status || "Unknown",
+    kubeletVersion: n.machine?.kubelet_version || "-",
+    containerRuntime: n.machine?.container_runtime || "-",
+    uptime: n.uptime || computeUptime(n.created_at),
+    podsLimit,
+    podsRunning: n.running_pods ?? 0,
+  };
 };
 
 const KubernetesDetail = () => {
@@ -28,7 +72,7 @@ const KubernetesDetail = () => {
   const [cluster, setCluster] = useState(null);
   const [nodes, setNodes] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState(null);
-  const [activeTab, setActiveTab] = useState("overview"); // overview, components
+  const [activeTab, setActiveTab] = useState("overview"); // overview, pods
 
   // Telemetry state
   const [cpuHistory, setCpuHistory] = useState([]);
@@ -39,86 +83,115 @@ const KubernetesDetail = () => {
   const [liveNetIn, setLiveNetIn] = useState(12.4);
   const [liveNetOut, setLiveNetOut] = useState(8.2);
 
-  // Load cluster data
+  // Load cluster data: show whatever was passed via navigation state
+  // immediately, then refresh with the latest data from the backend.
   useEffect(() => {
-    let foundCluster = location.state?.clusterData;
+    let cancelled = false;
 
-    if (!foundCluster) {
-      const stored = localStorage.getItem("thinkcloud_k8s_clusters");
-      if (stored) {
-        try {
-          const list = JSON.parse(stored);
-          foundCluster = list.find((c) => c.id === id);
-        } catch (e) {
-          console.error(e);
+    if (location.state?.clusterData) {
+      setCluster(location.state.clusterData);
+    }
+
+    const loadCluster = async () => {
+      try {
+        const data = await fetchKubernetesClusterDetail(id);
+        if (!cancelled && data) {
+          setCluster(data);
         }
+      } catch (err) {
+        if (cancelled) return;
+        if (!location.state?.clusterData) {
+          toast.error(
+            err?.response?.data?.message || err?.message || "Unable to load cluster details."
+          );
+          // Fallback so the monitoring dashboard still has something to render.
+          setCluster({
+            id: id || "k8s-fallback",
+            name: "Thinkcloud-K8s-Prod",
+            headIp: "172.16.8.180",
+            port: "6443",
+            username: "admin-prod",
+            nodeCount: 4,
+            status: "Healthy",
+            createdAt: "2026-07-10 10:24:15",
+          });
+        }
+      }
+    };
+
+    loadCluster();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, location.state]);
+
+  // Regenerate the simulated node topology and telemetry whenever the
+  // resolved cluster changes.
+  useEffect(() => {
+    if (!cluster) return;
+
+    let generatedNodes;
+
+    const hasRealNodes =
+      cluster.nodesInfo && (cluster.nodesInfo.master_nodes?.length || cluster.nodesInfo.worker_nodes?.length);
+
+    if (hasRealNodes) {
+      generatedNodes = [
+        ...(cluster.nodesInfo.master_nodes || []).map((n) => mapApiNode(n, true)),
+        ...(cluster.nodesInfo.worker_nodes || []).map((n) => mapApiNode(n, false)),
+      ];
+    } else {
+      // No detailed node data yet (e.g. only the list-summary was loaded) —
+      // render a placeholder topology from the head node + node count.
+      const ipBase = cluster.headIp.substring(0, cluster.headIp.lastIndexOf("."));
+      const ipLast = parseInt(cluster.headIp.substring(cluster.headIp.lastIndexOf(".") + 1));
+
+      generatedNodes = [
+        {
+          id: "master",
+          name: `${cluster.name}-master`,
+          role: "Control Plane, Master",
+          ip: cluster.headIp,
+          cpuCores: 4,
+          ramGb: 8,
+          diskGb: 80,
+          status: "Ready",
+          kubeletVersion: "v1.29.1",
+          containerRuntime: "containerd://1.7.11",
+          uptime: "12d 5h",
+          podsLimit: 110,
+          podsRunning: 18,
+        },
+      ];
+
+      for (let i = 1; i < cluster.nodeCount; i++) {
+        generatedNodes.push({
+          id: `worker-${i}`,
+          name: `${cluster.name}-worker-${i}`,
+          role: "Worker",
+          ip: `${ipBase}.${ipLast + i}`,
+          cpuCores: i % 2 === 0 ? 8 : 4,
+          ramGb: i % 2 === 0 ? 16 : 8,
+          diskGb: i % 2 === 0 ? 150 : 100,
+          status: "Ready",
+          kubeletVersion: "v1.29.1",
+          containerRuntime: "containerd://1.7.11",
+          uptime: "12d 5h",
+          podsLimit: 110,
+          podsRunning: Math.floor(Math.random() * 30) + 10,
+        });
       }
     }
 
-    // Fallback if not found
-    if (!foundCluster) {
-      foundCluster = {
-        id: id || "k8s-fallback",
-        name: "Thinkcloud-K8s-Prod",
-        headIp: "172.16.8.180",
-        port: "6443",
-        username: "admin-prod",
-        nodeCount: 4,
-        status: "Healthy",
-        createdAt: "2026-07-10 10:24:15",
-      };
-    }
-
-    setCluster(foundCluster);
-
-    // Generate Nodes
-    const ipBase = foundCluster.headIp.substring(0, foundCluster.headIp.lastIndexOf("."));
-    const ipLast = parseInt(foundCluster.headIp.substring(foundCluster.headIp.lastIndexOf(".") + 1));
-
-    const generatedNodes = [
-      {
-        id: "master",
-        name: `${foundCluster.name}-master`,
-        role: "Control Plane, Master",
-        ip: foundCluster.headIp,
-        cpuCores: 4,
-        ramGb: 8,
-        diskGb: 80,
-        status: "Ready",
-        kubeletVersion: "v1.29.1",
-        containerRuntime: "containerd://1.7.11",
-        uptime: "12d 5h",
-        podsLimit: 110,
-        podsRunning: 18,
-      },
-    ];
-
-    for (let i = 1; i < foundCluster.nodeCount; i++) {
-      generatedNodes.push({
-        id: `worker-${i}`,
-        name: `${foundCluster.name}-worker-${i}`,
-        role: "Worker",
-        ip: `${ipBase}.${ipLast + i}`,
-        cpuCores: i % 2 === 0 ? 8 : 4,
-        ramGb: i % 2 === 0 ? 16 : 8,
-        diskGb: i % 2 === 0 ? 150 : 100,
-        status: "Ready",
-        kubeletVersion: "v1.29.1",
-        containerRuntime: "containerd://1.7.11",
-        uptime: "12d 5h",
-        podsLimit: 110,
-        podsRunning: Math.floor(Math.random() * 30) + 10,
-      });
-    }
-
     setNodes(generatedNodes);
-    setSelectedNodeId("master");
+    setSelectedNodeId(generatedNodes[0]?.id || null);
 
     // Initialize telemetry history
     setCpuHistory(generateInitialHistory(20, 20, 50));
     setMemHistory(generateInitialHistory(20, 45, 65));
     setNetHistory(generateInitialHistory(20, 5, 25));
-  }, [id, location.state]);
+  }, [cluster]);
 
   // Live updates simulator
   useEffect(() => {
@@ -155,7 +228,7 @@ const KubernetesDetail = () => {
     return () => clearInterval(timer);
   }, []);
 
-  if (!cluster) {
+  if (!cluster || nodes.length === 0) {
     return (
       <div className="p-6 text-center text-gray-500">
         <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto text-[#1a365d] mb-2" />
@@ -187,10 +260,26 @@ const KubernetesDetail = () => {
     return `${linePath} L ${endX} ${height} L 0 ${height} Z`;
   };
 
+  // Prefer the backend's authoritative cluster_summary; fall back to summing
+  // the node list (e.g. before the full detail payload has loaded).
   const totalPodsCapacity = nodes.reduce((sum, n) => sum + n.podsLimit, 0);
   const totalPodsRunning = nodes.reduce((sum, n) => sum + n.podsRunning, 0);
-  const totalCores = nodes.reduce((sum, n) => sum + n.cpuCores, 0);
-  const totalRamGb = nodes.reduce((sum, n) => sum + n.ramGb, 0);
+  const podsRunningDisplay = cluster.clusterSummary?.pods?.running ?? totalPodsRunning;
+  const podsCapacityDisplay = cluster.clusterSummary?.pods?.capacity ?? totalPodsCapacity;
+  const podsUsagePercent =
+    cluster.clusterSummary?.pods?.usage_percent ??
+    (podsCapacityDisplay ? Math.round((podsRunningDisplay / podsCapacityDisplay) * 100) : 0);
+
+  const nodesTotalDisplay = cluster.clusterSummary?.nodes?.total ?? nodes.length;
+  const nodesReadyDisplay =
+    cluster.clusterSummary?.nodes?.ready ?? nodes.filter((n) => n.status === "Ready").length;
+
+  const statusLabel = cluster.status
+    ? cluster.status.charAt(0).toUpperCase() + cluster.status.slice(1)
+    : "Unknown";
+  const isHealthyStatus = ["connected", "healthy", "ready"].includes((cluster.status || "").toLowerCase());
+  const clusterVersion =
+    nodes.find((n) => n.role.includes("Master"))?.kubeletVersion || nodes[0]?.kubeletVersion || "-";
 
   return (
     <div className="p-6 pb-32 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full">
@@ -210,13 +299,19 @@ const KubernetesDetail = () => {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold text-gray-900">{cluster.name}</h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 shadow-sm border border-green-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-              Healthy
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm border ${
+                isHealthyStatus
+                  ? "bg-green-100 text-green-800 border-green-200"
+                  : "bg-gray-100 text-gray-700 border-gray-200"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isHealthyStatus ? "bg-green-500" : "bg-gray-400"}`} />
+              {statusLabel}
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-1 font-mono">
-            API Endpoint: https://{cluster.headIp}:{cluster.port} | Version: v1.29.1
+            API Endpoint: https://{cluster.headIp}:{cluster.port} | Version: {clusterVersion}
           </p>
         </div>
 
@@ -233,14 +328,14 @@ const KubernetesDetail = () => {
             Cluster Overview
           </button>
           <button
-            onClick={() => setActiveTab("components")}
+            onClick={() => setActiveTab("pods")}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              activeTab === "components"
+              activeTab === "pods"
                 ? "bg-white text-[#1a365d] shadow-sm font-bold"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
-            System Components
+            All Pods
           </button>
         </div>
       </div>
@@ -248,55 +343,7 @@ const KubernetesDetail = () => {
       {activeTab === "overview" ? (
         <>
           {/* Dashboard Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 w-full mb-6">
-            {/* CPU Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4 hover:shadow transition-shadow">
-              <div className="p-3 bg-red-50 text-red-600 rounded-lg shrink-0">
-                <CpuChipIcon className="h-6 w-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
-                  Cluster CPU
-                </span>
-                <span className="text-2xl font-bold text-gray-800 block mt-0.5">
-                  {liveCpu}%
-                </span>
-                <span className="text-[10px] text-gray-500 block">
-                  Allocated: {totalCores} vCPUs Total
-                </span>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
-                  <div
-                    className="bg-red-500 h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${liveCpu}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* RAM Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4 hover:shadow transition-shadow">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-                <CircleStackIcon className="h-6 w-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
-                  Cluster Memory
-                </span>
-                <span className="text-2xl font-bold text-gray-800 block mt-0.5">
-                  {liveMem}%
-                </span>
-                <span className="text-[10px] text-gray-500 block">
-                  Allocated: {totalRamGb} GB Total
-                </span>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
-                  <div
-                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-500"
-                    style={{ width: `${liveMem}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full mb-6">
             {/* Pods Card */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4 hover:shadow transition-shadow">
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
@@ -307,15 +354,15 @@ const KubernetesDetail = () => {
                   Pods Usage
                 </span>
                 <span className="text-2xl font-bold text-gray-800 block mt-0.5">
-                  {totalPodsRunning} / {totalPodsCapacity}
+                  {podsRunningDisplay} / {podsCapacityDisplay}
                 </span>
                 <span className="text-[10px] text-gray-500 block">
-                  Usage: {((totalPodsRunning / totalPodsCapacity) * 100).toFixed(0)}% Capacity
+                  Usage: {podsUsagePercent}% Capacity
                 </span>
                 <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
                   <div
                     className="bg-emerald-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${(totalPodsRunning / totalPodsCapacity) * 100}%` }}
+                    style={{ width: `${podsUsagePercent}%` }}
                   />
                 </div>
               </div>
@@ -331,17 +378,21 @@ const KubernetesDetail = () => {
                   Nodes Status
                 </span>
                 <span className="text-2xl font-bold text-gray-800 block mt-0.5">
-                  {cluster.nodeCount} / {cluster.nodeCount} Ready
+                  {nodesReadyDisplay} / {nodesTotalDisplay} Ready
                 </span>
                 <span className="text-[10px] text-gray-500 block">
-                  All systems operating normally
+                  {nodesReadyDisplay === nodesTotalDisplay
+                    ? "All systems operating normally"
+                    : "Some nodes are not ready"}
                 </span>
                 <div className="flex gap-1.5 mt-2.5">
                   {nodes.map((n, idx) => (
                     <span
                       key={idx}
-                      className="h-2 w-5 bg-green-500 rounded-full inline-block"
-                      title={`${n.name}: Ready`}
+                      className={`h-2 w-5 rounded-full inline-block ${
+                        n.status === "Ready" ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                      title={`${n.name}: ${n.status}`}
                     />
                   ))}
                 </div>
@@ -709,14 +760,14 @@ const KubernetesDetail = () => {
           </div>
         </>
       ) : (
-        /* System Components Tab */
+        /* Pods Tab */
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-full">
           <div className="mb-4">
             <h3 className="text-base font-bold text-gray-900 mb-1">
-              Kubernetes Control Plane Component Status
+              All Pods
             </h3>
             <p className="text-xs text-gray-400">
-              The status of core Kubernetes services running in control-plane namespaces.
+              The complete list of pods currently running in the cluster.
             </p>
           </div>
 
@@ -724,36 +775,55 @@ const KubernetesDetail = () => {
             <table className="min-w-full divide-y divide-gray-200 text-xs">
               <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wide">
                 <tr>
-                  <th className="py-3 px-4 text-left">Component</th>
+                  <th className="py-3 px-4 text-left">Name</th>
                   <th className="py-3 px-4 text-left">Namespace</th>
-                  <th className="py-3 px-4 text-left">Type</th>
+                  <th className="py-3 px-4 text-left">Node</th>
                   <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-left">Health Details</th>
+                  <th className="py-3 px-4 text-center">Ready</th>
+                  <th className="py-3 px-4 text-center">Restarts</th>
+                  <th className="py-3 px-4 text-left">Age</th>
+                  <th className="py-3 px-4 text-left">IP</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 text-gray-700">
-                {[
-                  { name: "kube-apiserver", ns: "kube-system", type: "Static Pod", status: "Healthy", detail: "API Server responds normally. Rest Client Latency 4ms." },
-                  { name: "kube-controller-manager", ns: "kube-system", type: "Static Pod", status: "Healthy", detail: "Leader election active. All core loops synchronized." },
-                  { name: "kube-scheduler", ns: "kube-system", type: "Static Pod", status: "Healthy", detail: "Scheduler operating. Zero pending unschedulable pods." },
-                  { name: "etcd-server", ns: "kube-system", type: "Static Pod", status: "Healthy", detail: "DB Size: 24.5 MB, Cluster Raft Index synchronized." },
-                  { name: "kube-proxy", ns: "kube-system", type: "DaemonSet", status: "Healthy", detail: "IPTables rules applied (142 rules). Network endpoints bound." },
-                  { name: "coredns", ns: "kube-system", type: "Deployment", status: "Healthy", detail: "Replicas (2/2) online. Upstream DNS query latency 1ms." },
-                  { name: "calico-node", ns: "kube-system", type: "DaemonSet", status: "Healthy", detail: "BGP Peer session established. VXLAN tunnel interfaces active." }
-                ].map((comp, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/50">
-                    <td className="py-3.5 px-4 font-bold text-gray-800">{comp.name}</td>
-                    <td className="py-3.5 px-4 font-mono text-gray-500">{comp.ns}</td>
-                    <td className="py-3.5 px-4 text-gray-600">{comp.type}</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
-                        <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
-                        {comp.status}
-                      </span>
+                {!cluster.allPods || cluster.allPods.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="py-8 text-center text-gray-400">
+                      No pod data available for this cluster.
                     </td>
-                    <td className="py-3.5 px-4 text-gray-500 font-mono text-[11px]">{comp.detail}</td>
                   </tr>
-                ))}
+                ) : (
+                  cluster.allPods.map((pod, idx) => {
+                    const isHealthy = (pod.status || "").toLowerCase() === "running";
+                    return (
+                      <tr key={idx} className="hover:bg-gray-50/50">
+                        <td className="py-3.5 px-4 font-bold text-gray-800">{pod.name}</td>
+                        <td className="py-3.5 px-4 font-mono text-gray-500">{pod.namespace}</td>
+                        <td className="py-3.5 px-4 text-gray-600">{pod.node}</td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                              isHealthy
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
+                            }`}
+                          >
+                            {isHealthy ? (
+                              <CheckCircleIcon className="h-3.5 w-3.5 text-green-500" />
+                            ) : (
+                              <ExclamationCircleIcon className="h-3.5 w-3.5 text-amber-500" />
+                            )}
+                            {pod.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-center text-gray-600">{pod.ready}</td>
+                        <td className="py-3.5 px-4 text-center text-gray-600">{pod.restarts}</td>
+                        <td className="py-3.5 px-4 text-gray-500">{pod.age}</td>
+                        <td className="py-3.5 px-4 font-mono text-gray-500">{pod.pod_ip}</td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>

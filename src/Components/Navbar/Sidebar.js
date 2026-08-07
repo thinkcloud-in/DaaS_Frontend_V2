@@ -99,6 +99,7 @@ const getIcon = (name, level = 0, parent = "") => {
           "Private LLM": faBrain,
           "Agentic AI": faRobot,
           Kubernetes: faCubes,
+          Application: faLayerGroup,
         }[name] || faAngleRight
       );
     }
@@ -196,6 +197,11 @@ const Sidebar = ({ tokenParsed }) => {
           {
             name: "Kubernetes",
             href: "/kubernetes",
+            submenus: [],
+          },
+          {
+            name: "Application",
+            href: "/application",
             submenus: [],
           },
         ];
