@@ -38,6 +38,7 @@ import { initialPoolDetails } from "./poolDefaults";
 const initialState = {
   availablePools: [],
   isPoolAvailable: false,
+  poolsPagination: { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false },
   poolsLoading: false,
   poolSaveLoading: false,
   poolDeleteLoading: false,
@@ -166,8 +167,12 @@ const poolsSlice = createSlice({
       })
       .addCase(fetchPools.fulfilled, (state, action) => {
         state.poolsLoading = false;
-        state.availablePools = action.payload || [];
-        state.isPoolAvailable = Array.isArray(action.payload) && action.payload.length > 0;
+        const items = action.payload?.items || [];
+        state.availablePools = items;
+        state.isPoolAvailable = items.length > 0;
+        if (action.payload?.pagination) {
+          state.poolsPagination = action.payload.pagination;
+        }
       })
       .addCase(fetchPools.rejected, (state, action) => {
         state.poolsLoading = false;

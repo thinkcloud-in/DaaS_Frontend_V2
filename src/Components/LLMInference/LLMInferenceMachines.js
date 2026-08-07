@@ -314,12 +314,17 @@ const LLMInferenceMachines = () => {
                       cls: "text-amber-700 hover:bg-amber-50",
                     },
                   ].map(({ action, label, Icon, cls }) => {
-                    // While any action is running, only "stop" (force power
-                    // off) stays usable -- it's the one escape hatch to kill
-                    // a stuck operation. Everything else is disabled so users
-                    // can't queue conflicting actions on top of one already
-                    // in flight.
-                    const isDisabled = !!actionLoading && action !== "stop";
+                    // While any action is running -- either locally (this
+                    // page triggered it) or per the pool's own DB status
+                    // (e.g. triggered from the pool list page instead) --
+                    // only "stop" (force power off) stays usable, as the
+                    // escape hatch to kill a stuck operation. Everything
+                    // else is disabled so users can't queue conflicting
+                    // actions on top of one already in flight.
+                    const inProgress =
+                      !!actionLoading ||
+                      ["starting", "restarting", "stopping"].includes(pool.status);
+                    const isDisabled = inProgress && action !== "stop";
                     return (
                       <button
                         key={action}

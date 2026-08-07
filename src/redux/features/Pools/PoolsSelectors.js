@@ -1,5 +1,7 @@
 export const selectAvailablePools = (state) => state.pools?.availablePools || [];
 export const selectIsPoolAvailable = (state) => !!(state.pools?.isPoolAvailable);
+export const selectPoolsPagination = (state) =>
+  state.pools?.poolsPagination || { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false };
 export const selectPoolsLoading = (state) => !!state.pools?.poolsLoading;
 export const selectPoolSaveLoading = (state) => !!state.pools?.poolSaveLoading;
 export const selectPoolDeleteLoading = (state) => !!state.pools?.poolDeleteLoading;

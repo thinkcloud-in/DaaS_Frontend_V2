@@ -72,11 +72,17 @@ export const updateMachine = createAsyncThunk(
 
 export const fetchPools = createAsyncThunk(
   "pools/fetchPools",
-  async (token, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    // Back-compat: accept either a plain token string (old call sites) or
+    // { token, page, pageSize } (new paginated call sites).
+    const { token, page = 1, pageSize = 10 } =
+      typeof arg === "string" ? { token: arg } : arg || {};
     try {
-      const data = await fetchPoolsService(token);
-      // fetchPoolsService returns an array (or [])
-      return data;
+      const data = await fetchPoolsService(token, page, pageSize);
+      return {
+        items: Array.isArray(data?.items) ? data.items : [],
+        pagination: data?.pagination || null,
+      };
     } catch (err) {
       return rejectWithValue(err?.message || "Failed to fetch pools");
     }

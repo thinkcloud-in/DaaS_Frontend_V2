@@ -23,7 +23,9 @@ import {
   PlusIcon,
   PencilSquareIcon,
   TrashIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import { Box, Skeleton } from "@mui/material";
@@ -264,6 +266,13 @@ const ManagePool = (props) => {
     } catch (err) {}
   };
 
+  const closeMachineDrawer = () => {
+    dispatch(setSelectedVm(null));
+    setSelectedVmIdentifier(null);
+    dispatch(setAssignedUsers([]));
+    dispatch(setSelectedVmDetails(null));
+  };
+
   let handleMachineRowClick = (
     machineIdentifier,
     machineId,
@@ -271,10 +280,7 @@ const ManagePool = (props) => {
     pool_type,
   ) => {
     if (selectedVm === machineId) {
-      dispatch(setSelectedVm(null));
-      setSelectedVmIdentifier(null);
-      dispatch(setAssignedUsers([]));
-      dispatch(setSelectedVmDetails(null));
+      closeMachineDrawer();
       return;
     }
     dispatch(setSelectedVm(machineId));
@@ -439,10 +445,13 @@ const ManagePool = (props) => {
     }
   };
 
-  const handleDeletePool = async () => {
-    if (!window.confirm("Are you sure you want to delete this pool?")) {
-      return;
-    }
+  const [confirmDeletePool, setConfirmDeletePool] = useState(false);
+
+  const handleDeletePool = () => {
+    setConfirmDeletePool(true);
+  };
+
+  const handleConfirmedDeletePool = async () => {
     setIsLoading(true);
     // use the top-level selector-derived userEmail
     try {
@@ -470,6 +479,7 @@ const ManagePool = (props) => {
       setIsLoading(false);
     } finally {
       setIsLoading(false);
+      setConfirmDeletePool(false);
     }
   };
 
@@ -530,11 +540,16 @@ const ManagePool = (props) => {
     setEditMachinePopupOpen(true);
   };
 
-  let handleDeleteVM = async (mach) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this machine?",
-    );
-    if (!confirmed) return;
+  const [confirmDeleteVM, setConfirmDeleteVM] = useState(null);
+
+  let handleDeleteVM = (item) => {
+    setConfirmDeleteVM(item);
+  };
+
+  const handleConfirmedDeleteVM = async () => {
+    const mach = confirmDeleteVM?.identifier;
+    if (!mach) return;
+    setConfirmDeleteVM(null);
     dispatch(setDeletingMachine(mach));
     // reuse outer scope userEmail (derived from selector at component top)
     try {
@@ -706,12 +721,17 @@ const ManagePool = (props) => {
     }
   };
 
-  const handleRebuildVM = async (item) => {
-    if (!item?.identifier) return;
+  const [confirmRebuildVM, setConfirmRebuildVM] = useState(null);
 
-    // Show confirmation dialog before proceeding
-    const confirmed = window.confirm("Do you want to rebuild this machine?");
-    if (!confirmed) return;
+  const handleRebuildVM = (item) => {
+    if (!item?.identifier) return;
+    setConfirmRebuildVM(item);
+  };
+
+  const handleConfirmedRebuildVM = async () => {
+    const item = confirmRebuildVM;
+    if (!item?.identifier) return;
+    setConfirmRebuildVM(null);
 
     dispatch(setPowerActionLoading("rebuild-" + item.identifier));
 
@@ -804,34 +824,38 @@ const ManagePool = (props) => {
     }
   };
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 flex flex-col overflow-hidden">
-      <div className="flex justify-between items-center mb-4">
-        <div
-          onClick={Goback}
-          className="ml-2 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
+        <div className="flex items-center gap-3">
+          <div
+            onClick={Goback}
+            className="bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#1a365d]">
+              {selectedPoolDetails.pool_name || "—"}
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Click on any machine row to view its details and actions.
+            </p>
+          </div>
         </div>
-        <h2 className="text-lg font-semibold text-gray-700">
-          Pool Name:{" "}
-          <span className="font-normal text-gray-600">
-            {selectedPoolDetails.pool_name || "—"}
-          </span>
-        </h2>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap mt-4 md:mt-0">
           {/* <div className="relative"> */}
           {/* <button
               onClick={() => setShowStatusDropdown((prev) => !prev)}
@@ -873,8 +897,8 @@ const ManagePool = (props) => {
 
           {/* Add Machine button and popover */}
           <div className="relative">
-            <div className="bg-[#1a365d]/80 hover:bg-[#1a365d] hover:text-white text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium flex items-center gap-1 cursor-pointer">
-              <PlusIcon className="h-4 w-4 text" />
+            <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-[#1a365d] text-white hover:bg-[#153056] text-sm font-medium shadow-sm transition-all cursor-pointer">
+              <PlusIcon className="h-4 w-4" />
               <button
                 type="button"
                 id="options-menu"
@@ -921,14 +945,14 @@ const ManagePool = (props) => {
           </div>
 
           <button
-            className="bg-[#1a365d]/80 hover:bg-[#1a365d] hover:text-white text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-[#1a365d] text-white hover:bg-[#153056] text-sm font-medium shadow-sm transition-all"
             onClick={entitlePopup}
           >
             Entitle
           </button>
 
           <button
-            className="bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] rounded-md px-3 py-2 text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all"
             onClick={editPool}
           >
             Edit Pool
@@ -936,7 +960,7 @@ const ManagePool = (props) => {
 
           {cluster && cluster?.type === "Hyper-V" && (
             <button
-              className="bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] rounded-md px-3 py-2 text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all"
               onClick={() => setRebuildModalOpen(true)}
             >
               Rebuild Pool
@@ -955,9 +979,7 @@ const ManagePool = (props) => {
             }
           />
           <button
-            className={`bg-red-500 hover:bg-red-600 text-white rounded-md px-3 py-2 text-sm font-semibold flex items-center gap-2 ${
-              isLoading ? "cursor-not-allowed opacity-75" : ""
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm font-medium shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed`}
             onClick={handleDeletePool}
             type="button"
             disabled={isLoading}
@@ -967,11 +989,7 @@ const ManagePool = (props) => {
           </button>
 
           <button
-            className={`bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] rounded-md px-3 py-2 text-sm font-medium flex items-center gap-2 ${
-              refreshing || machinesLoading
-                ? "cursor-not-allowed opacity-75"
-                : ""
-            }`}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             onClick={handleRefresh}
             title="Refresh"
             disabled={refreshing || machinesLoading}
@@ -981,20 +999,21 @@ const ManagePool = (props) => {
             ) : (
               <FaRedo className="h-4 w-4" />
             )}
+            {refreshing || machinesLoading ? "Loading..." : "Refresh"}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 flex-1 overflow-hidden">
-        <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar border border-gray-100">
+      <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex-1">
           {machinesLoading ? (
-            <Box sx={{ width: "100%", mt: 2 }}>
-              <div className={styles["table-responsive"]}>
-                <table className="tableRow  custom-scrollbar skeleton-loading">
-                  <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-                    <tr>
+            <Box sx={{ width: "100%" }}>
+              <div className={`overflow-x-auto max-w-full ${styles["table-responsive"]}`}>
+                <table className="w-full text-left border-collapse min-w-[1100px] skeleton-loading">
+                  <thead>
+                    <tr className="bg-[#1a365d] text-white text-sm font-semibold select-none">
                       {/* Add the header checkbox for select all */}
-                      {/* <th className="py-2 px-3 text-left whitespace-nowrap">
+                      {/* <th className="py-3.5 px-4 text-left whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={
@@ -1020,24 +1039,24 @@ const ManagePool = (props) => {
                       ].map((header, index) => (
                         <th
                           key={index}
-                          className="py-2 px-3 text-center whitespace-nowrap"
+                          className="py-3 px-4 text-center whitespace-nowrap"
                         >
                           {header}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>{skeletonRows}</tbody>
+                  <tbody className="divide-y divide-gray-200 text-sm text-gray-700">{skeletonRows}</tbody>
                 </table>
               </div>
             </Box>
-          ) : vmAvailable.length > 0 ? (
-            <div className={styles["table-responsive"]}>
-              <table className="min-w-full bg-white text-sm border-collapse">
-                <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-                  <tr>
+          ) : (
+            <div className={`overflow-x-auto max-w-full ${styles["table-responsive"]}`}>
+              <table className="w-full text-left border-collapse min-w-[1100px]">
+                <thead>
+                  <tr className="bg-[#1a365d] text-white text-sm font-semibold select-none">
                     {/* Add the header checkbox for select all */}
-                    {/* <th className="py-2 px-3 text-left whitespace-nowrap">
+                    {/* <th className="py-3.5 px-4 text-left whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={
@@ -1071,15 +1090,22 @@ const ManagePool = (props) => {
                     ].map((header, index) => (
                       <th
                         key={index}
-                        className="py-2 px-3 text-center whitespace-nowrap"
+                        className="py-3 px-4 text-center whitespace-nowrap"
                       >
                         {header}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
-                  {[...(vmAvailable || [])]
+                <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+                  {vmAvailable.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="py-12 text-center text-gray-400">
+                        No machines available
+                      </td>
+                    </tr>
+                  ) : (
+                  [...(vmAvailable || [])]
                     .sort((a, b) => {
                       const nameA = a.name || "";
                       const nameB = b.name || "";
@@ -1088,10 +1114,10 @@ const ManagePool = (props) => {
                     .map((item) => (
                       <tr
                         key={item.identifier}
-                        className={`text-center border-b border-gray-200 ${
+                        className={`text-center cursor-pointer transition-colors ${
                           selectedVm === item.id
-                            ? "bg-[#F0F8FFCC] cursor-pointer"
-                            : "hover:bg-[#F0F8FFCC] cursor-pointer"
+                            ? "bg-blue-50/60 font-medium"
+                            : "hover:bg-blue-50/20"
                         }`}
                         onClick={() =>
                           handleMachineRowClick(
@@ -1103,7 +1129,7 @@ const ManagePool = (props) => {
                         }
                       >
                         {/* Add the row checkbox */}
-                        {/* <td className="py-2 px-3" onClick={e => e.stopPropagation()}>
+                        {/* <td className="py-3.5 px-4" onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedRows.includes(item.id)}
@@ -1111,10 +1137,10 @@ const ManagePool = (props) => {
                           aria-label={`Select machine ${item.name}`}
                         />
                       </td> */}
-                        <td className="py-2 px-3">{item.name}</td>
-                        <td className="py-2 px-3">{item.protocol}</td>
-                        <td className="py-2 px-3">{item.port}</td>
-                        <td className="py-2 px-3">
+                        <td className="py-3.5 px-4">{item.name}</td>
+                        <td className="py-3.5 px-4">{item.protocol}</td>
+                        <td className="py-3.5 px-4">{item.port}</td>
+                        <td className="py-3.5 px-4">
                           {vmDetailsMap[
                             machineIdMap[item.identifier]
                           ]?.ip_address?.join(", ") ||
@@ -1130,7 +1156,7 @@ const ManagePool = (props) => {
                             "N/A"}
                         </td>
                         {selectedPoolDetails.pool_type !== "Manual" && (
-                          <td className="py-2 px-3">
+                          <td className="py-3.5 px-4">
                             {vmDetailsMap[machineIdMap[item.identifier]]
                               ?.node ||
                               vmDetailsMap[machineIdMap[item.identifier]]
@@ -1141,7 +1167,7 @@ const ManagePool = (props) => {
                         )}
                         {/* Datastores column (only for non-Manual) */}
                         {selectedPoolDetails.pool_type !== "Manual" && (
-                          <td className="py-2 px-3">
+                          <td className="py-3.5 px-4">
                             {vmDetailsMap[
                               machineIdMap[item.identifier]
                             ]?.datastores?.join(", ") ||
@@ -1154,14 +1180,14 @@ const ManagePool = (props) => {
                         )}
                         {/* Agent Enabled column (only for non-Manual) */}
                         {selectedPoolDetails.pool_type !== "Manual" && (
-                          <td className="py-2 px-3">
+                          <td className="py-3.5 px-4">
                             {vmDetailsMap[machineIdMap[item.identifier]]
                               ?.agent_enabled
                               ? "Yes"
                               : "No"}
                           </td>
                         )}
-                        <td className="py-2 px-3">
+                        <td className="py-3.5 px-4">
                           {Array.isArray(item.users_assigned) &&
                           item.users_assigned.length > 0
                             ? item.users_assigned.length === 1
@@ -1171,7 +1197,7 @@ const ManagePool = (props) => {
                         </td>
                         {/* Status column (only for non-Manual) */}
                         {selectedPoolDetails.pool_type !== "Manual" && (
-                          <td className="py-2 px-3">
+                          <td className="py-3.5 px-4">
                             {item.status === "COMPLETED" && (
                               <span className="flex items-center gap-1">
                                 <FaCheckCircle className="text-green-500 text-sm" />
@@ -1235,7 +1261,7 @@ const ManagePool = (props) => {
                           </td>
                         )}
                         <td
-                          className="py-2 px-3 cursor-pointer"
+                          className="py-3.5 px-4 cursor-pointer"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {item.is_custom_machine ? (
@@ -1251,7 +1277,7 @@ const ManagePool = (props) => {
                           )}
                         </td>
                         <td
-                          className="py-2 px-3"
+                          className="py-3.5 px-4"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex items-center gap-3">
@@ -1313,7 +1339,7 @@ const ManagePool = (props) => {
                                     className="px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-left"
                                     onClick={(e) => {
                                       if (!deletingMachine) {
-                                        handleDeleteVM(item.identifier);
+                                        handleDeleteVM(item);
                                       }
                                     }}
                                     disabled={!!deletingMachine}
@@ -1384,21 +1410,23 @@ const ManagePool = (props) => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                  )}
                 </tbody>
               </table>
-            </div>
-          ) : (
-            <div className="h-[60vh] w-full flex justify-center items-center text-gray-500">
-              No machines available
             </div>
           )}
         </div>
 
         {selectedVm && (
-          <div className="w-1/3 min-w-[280px] max-w-[380px] bg-white rounded-md border border-gray-100 p-4 flex flex-col">
-            <div className="mb-4">
-              <div className="flex gap-3 border-b">
+          <>
+            <div
+              className="fixed inset-0 bg-black/30 backdrop-blur-xs z-[90]"
+              onClick={closeMachineDrawer}
+            />
+            <div className="fixed top-0 bottom-0 right-0 max-w-md w-full bg-white shadow-2xl z-[100] flex flex-col border-l border-gray-200 h-full p-6">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-4">
+              <div className="flex gap-3">
                 <button
                   className={`pb-2 text-sm relative transition-all duration-300 ${
                     selectedTab === "users"
@@ -1422,6 +1450,12 @@ const ManagePool = (props) => {
                   </button>
                 )}
               </div>
+              <button
+                onClick={closeMachineDrawer}
+                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
@@ -1659,7 +1693,8 @@ const ManagePool = (props) => {
                   </div>
                 </div>
               )}
-          </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -1682,6 +1717,191 @@ const ManagePool = (props) => {
         handleUserPageChange={handleUserPageChange}
         handleUserPageSizeChange={handleUserPageSizeChange}
       />
+
+      {/* Delete Pool Confirmation Modal */}
+      {confirmDeletePool && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[210]"
+            onClick={() => !isLoading && setConfirmDeletePool(false)}
+          />
+          <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">
+                      Delete Pool
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Are you sure you want to delete pool{" "}
+                      <span className="font-semibold text-gray-800">
+                        "{selectedPoolDetails.pool_name}"
+                      </span>
+                      ? This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setConfirmDeletePool(false)}
+                  disabled={isLoading}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmedDeletePool}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-4 w-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Delete Machine Confirmation Modal */}
+      {confirmDeleteVM && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[210]"
+            onClick={() => !deletingMachine && setConfirmDeleteVM(null)}
+          />
+          <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">
+                      Delete Machine
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Are you sure you want to delete machine{" "}
+                      <span className="font-semibold text-gray-800">
+                        "{confirmDeleteVM.name}"
+                      </span>
+                      ? This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setConfirmDeleteVM(null)}
+                  disabled={!!deletingMachine}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmedDeleteVM}
+                  disabled={!!deletingMachine}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deletingMachine ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-4 w-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Rebuild Machine Confirmation Modal */}
+      {confirmRebuildVM && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[210]"
+            onClick={() =>
+              powerActionLoading !== "rebuild-" + confirmRebuildVM.identifier &&
+              setConfirmRebuildVM(null)
+            }
+          />
+          <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">
+                      Rebuild Machine
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Do you want to rebuild machine{" "}
+                      <span className="font-semibold text-gray-800">
+                        "{confirmRebuildVM.name}"
+                      </span>
+                      ?
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 pb-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setConfirmRebuildVM(null)}
+                  disabled={
+                    powerActionLoading === "rebuild-" + confirmRebuildVM.identifier
+                  }
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmedRebuildVM}
+                  disabled={
+                    powerActionLoading === "rebuild-" + confirmRebuildVM.identifier
+                  }
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#1a365d] rounded-lg hover:bg-[#122744] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                >
+                  {powerActionLoading ===
+                  "rebuild-" + confirmRebuildVM.identifier ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Rebuilding...
+                    </>
+                  ) : (
+                    <>
+                      <FaRedo className="h-4 w-4" />
+                      Rebuild
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

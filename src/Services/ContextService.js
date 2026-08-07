@@ -13,11 +13,12 @@ export const fetchUserPermissions = async (token, username) => {
   return res.data;
 };
 
-export const fetchPools = async (token) => {
+export const fetchPools = async (token, page = 1, pageSize = 10) => {
   const res = await axiosInstance.get(`${backendUrl}/v1/vdi_pools/pools`, {
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
+    params: { page, page_size: pageSize },
   });
-  return res.data?.data || [];
+  return res.data?.data || { items: [], pagination: null };
 };
 
 export const fetchClusters = async (token) => {

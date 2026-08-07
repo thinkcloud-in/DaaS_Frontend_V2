@@ -32,12 +32,72 @@ import {
   selectPrivateLLMCreateLoading,
 } from "../../redux/features/Pools/PoolsSelectors";
 
-const OS_TYPE_OPTIONS = [
-  { value: "Windows 10", label: "Windows 10" },
-  { value: "Windows 11", label: "Windows 11" },
-  { value: "Windows server OS", label: "Windows (2019/2022/2025)" },
-  { value: "Ubuntu desktop", label: "Linux (Ubuntu desktop)" },
+// The set of model types vLLM actually knows how to serve differently, plus
+// "other" as a future-proof escape hatch for anything not covered yet.
+const MODEL_TYPE_OPTIONS = [
+  { value: "text", label: "Text Generation" },
+  { value: "vision_language", label: "Vision-Language (VL)" },
+  { value: "embeddings", label: "Embeddings" },
+  { value: "audio", label: "Audio (ASR)" },
+  { value: "other", label: "Other" },
 ];
+
+// Mirrors the backend's actual built-in defaults in _build_vllm_commands
+// (activities_llm_inference_v2.py) so what the user sees here is exactly
+// what would run if they never touched the field. Shown pre-filled and
+// editable rather than blank, so it's clear what's actually applied and
+// the "Reset" button has something concrete to restore.
+const DEFAULT_VLLM_PARAMS_TEXT =
+  "served_model_name: rcv-model\n" +
+  "max_model_len: 4096\n" +
+  "gpu_memory_utilization: 0.90\n" +
+  "enable_chunked_prefill: true\n" +
+  "trust_remote_code: true\n" +
+  "enable_auto_tool_choice: true\n" +
+  "tool_call_parser: hermes\n";
+
+// Visual grouping only -- purely presentational, doesn't touch formData.
+const SectionHeader = ({ title }) => (
+  <h3 className="text-xs font-bold text-[#1a365d] uppercase tracking-wide mt-6 mb-3 pb-1.5 border-b border-gray-200 first:mt-0">
+    {title}
+  </h3>
+);
+
+// Modern pill-shaped segmented toggle with a sliding active-highlight,
+// used for two-way "source" style choices (e.g. Model Source).
+const SegmentedToggle = ({ options, value, onChange }) => {
+  const activeIndex = Math.max(
+    0,
+    options.findIndex((o) => o.value === value),
+  );
+  return (
+    <div className="relative inline-flex w-full max-w-md rounded-full bg-gray-100 p-1 shadow-inner">
+      <div
+        className="absolute top-1 bottom-1 rounded-full bg-[#1a365d] shadow-md transition-transform duration-300 ease-out"
+        style={{
+          width: `calc(${100 / options.length}% - 4px)`,
+          transform: `translateX(calc(${activeIndex * 100}% + ${activeIndex * 4}px))`,
+        }}
+      />
+      {options.map((opt) => {
+        const isActive = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${
+              isActive ? "text-white" : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {opt.icon && <i className={`fas ${opt.icon} text-xs`} />}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 const MultiSelectField = ({ label, iconClass, required, children }) => (
   <div className="mb-6 flex items-start">
@@ -189,14 +249,20 @@ const LLMInferenceCreate = () => {
   const [formData, setFormData] = useState({
     clusterName: "",
     poolName: "",
-    poolOSType: "",
     ipPools: [],
+    templateSource: "proxmox", // "proxmox" | "harbor" -- only one active at a time
     template: "",
+    harborTemplate: "", // Template's Harbor equivalent, used when templateSource === "harbor" (stubbed until Harbor fetch exists)
+    harborArtifact: "", // model chosen from Harbor, only when templateSource === "harbor" (stubbed until Harbor fetch exists)
     nodes: [], // [{ node: "nodeName", gpu: ["gpuId", ...] }]
     storage: "",
     machine_name: "",
     ssh_user: "",
     ssh_pass: "",
+    modelType: "",
+    modelTypeOther: "", // free-text label when modelType === "other"
+    maxImagesPerRequest: "", // vision_language only -> vLLM's limit_mm_per_prompt
+    vllmExtraParams: DEFAULT_VLLM_PARAMS_TEXT, // free-form YAML/dict text, parsed server-side and merged into the launch command
   });
 
   const allClusters = useSelector(selectAllClusters) || [];
@@ -323,6 +389,21 @@ const LLMInferenceCreate = () => {
 
   const set = (name, value) => setFormData((p) => ({ ...p, [name]: value }));
   const handleChange = (e) => set(e.target.name, e.target.value);
+
+  // Proxmox vs Harbor are mutually exclusive -- switching source clears the
+  // other source's selection so a stale value can't sneak into submission.
+  // Harbor path also clears modelType since it'll be auto-filled (read-only)
+  // from the artifact's metadata.json once that fetch exists.
+  const handleTemplateSourceChange = (source) => {
+    setFormData((p) => ({
+      ...p,
+      templateSource: source,
+      template: source === "proxmox" ? p.template : "",
+      harborTemplate: source === "harbor" ? p.harborTemplate : "",
+      harborArtifact: source === "harbor" ? p.harborArtifact : "",
+      modelType: source === "harbor" ? "" : p.modelType,
+    }));
+  };
 
   const handleClusterChange = (e) => {
     fetchedGpuNodes.current = new Set();
@@ -476,6 +557,8 @@ const LLMInferenceCreate = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="text-left w-full ml-5 max-w-4xl py-4">
+                <SectionHeader title="Pool Basics" />
+
                 <SelectField
                   label="Cluster"
                   name="clusterName"
@@ -499,19 +582,6 @@ const LLMInferenceCreate = () => {
                   required
                 />
 
-                <SelectField
-                  label="Pool OS Type"
-                  name="poolOSType"
-                  iconClass="fa-computer"
-                  value={formData.poolOSType}
-                  onChange={handleChange}
-                  required
-                  options={[
-                    { value: "", label: "Select an option", disabled: true },
-                    ...OS_TYPE_OPTIONS,
-                  ]}
-                />
-
                 <MultiSelectField
                   label="Select IP Pools"
                   iconClass="fa-network-wired"
@@ -525,17 +595,125 @@ const LLMInferenceCreate = () => {
                   />
                 </MultiSelectField>
 
-                <SelectField
-                  label="Template"
-                  name="template"
+                <SectionHeader title="Compute & Template" />
+
+                <MultiSelectField
+                  label="Model Source"
                   iconClass="fa-file-alt"
-                  value={formData.template}
-                  onChange={handleChange}
                   required
-                  disabled={!formData.clusterName}
-                  placeholder={formData.clusterName ? "Select Template" : "Select a cluster first"}
-                  options={templateOptions}
+                >
+                  <SegmentedToggle
+                    value={formData.templateSource}
+                    onChange={handleTemplateSourceChange}
+                    options={[
+                      {
+                        value: "proxmox",
+                        label: `From ${formData.clusterName || "Cluster"}`,
+                        icon: "fa-server",
+                      },
+                      {
+                        value: "harbor",
+                        label: "From Harbor",
+                        icon: "fa-box-archive",
+                      },
+                    ]}
+                  />
+                </MultiSelectField>
+
+                {/* Template is always asked -- it's the base VM (OS + Ray/vLLM/CUDA env)
+                    regardless of where the model itself comes from. Its source
+                    follows Model Source: Proxmox templates come from the cluster,
+                    Harbor templates come from Harbor (stubbed until that fetch exists). */}
+                {formData.templateSource === "proxmox" ? (
+                  <SelectField
+                    label="Template"
+                    name="template"
+                    iconClass="fa-file-alt"
+                    value={formData.template}
+                    onChange={handleChange}
+                    required
+                    disabled={!formData.clusterName}
+                    placeholder={
+                      formData.clusterName
+                        ? "Select Template"
+                        : "Select a cluster first"
+                    }
+                    options={templateOptions}
+                  />
+                ) : null}
+
+                {formData.templateSource === "proxmox" &&
+                  formData.clusterName && (
+                    <div className="flex items-start gap-2 -mt-4 mb-6 ml-[188px] max-w-[40rem] text-xs text-amber-700 bg-amber-50 border border-amber-200 text-blue-700 bg-blue-50 border-blue-200 rounded-lg px-3 py-2">
+                      <i className="fas fa-circle-info mt-0.5" />
+                      <span>
+                        The Template should have a LLM Model and OS installed
+                        inside — it's not installed separately for the Proxmox
+                        source.
+                      </span>
+                    </div>
+                  )}
+
+                {formData.templateSource === "harbor" && (
+                  <SelectField
+                    label="Template"
+                    name="harborTemplate"
+                    iconClass="fa-file-alt"
+                    value={formData.harborTemplate}
+                    onChange={handleChange}
+                    required
+                    disabled
+                    placeholder="Harbor template fetch coming soon"
+                    options={[]}
+                  />
+                )}
+                {/* Harbor-bundled models carry their own VM access credentials in
+                    metadata.json -- once that fetch exists these become
+                    read-only and auto-filled instead of user-entered. */}
+                <InputField
+                  label="VM SSH Username"
+                  name="ssh_user"
+                  iconClass="fa-user"
+                  value={formData.ssh_user}
+                  onChange={handleChange}
+                  disabled={formData.templateSource === "harbor"}
+                  placeholder={
+                    formData.templateSource === "harbor"
+                      ? "Auto-filled from Harbor metadata"
+                      : "VM SSH Username"
+                  }
+                  required
                 />
+
+                <PasswordField
+                  label="VM SSH Password"
+                  name="ssh_pass"
+                  iconClass="fa-lock"
+                  value={formData.ssh_pass}
+                  onChange={handleChange}
+                  disabled={formData.templateSource === "harbor"}
+                  placeholder={
+                    formData.templateSource === "harbor"
+                      ? "Auto-filled from Harbor metadata"
+                      : "VM SSH Password"
+                  }
+                  type="password"
+                  required
+                />
+
+                {formData.templateSource === "harbor" && (
+                  <SelectField
+                    label="Choose Model"
+                    name="harborArtifact"
+                    iconClass="fa-box-archive"
+                    value={formData.harborArtifact}
+                    onChange={handleChange}
+                    required
+                    disabled
+                    placeholder="Harbor model fetch coming soon"
+                    options={[]}
+                  />
+                )}
 
                 {/* Node list with inline GPU multi-select */}
                 <MultiSelectField label="Node" iconClass="fa-server" required>
@@ -640,10 +818,106 @@ const LLMInferenceCreate = () => {
                   onChange={handleChange}
                   required
                   disabled={formData.nodes.length === 0}
-                  placeholder={formData.nodes.length > 0 ? "Select Storage" : "Select nodes first"}
+                  placeholder={
+                    formData.nodes.length > 0
+                      ? "Select Storage"
+                      : "Select nodes first"
+                  }
                   options={storageOptions.map((s) => ({ value: s, label: s }))}
                 />
 
+                <SectionHeader title="Model Configuration" />
+
+                {formData.templateSource === "harbor" ? (
+                  <SelectField
+                    label="Model Type"
+                    name="modelType"
+                    iconClass="fa-brain"
+                    value={formData.modelType}
+                    onChange={() => {}}
+                    disabled
+                    placeholder="Auto-filled from Harbor metadata"
+                    options={[]}
+                  />
+                ) : (
+                  <SelectField
+                    label="Model Type"
+                    name="modelType"
+                    iconClass="fa-brain"
+                    value={formData.modelType}
+                    onChange={handleChange}
+                    required
+                    options={[
+                      { value: "", label: "Select Model Type", disabled: true },
+                      ...MODEL_TYPE_OPTIONS,
+                    ]}
+                  />
+                )}
+
+                {formData.modelType === "other" && (
+                  <InputField
+                    label="Model Type Name"
+                    name="modelTypeOther"
+                    iconClass="fa-pen"
+                    value={formData.modelTypeOther}
+                    onChange={handleChange}
+                    placeholder="e.g. code-completion, reranker, ..."
+                    className="flex-1 max-w-[40rem]"
+                    required
+                  />
+                )}
+
+                {formData.modelType === "vision_language" && (
+                  <InputField
+                    label="Max Images"
+                    name="maxImagesPerRequest"
+                    iconClass="fa-images"
+                    type="number"
+                    min="1"
+                    value={formData.maxImagesPerRequest}
+                    onChange={handleChange}
+                    placeholder="e.g. 4"
+                    className="flex-none w-32"
+                    tooltip="Maximum number of images a single request can attach for this VL model (maps to vLLM's --limit-mm-per-prompt)."
+                  />
+                )}
+
+                <MultiSelectField
+                  label="Extra vLLM Params"
+                  iconClass="fa-sliders"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-gray-500">
+                      Pre-filled with our defaults — edit any value or add new
+                      keys.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        set("vllmExtraParams", DEFAULT_VLLM_PARAMS_TEXT)
+                      }
+                      disabled={
+                        formData.vllmExtraParams === DEFAULT_VLLM_PARAMS_TEXT
+                      }
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a365d] bg-[#1a365d]/10 hover:bg-[#1a365d]/20 border border-[#1a365d]/20 rounded-full px-3 py-1 transition-colors disabled:text-gray-400 disabled:bg-gray-100 disabled:border-gray-200 disabled:cursor-not-allowed"
+                    >
+                      <i className="fas fa-rotate-left text-[10px]" />
+                      Reset to defaults
+                    </button>
+                  </div>
+                  <textarea
+                    name="vllmExtraParams"
+                    value={formData.vllmExtraParams}
+                    onChange={handleChange}
+                    rows={6}
+                    placeholder="key: value"
+                    spellCheck={false}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-sm bg-white font-mono"
+                  />
+                </MultiSelectField>
                 <InputField
                   label="Machine Name"
                   name="machine_name"
@@ -651,27 +925,6 @@ const LLMInferenceCreate = () => {
                   value={formData.machine_name}
                   onChange={handleChange}
                   placeholder="Naming Pattern (i.e example-{n:fixed=3})"
-                  required
-                />
-
-                <InputField
-                  label="VM SSH Username"
-                  name="ssh_user"
-                  iconClass="fa-user"
-                  value={formData.ssh_user}
-                  onChange={handleChange}
-                  placeholder="VM SSH Username"
-                  required
-                />
-
-                <PasswordField
-                  label="VM SSH Password"
-                  name="ssh_pass"
-                  iconClass="fa-lock"
-                  value={formData.ssh_pass}
-                  onChange={handleChange}
-                  placeholder="VM SSH Password"
-                  type="password"
                   required
                 />
               </div>

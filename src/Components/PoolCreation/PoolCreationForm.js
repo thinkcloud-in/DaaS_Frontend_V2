@@ -43,6 +43,15 @@ import { fetchIpPoolsThunk } from "../../redux/features/IP-Pools/IpPoolsThunks";
 
 const poolType = ["Automated", "Manual"];
 
+// Visual grouping only -- purely presentational, doesn't touch poolDetails.
+// Mirrors the SectionHeader used in the Private LLM pool creation UI
+// (LLMInferenceCreate.js) so both pool-creation flows look consistent.
+const SectionHeader = ({ title }) => (
+  <h3 className="text-xs font-bold text-[#1a365d] uppercase tracking-wide mt-6 mb-3 pb-1.5 border-b border-gray-200 first:mt-0">
+    {title}
+  </h3>
+);
+
 const PoolCreationForm = () => {
   const [selectedTab, setSelectedTab] = useState("RDP");
   const [selectedProtocol, setSelectedProtocol] = useState("");
@@ -743,6 +752,8 @@ const PoolCreationForm = () => {
             )}
 
             <div className="text-left w-full ml-5 max-w-4xl py-4">
+              <SectionHeader title="Pool Basics" />
+
               <SelectField
                 label="Pool Type"
                 name="pool_type"
@@ -805,6 +816,7 @@ const PoolCreationForm = () => {
 
               {poolDetails.pool_type === "Automated" && selectedCluster && (
                 <>
+                  {poolDetails.cluster_id && <SectionHeader title="Compute & Template" />}
                   {poolDetails.cluster_id && (
                     <SelectField
                       label="Pool OS Type"
@@ -1409,6 +1421,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
                   {/* Join AD Checkbox - visible for Proxmox and Hyper-V */}
                   {(isProxmoxCluster || isHyperVCluster) && (
                     <>
+                      <SectionHeader title="Domain Join" />
                       <div className="mb-4 flex items-center">
                         <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
                           <span>
@@ -1482,6 +1495,11 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
 
           <div className="w-full rounded-md bg-white">
             {selectedProtocol && (
+              <div className="ml-5 max-w-4xl">
+                <SectionHeader title="Access & Credentials" />
+              </div>
+            )}
+            {selectedProtocol && (
               <CustomTabs
                 tablist={["RDP", "SSH", "VNC"].filter(
                   (tab) => tab === selectedProtocol,
@@ -1512,20 +1530,22 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
           </div>
         </div>
 
-        <div className="pl-5 flex items-start justify-start">
+        <div className="flex justify-end gap-3 pr-4 pb-4">
+          <button
+            type="button"
+            onClick={Goback}
+            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
           <button
             onClick={handleOnClick}
             type="button"
             disabled={isLoading}
-            className={`rounded-md mb-4 px-3 py-2 text-sm font-semibold text-white shadow-sm flex items-center gap-2
-            ${
-              isLoading
-                ? "bg-[#1a365d]/80 cursor-not-allowed"
-                : "bg-[#1a365d]/80 hover:bg-[#1a365d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a365d]"
-            }`}
+            className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-[#1a365d] rounded-lg hover:bg-[#122744] disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            <span>{isLoading ? "Submitting..." : "Submit"}</span>
+            {isLoading ? "Submitting..." : "Submit"}
           </button>
         </div>
       </div>

@@ -1,42 +1,75 @@
 import { updatePoolStatus } from "../../Services/PoolService";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectAvailablePools,
-  selectIsPoolAvailable,
+  selectPoolsPagination,
+  selectPoolsLoading,
 } from "../../redux/features/Pools/PoolsSelectors";
 import "./css/ShowPools.css";
 import { useNavigate } from "react-router-dom";
 import { fetchPools } from "../../redux/features/Pools/PoolsThunks";
+import {
+  ArrowPathIcon,
+  PlusIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const ShowPools = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const token = useSelector(selectAuthToken);
   const availablePools = useSelector(selectAvailablePools);
-  const isPoolAvailable = useSelector(selectIsPoolAvailable);
+  const pagination = useSelector(selectPoolsPagination);
+  const poolsLoading = useSelector(selectPoolsLoading);
 
-  // useEffect(() => {
-  //   if (token) {
-  //     dispatch(fetchPools(token));
-  //   }
-  // }, [token, dispatch]);
   const [selectedPools, setSelectedPools] = useState([]);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const fetchList = useCallback(
+    (page, size) => {
+      if (token) dispatch(fetchPools({ token, page, pageSize: size }));
+    },
+    [token, dispatch],
+  );
+
+  useEffect(() => {
+    fetchList(currentPage, pageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const handleRefresh = async () => {
     if (!token) return;
     setIsRefreshing(true);
     try {
-      await dispatch(fetchPools(token)).unwrap();
+      await dispatch(
+        fetchPools({ token, page: currentPage, pageSize }),
+      ).unwrap();
     } catch (error) {
       console.error("Failed to refresh pools:", error);
     } finally {
       // Ensure the animation runs for at least a bit
       setTimeout(() => setIsRefreshing(false), 1000);
     }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchList(page, pageSize);
+  };
+
+  const handlePageSizeChange = (e) => {
+    const newSize = Number(e.target.value);
+    setPageSize(newSize);
+    setCurrentPage(1);
+    fetchList(1, newSize);
   };
 
   let handlePoolSelection = (pool) => {
@@ -58,30 +91,71 @@ const ShowPools = () => {
     }
   };
 
+  const {
+    total = 0,
+    total_pages = 1,
+    has_next = false,
+    has_prev = false,
+  } = pagination;
+  const startItem = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, total);
+
+  const getPageNumbers = () => {
+    if (total_pages <= 7)
+      return Array.from({ length: total_pages }, (_, i) => i + 1);
+    const pages = [];
+    const delta = 2;
+    const left = Math.max(2, currentPage - delta);
+    const right = Math.min(total_pages - 1, currentPage + delta);
+    pages.push(1);
+    if (left > 2) pages.push("...");
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < total_pages - 1) pages.push("...");
+    pages.push(total_pages);
+    return pages;
+  };
+
+  // Server already returns this page's pools sorted by name -- this is just
+  // a defensive filter against malformed rows, not a resort.
+  const pools = (Array.isArray(availablePools) ? availablePools : []).filter(
+    (item) => item && typeof item.pool_name === "string",
+  );
+
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <div
-          onClick={Goback}
-          className="ml-2 bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
+        <div className="flex items-center gap-3">
+          <div
+            onClick={Goback}
+            className="bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-[#1a365d]">
+              Developer Desktop Pools
+            </h1>
+            <p className="text-xs text-gray-500 mt-1">
+              Click on any pool row to manage its virtual machines.
+            </p>
+          </div>
         </div>
-        <h2 className="text-lg font-semibold text-gray-700">Available Pools</h2>
-        <div className="flex gap-2 items-center ">
+
+        <div className="flex items-center gap-3 mt-4 md:mt-0">
           {/* <div className="relative">
           <button
               onClick={() => setShowStatusDropdown((prev) => !prev)}
@@ -119,128 +193,200 @@ const ShowPools = () => {
 
           <button
             onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 flex items-center justify-center"
-            title="Refresh Pools"
+            disabled={isRefreshing || poolsLoading}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className={`h-4 w-4 ${isRefreshing ? "animate-spin-custom" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
+            <ArrowPathIcon
+              className={`h-4 w-4 ${isRefreshing || poolsLoading ? "animate-spin" : ""}`}
+            />
+            {isRefreshing || poolsLoading ? "Loading..." : "Refresh"}
           </button>
 
           <button
             onClick={() => navigate("/pools/pool-creation-form")}
-            className="bg-[#1a365d]/80 hover:bg-[#1a365d] text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-[#1a365d] text-white hover:bg-[#153056] text-sm font-medium shadow-sm transition-all"
           >
-            + New Pool
+            <PlusIcon className="h-4 w-4" />
+            Create Pool
           </button>
         </div>
       </div>
 
       {/* Table */}
-      {isPoolAvailable && (
-        <div className="flex-1 overflow-visible rounded-md bg-white table-container custom-scrollbar">
-          <table className="min-w-full bg-white text-sm border-collapse">
-            <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-              <tr>
-                {/* <th className="py-2 px-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={
-                      pc.availablePools.length > 0 &&
-                      selectedPools.length === pc.availablePools.length
-                    }
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedPools(pc.availablePools.map((p) => p.id));
-                      } else {
-                        setSelectedPools([]);
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
+        <div className="overflow-x-auto max-w-full">
+          <table className="w-full text-left border-collapse min-w-[1100px]">
+            <thead>
+              <tr className="bg-[#1a365d] text-white text-sm font-semibold select-none">
+                {/* <th className="py-3 px-4 w-12 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        pc.availablePools.length > 0 &&
+                        selectedPools.length === pc.availablePools.length
                       }
-                    }}
-                  />
-                </th> */}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedPools(pc.availablePools.map((p) => p.id));
+                        } else {
+                          setSelectedPools([]);
+                        }
+                      }}
+                    />
+                  </th> */}
                 {["Name", "Type", "Cluster Name", "Entitled", "Machines"].map(
                   (header, index) => (
-                    <th
-                      key={index}
-                      className="py-2 px-3 text-left whitespace-nowrap"
-                    >
+                    <th key={index} className="py-3 px-4 whitespace-nowrap">
                       {header}
                     </th>
                   ),
                 )}
               </tr>
             </thead>
-            <tbody>
-              {Array.isArray(availablePools) &&
-                availablePools
-                  .slice()
-                  .filter((item) => item && typeof item.pool_name === "string")
-                  .sort((a, b) => a.pool_name.localeCompare(b.pool_name))
-                  .map((item) => (
-                    <tr
-                      key={item.id}
-                      className="text-left border-b border-gray-200 hover:bg-[#F0F8FFCC]"
-                    >
-                      {/* <td className="py-2 px-3">
+            <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+              {poolsLoading && pools.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-gray-400">
+                    <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Loading pools...
+                  </td>
+                </tr>
+              ) : pools.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-gray-400">
+                    No Pools Available
+                  </td>
+                </tr>
+              ) : (
+                pools.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="hover:bg-blue-50/20 cursor-pointer transition-colors"
+                  >
+                    {/* <td className="py-3.5 px-4 text-center">
                         <input
                           type="checkbox"
                           checked={selectedPools.includes(item.id)}
                           onChange={() => handleCheckboxChange(item.id)}
                         />
                       </td> */}
-                      <td
-                        className="py-2 px-3 cursor-pointer"
-                        onClick={() => handlePoolSelection(item)}
-                      >
-                        {item.pool_name}
-                      </td>
-                      <td
-                        className="py-2 px-3 cursor-pointer"
-                        onClick={() => handlePoolSelection(item)}
-                      >
-                        {item.pool_type}
-                      </td>
-                      <td
-                        className="py-2 px-3 cursor-pointer"
-                        onClick={() => handlePoolSelection(item)}
-                      >
-                        {item.cluster ? item.cluster : "fetching..."}
-                      </td>
-                      <td
-                        className="py-2 px-3 cursor-pointer"
-                        onClick={() => handlePoolSelection(item)}
-                      >
-                        {item.entitled ? item.entitled : 0}
-                      </td>
-                      <td
-                        className="py-2 px-3 cursor-pointer"
-                        onClick={() => handlePoolSelection(item)}
-                      >
-                        {Array.isArray(item.pool_machines) &&
-                        item.pool_machines.length > 0
-                          ? `${item.pool_machines.length} machine${
-                              item.pool_machines.length > 1 ? "s" : ""
-                            }`
-                          : "No machines"}
-                      </td>
-                    </tr>
-                  ))}
+                    <td
+                      className="py-3.5 px-4"
+                      onClick={() => handlePoolSelection(item)}
+                    >
+                      {item.pool_name}
+                    </td>
+                    <td
+                      className="py-3.5 px-4"
+                      onClick={() => handlePoolSelection(item)}
+                    >
+                      {item.pool_type}
+                    </td>
+                    <td
+                      className="py-3.5 px-4"
+                      onClick={() => handlePoolSelection(item)}
+                    >
+                      {item.cluster ? item.cluster : "fetching..."}
+                    </td>
+                    <td
+                      className="py-3.5 px-4"
+                      onClick={() => handlePoolSelection(item)}
+                    >
+                      {item.entitled ? item.entitled : 0}
+                    </td>
+                    <td
+                      className="py-3.5 px-4"
+                      onClick={() => handlePoolSelection(item)}
+                    >
+                      {Array.isArray(item.pool_machines) &&
+                      item.pool_machines.length > 0
+                        ? `${item.pool_machines.length} machine${
+                            item.pool_machines.length > 1 ? "s" : ""
+                          }`
+                        : "No machines"}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-      )}
+
+        {/* Pagination Footer */}
+        {total > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-gray-500">
+                Showing{" "}
+                <span className="font-semibold text-gray-700">
+                  {startItem}–{endItem}
+                </span>{" "}
+                of <span className="font-semibold text-gray-700">{total}</span>{" "}
+                pools
+              </span>
+              <div className="flex items-center gap-1.5">
+                <label className="text-xs text-gray-500 whitespace-nowrap">
+                  Rows per page:
+                </label>
+                <select
+                  value={pageSize}
+                  onChange={handlePageSizeChange}
+                  className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1a365d] focus:border-[#1a365d] cursor-pointer"
+                >
+                  {PAGE_SIZE_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!has_prev || poolsLoading}
+                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+              </button>
+
+              {getPageNumbers().map((p, idx) =>
+                p === "..." ? (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="px-1.5 text-gray-400 text-xs select-none"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => handlePageChange(p)}
+                    disabled={poolsLoading}
+                    className={`min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border transition-colors disabled:cursor-not-allowed
+                      ${
+                        currentPage === p
+                          ? "bg-[#1a365d] text-white border-[#1a365d] shadow-sm"
+                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                      }`}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!has_next || poolsLoading}
+                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

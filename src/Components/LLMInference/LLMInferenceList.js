@@ -118,6 +118,9 @@ const STATUS_CONFIG = {
   },
 };
 
+
+const ACTION_IN_PROGRESS_STATUSES = ["starting", "restarting", "stopping"];
+
 const getStatusConfig = (status) =>
   STATUS_CONFIG[status] || {
     label: status || "Unknown",
@@ -441,7 +444,6 @@ const LLMInference = () => {
                   />
                 </th>
                 <th className="py-3 px-4">Name</th>
-                <th className="py-3 px-4">OS Type</th>
                 <th className="py-3 px-4">Storage</th>
                 <th className="py-3 px-4">Head IP</th>
                 <th className="py-3 px-4">Template</th>
@@ -490,9 +492,6 @@ const LLMInference = () => {
                       </td>
                       <td className="py-3.5 px-4 text-gray-900 font-semibold max-w-[160px] truncate">
                         {item.name}
-                      </td>
-                      <td className="py-3.5 px-4 text-gray-600 capitalize">
-                        {item.pool_os_type || "-"}
                       </td>
                       <td className="py-3.5 px-4 text-gray-600">
                         {item.storage || "-"}
@@ -796,14 +795,6 @@ const LLMInference = () => {
                 <div className="border-t border-gray-200/60 pt-2 col-span-2" />
                 <div>
                   <span className="text-gray-400 font-semibold block uppercase tracking-wide">
-                    OS Type
-                  </span>
-                  <span className="text-gray-900 font-medium block mt-0.5 capitalize">
-                    {selectedPoolForDrawer.pool_os_type || "-"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-400 font-semibold block uppercase tracking-wide">
                     Storage
                   </span>
                   <span className="text-gray-900 font-mono block mt-0.5">
@@ -939,21 +930,30 @@ const LLMInference = () => {
                     "text-gray-700 hover:bg-gray-100 hover:border-gray-400",
                   iconColor: "text-gray-600",
                 },
-              ].map(({ action, label, Icon, color, iconColor }) => (
-                <button
-                  key={action}
-                  onClick={() => handlePoolAction(action)}
-                  disabled={!!drawerActionLoading}
-                  className={`flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${color}`}
-                >
-                  {drawerActionLoading === action ? (
-                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Icon className={`h-4 w-4 ${iconColor}`} />
-                  )}
-                  {label}
-                </button>
-              ))}
+              ].map(({ action, label, Icon, color, iconColor }) => {
+                // While any action is in progress (locally or per the pool's
+                // own DB status), only "stop" (force power off) stays usable --
+                // it's the escape hatch to kill a stuck operation.
+                const inProgress =
+                  !!drawerActionLoading ||
+                  ACTION_IN_PROGRESS_STATUSES.includes(selectedPoolForDrawer.status);
+                const isDisabled = inProgress && action !== "stop";
+                return (
+                  <button
+                    key={action}
+                    onClick={() => !isDisabled && handlePoolAction(action)}
+                    disabled={isDisabled}
+                    className={`flex flex-col items-center justify-center p-2.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${color}`}
+                  >
+                    {drawerActionLoading === action ? (
+                      <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Icon className={`h-4 w-4 ${iconColor}`} />
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </>
