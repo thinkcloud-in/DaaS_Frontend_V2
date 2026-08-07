@@ -84,7 +84,7 @@ const ServicePanel = ({ application }) => {
 
 // ── Open WebUI: Private LLM panel ─────────────────────────────────────────────
 // Lists already-deployed, running Private LLM instances (from the separate
-// /v1/llm-inference-v2/deployed endpoint — not the app-deploy list). Loads
+// /v1/llm-inference/deployed endpoint — not the app-deploy list). Loads
 // one page at a time and fetches the next page as the panel is scrolled.
 const PRIVATE_LLM_PAGE_SIZE = 10;
 
