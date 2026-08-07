@@ -127,9 +127,14 @@ export const fetchDeployedPrivateLLMs = async ({ page = 1, pageSize = 10 } = {})
 };
 
 // Configures Keycloak SSO login for a deployed Open WebUI instance.
-// TODO: no endpoint published for this yet — wire up once available.
-export const setOpenWebUiKeycloakConfig = async (applicationId, payload) => {
-    throw new Error("Open WebUI Keycloak SSO configuration API is not available yet.");
+export const setOpenWebUiKeycloakConfig = async (applicationId, { keycloakUrl, realm, clientId, clientSecret }) => {
+    const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy/${applicationId}/connect-keycloak`, {
+        keycloak_url:  keycloakUrl,
+        realm,
+        client_id:     clientId,
+        client_secret: clientSecret,
+    });
+    return normalizeApplication(res.data?.data || res.data);
 };
 
 // Connects a deployed Vector DB instance to a deployed Open WebUI instance.
