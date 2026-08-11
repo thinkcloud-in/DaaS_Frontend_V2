@@ -43,7 +43,12 @@ import {
   ChevronDownIcon,
   ClipboardDocumentIcon,
   CheckIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  KeyIcon,
 } from "@heroicons/react/24/outline";
+
+import { getEnv } from "utils/getEnv";
 
 const MACHINE_STATUS_CONFIG = {
   running: {
@@ -144,7 +149,6 @@ const LLMInferenceMachines = () => {
   const detailLoading = useSelector(selectPrivateLLMDetailLoading);
   const totpAdminEnabled = useSelector(selectTotpAdminEnabled);
   const gc = useContext(GrafanaToolbarContext);
-  const grafanaBase = "https://devraq.dev.team/grafana"; //`${window.location.origin}/grafana`;
 
   const passedPool = location.state?.poolData;
   const poolId = paramId || passedPool?.id;
@@ -157,7 +161,8 @@ const LLMInferenceMachines = () => {
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [showConnectionInfo, setShowConnectionInfo] = useState(false);
-  const [endpointCopied, setEndpointCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState(null); // "endpoint" | "apiKey" | null
+  const [apiKeyVisible, setApiKeyVisible] = useState(false);
 
   const MACHINE_PAGE_SIZE = 5;
   const actionDropdownRef = useRef(null);
@@ -206,10 +211,10 @@ const LLMInferenceMachines = () => {
       dispatch(fetchPrivateLLMByIdThunk({ token, id: poolId }));
   };
 
-  const handleCopyEndpoint = (url) => {
+  const handleCopyToClipboard = (text, field) => {
     const showCopied = () => {
-      setEndpointCopied(true);
-      setTimeout(() => setEndpointCopied(false), 2000);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
     };
 
     // navigator.clipboard is only available in a secure context (HTTPS or
@@ -217,14 +222,17 @@ const LLMInferenceMachines = () => {
     // often accessed on) it's undefined, so fall back to the legacy
     // execCommand approach via a temporary offscreen textarea.
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(showCopied).catch(() => {
-        toast.error("Failed to copy to clipboard");
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(showCopied)
+        .catch(() => {
+          toast.error("Failed to copy to clipboard");
+        });
       return;
     }
 
     const textarea = document.createElement("textarea");
-    textarea.value = url;
+    textarea.value = text;
     textarea.style.position = "fixed";
     textarea.style.opacity = "0";
     document.body.appendChild(textarea);
@@ -296,14 +304,24 @@ const LLMInferenceMachines = () => {
     setShowTotpVerify(false);
     executePoolDelete(totpCode);
   };
+  const grafanaUrl = getEnv("GRAFANA_URL");
+  const dashboardUid = getEnv("PRIVATELLM_MONITORING_DASHBOARD_UUID");
+  const dashboardName = getEnv("PRIVATELLM_MONITORING_DASHBOARD_NAME");
+  // const dashboardSlug = (dashboardName || "")
+  //   .trim()
+  //   .toLowerCase()
+  //   .replace(/[^a-z0-9]+/g, "-")
+  //   .replace(/^-+|-+$/g, "");
 
   const grafanaIframeSrc =
-    `${grafanaBase}/d/dcfca114-136e-4213-b86f-75152b7865b6/gpu-per-gpu-matrix` +
+    `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
     `&theme=light` +
+    `&disableLazyLoad=true` +
     `&kiosk`;
+  console.log("------------------------->", grafanaIframeSrc);
 
   const pool = poolDetail || passedPool || {};
   const totalMachinePages = Math.max(
@@ -382,26 +400,80 @@ const LLMInferenceMachines = () => {
                         {pool.endpoint_url}
                       </span>
                       <button
-                        onClick={() => handleCopyEndpoint(pool.endpoint_url)}
+                        onClick={() =>
+                          handleCopyToClipboard(pool.endpoint_url, "endpoint")
+                        }
                         className={`flex-shrink-0 p-2 rounded-md transition-all ${
-                          endpointCopied
+                          copiedField === "endpoint"
                             ? "bg-emerald-500/20 text-emerald-400"
                             : "bg-white/10 hover:bg-white/20 text-gray-200"
                         }`}
                         title="Copy to clipboard"
                       >
-                        {endpointCopied ? (
+                        {copiedField === "endpoint" ? (
                           <CheckIcon className="h-4 w-4" />
                         ) : (
                           <ClipboardDocumentIcon className="h-4 w-4" />
                         )}
                       </button>
                     </div>
-                    {endpointCopied && (
+                    {copiedField === "endpoint" && (
                       <p className="text-[11px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
                         <CheckIcon className="h-3 w-3" />
                         Copied to clipboard
                       </p>
+                    )}
+
+                    {pool.api_key && (
+                      <>
+                        <p className="text-[11px] text-gray-400 mt-4 mb-2 flex items-center gap-1">
+                          <KeyIcon className="h-3.5 w-3.5" />
+                          Bearer token — required in the{" "}
+                          <span className="font-mono">Authorization</span>{" "}
+                          header.
+                        </p>
+                        <div className="flex items-center gap-2 bg-[#0f172a] rounded-lg p-3 border border-gray-700/50 shadow-inner">
+                          <span className="flex-1 font-mono text-xs text-amber-400 break-all leading-relaxed">
+                            {apiKeyVisible
+                              ? pool.api_key
+                              : "•".repeat(Math.min(pool.api_key.length, 32))}
+                          </span>
+                          <button
+                            onClick={() => setApiKeyVisible((v) => !v)}
+                            className="flex-shrink-0 p-2 rounded-md bg-white/10 hover:bg-white/20 text-gray-200 transition-all"
+                            title={apiKeyVisible ? "Hide token" : "Show token"}
+                          >
+                            {apiKeyVisible ? (
+                              <EyeSlashIcon className="h-4 w-4" />
+                            ) : (
+                              <EyeIcon className="h-4 w-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleCopyToClipboard(pool.api_key, "apiKey")
+                            }
+                            className={`flex-shrink-0 p-2 rounded-md transition-all ${
+                              copiedField === "apiKey"
+                                ? "bg-emerald-500/20 text-emerald-400"
+                                : "bg-white/10 hover:bg-white/20 text-gray-200"
+                            }`}
+                            title="Copy to clipboard"
+                          >
+                            {copiedField === "apiKey" ? (
+                              <CheckIcon className="h-4 w-4" />
+                            ) : (
+                              <ClipboardDocumentIcon className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                        {copiedField === "apiKey" && (
+                          <p className="text-[11px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                            <CheckIcon className="h-3 w-3" />
+                            Copied to clipboard
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -689,9 +761,7 @@ const LLMInferenceMachines = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full mb-6 shrink-0">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
           <ChartBarIcon className="h-4 w-4 text-[#1a365d]" />
-          <h2 className="text-sm font-bold text-gray-800">
-            GPU Per-GPU Matrix
-          </h2>
+          <h2 className="text-sm font-bold text-gray-800">LLM Metrics</h2>
         </div>
         <div
           style={{
@@ -708,7 +778,7 @@ const LLMInferenceMachines = () => {
           <AutoRefresh />
         </div>
         <iframe
-          title="gpu-per-gpu-matrix"
+          title="LLM Metrics"
           src={grafanaIframeSrc}
           width="100%"
           height="450"
@@ -904,7 +974,6 @@ const LLMInferenceMachines = () => {
                   </div>
                 ) : null;
               })()}
-
             </div>
 
             <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-2">

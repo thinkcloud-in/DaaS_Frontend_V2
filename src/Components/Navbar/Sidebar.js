@@ -186,12 +186,12 @@ const Sidebar = ({ tokenParsed }) => {
           },
           {
             name: "Private LLM",
-            href: "/inference", // ✅ Changed to /inference
+            href: "/inference",
             submenus: [],
           },
           {
             name: "Agentic AI",
-            href: "/ai-agent", // ✅ Changed to /ai-agent
+            href: "/ai-agent", 
             submenus: [],
           },
           {

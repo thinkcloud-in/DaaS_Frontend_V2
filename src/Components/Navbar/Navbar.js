@@ -1,11 +1,27 @@
-import { Fragment } from "react";
-import { Disclosure, Menu, Transition } from "@headlessui/react";
+import { Fragment, useState } from "react";
+import { Disclosure, Dialog, Transition } from "@headlessui/react";
 import "./Navbar.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   BellIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import keycloakConfig from "../Login/keycloak/keycloak";
+
+// Keycloak always includes these on every user's token -- never meaningful
+// to show as "the" role, so they're filtered out when picking a display role.
+const _DEFAULT_KEYCLOAK_ROLES = new Set(["offline_access", "uma_authorization"]);
+
+function getDisplayRole(tokenParsed) {
+  const roles = tokenParsed?.realm_access?.roles || [];
+  const real = roles.filter(
+    (r) => !_DEFAULT_KEYCLOAK_ROLES.has(r) && !r.startsWith("default-roles-"),
+  );
+  if (!real.length) return null;
+  // Prefer "admin"-like roles if present, otherwise just show the first one.
+  const admin = real.find((r) => r.toLowerCase().includes("admin"));
+  return admin || real[0];
+}
 
 const navigation = [
   { name: "Dashboard", href: "/", current: false, beta: false },
@@ -47,6 +63,8 @@ export default function Navbar(tokenParsed) {
 
   let nameoftheuser=tokenParsed.tokenParsed.preferred_username
   const profileicon=nameoftheuser.charAt(0)
+  const displayRole = getDisplayRole(tokenParsed.tokenParsed)
+  const [showIdCard, setShowIdCard] = useState(false)
 
   updateCurrentPage();
 
@@ -67,62 +85,93 @@ export default function Navbar(tokenParsed) {
                   <span className="sr-only">View notifications</span>
                   <BellIcon className="h-6 w-6" aria-hidden="true" />
                 </button>
-                {/* Profile dropdown */}
-                <Menu as="div" className="relative mx-1 z-100">
-                  <div>
-                    <Menu.Button className="relative flex rounded-full text-sm text-[#afb8c4] hover:text-[#f5f5f5] z-100">
-                      <span className="absolute -inset-1.5" />
-                      <div className="rounded-full text-lg bg-[#f5f5f5] text-[#1a365d]/80 uppercase w-9 h-9 flex items-center justify-center border border-gray-500 border-solid profileicon">
-                        {profileicon}
-                      </div>
-                     
-                    </Menu.Button>
+                {/* Profile -> opens centered ID-card modal */}
+                <button
+                  type="button"
+                  onClick={() => setShowIdCard(true)}
+                  className="relative flex rounded-full text-sm text-[#afb8c4] hover:text-[#f5f5f5] z-100"
+                >
+                  <span className="absolute -inset-1.5" />
+                  <div className="rounded-full text-lg bg-[#f5f5f5] text-[#1a365d]/80 uppercase w-9 h-9 flex items-center justify-center border border-gray-500 border-solid profileicon">
+                    {profileicon}
                   </div>
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-100"
-                    enterFrom="transform opacity-0 scale-95"
-                    enterTo="transform opacity-100 scale-100"
-                    leave="transition ease-in duration-75"
-                    leaveFrom="transform opacity-100 scale-100"
-                    leaveTo="transform opacity-0 scale-95"
-                  >
-                    <Menu.Items className="absolute left-full top-1/2 -translate-y-2/3 z-50 ml-2 w-48 origin-left rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                    
-                      <Menu.Item>
-                        {({ active }) => (
-                          <div
-                           
-                            className={classNames(
-                              active ? "bg-white hover:bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700 bg-[#f5f5f5]"
+                </button>
+
+                <Transition appear show={showIdCard} as={Fragment}>
+                  <Dialog as="div" className="relative z-[200]" onClose={() => setShowIdCard(false)}>
+                    <Transition.Child
+                      as={Fragment}
+                      enter="ease-out duration-200"
+                      enterFrom="opacity-0"
+                      enterTo="opacity-100"
+                      leave="ease-in duration-150"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                      <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-200"
+                        enterFrom="opacity-0 scale-95"
+                        enterTo="opacity-100 scale-100"
+                        leave="ease-in duration-150"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-95"
+                      >
+                        <Dialog.Panel className="w-56 rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden">
+                          {/* ── ID card ── */}
+                          <div className="relative bg-gradient-to-b from-[#2a4a85] to-[#16305c] pt-3 pb-4 flex flex-col items-center">
+                            {/* lanyard punch hole */}
+                            <div className="w-8 h-2.5 rounded-full bg-black/30 mb-2.5" />
+
+                            <p className="text-[11px] font-extrabold tracking-[0.15em] text-white/90 uppercase">
+                              Thinkcloud
+                            </p>
+                            <div className="w-10 h-[2px] bg-white/25 rounded-full my-2" />
+
+                            <div className="rounded-full text-xl font-bold bg-white text-[#1a365d] uppercase w-16 h-16 flex items-center justify-center border-4 border-white/30 shadow-md">
+                              {profileicon}
+                            </div>
+
+                            <p className="text-sm font-semibold text-white mt-2.5 truncate max-w-[85%]" title={nameoftheuser}>
+                              {nameoftheuser}
+                            </p>
+                            {displayRole && (
+                              <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-white/15 text-white/90 border border-white/20">
+                                {displayRole}
+                              </span>
                             )}
-                            style={{ borderRadius: '1px', borderBottom: '1px solid gray' }}
-                          >
-                            {nameoftheuser}
                           </div>
-                        )}
-                      </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <a
-                            href="#"
-                            className={classNames(
-                              active ? "bg-[white] hover:bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700"
-                            )}
+
+                          {/* barcode strip -- purely decorative ID-card flavor */}
+                          <div
+                            className="h-3 w-full opacity-70"
+                            style={{
+                              backgroundImage:
+                                "repeating-linear-gradient(90deg, #1a1a1a 0px, #1a1a1a 2px, transparent 2px, transparent 4px, #1a1a1a 4px, #1a1a1a 5px, transparent 5px, transparent 8px)",
+                            }}
+                          />
+
+                          <button
+                            type="button"
+                            title="Sign out"
                             onClick={() => {
                               keycloakConfig.logout();
                               localStorage.clear();
                             }}
+                            className="w-full flex flex-col items-center justify-center gap-1 py-3 bg-red-500/90 hover:bg-red-600 text-white text-xs font-semibold transition-colors"
                           >
+                            <ArrowRightOnRectangleIcon className="h-5 w-5" />
                             Sign out
-                          </a>                        
-                        )}
-                      </Menu.Item>
-                    </Menu.Items>
-                  </Transition>
-                </Menu>
+                          </button>
+                        </Dialog.Panel>
+                      </Transition.Child>
+                    </div>
+                  </Dialog>
+                </Transition>
               </div>
             </div>
           </div>
