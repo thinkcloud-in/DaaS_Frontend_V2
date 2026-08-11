@@ -41,6 +41,17 @@ const normalizeApplication = (raw) => {
                   headIp:      llm.head_ip ?? "",
               }))
             : [],
+        // Keycloak SSO — connect/disconnect are now a plain toggle (no config
+        // form), so this is just a boolean. `keycloak_config` still gets kept
+        // around (when it's an object) purely for optional detail display.
+        keycloakConnected: !!raw.keycloak_config,
+        keycloakConfig: raw.keycloak_config && typeof raw.keycloak_config === "object"
+            ? {
+                  keycloakUrl: raw.keycloak_config.keycloak_url ?? "",
+                  realm:       raw.keycloak_config.realm ?? "",
+                  clientId:    raw.keycloak_config.client_id ?? "",
+              }
+            : null,
         // { step, label, pct } while deploying; stepsLog is the raw event timeline.
         progress:     raw.progress ?? null,
         stepsLog:     raw.steps_log ?? [],
@@ -126,14 +137,16 @@ export const fetchDeployedPrivateLLMs = async ({ page = 1, pageSize = 10 } = {})
     };
 };
 
-// Configures Keycloak SSO login for a deployed Open WebUI instance.
-export const setOpenWebUiKeycloakConfig = async (applicationId, { keycloakUrl, realm, clientId, clientSecret }) => {
-    const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy/${applicationId}/connect-keycloak`, {
-        keycloak_url:  keycloakUrl,
-        realm,
-        client_id:     clientId,
-        client_secret: clientSecret,
-    });
+// Enables Keycloak SSO login for a deployed Open WebUI instance — no config
+// body needed, the backend uses its own Keycloak settings.
+export const connectOpenWebUiKeycloak = async (applicationId) => {
+    const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy/${applicationId}/connect-keycloak`, {});
+    return normalizeApplication(res.data?.data || res.data);
+};
+
+// Disables Keycloak SSO login for a deployed Open WebUI instance.
+export const disconnectOpenWebUiKeycloak = async (applicationId) => {
+    const res = await axiosInstance.delete(`${backendUrl}/v1/app-deploy/${applicationId}/connect-keycloak`);
     return normalizeApplication(res.data?.data || res.data);
 };
 
