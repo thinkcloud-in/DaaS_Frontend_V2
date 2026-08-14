@@ -451,36 +451,46 @@ const ManagePool = (props) => {
     setConfirmDeletePool(true);
   };
 
-  const handleConfirmedDeletePool = async () => {
-    setIsLoading(true);
-    // use the top-level selector-derived userEmail
-    try {
-      // dispatch the imported thunk named `deletePool`
-      const res = await dispatch(
-        deletePool({ token, poolId: selectedPoolDetails.id, userEmail }),
-      ).unwrap();
-      const payload = res || {};
-      if (payload.pools) {
-        dispatch(setAvailablePools(payload.pools));
-      }
-      toast.success(payload.msg || "Pool deleted successfully", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Slide,
+  const handleConfirmedDeletePool = () => {
+    // Deletion now runs in the background on the server (Temporal workflow,
+    // not awaited by the API call) -- so the UI doesn't block waiting for
+    // it either. Close the modal and navigate away immediately, same as
+    // Private LLM Pools' delete flow, instead of holding the confirm button
+    // in a spinning state until the whole deletion finishes.
+    const poolName = selectedPoolDetails.pool_name;
+    setConfirmDeletePool(false);
+    dispatch(deletePool({ token, poolId: selectedPoolDetails.id, userEmail }))
+      .unwrap()
+      .catch((err) => {
+        toast.error(
+          typeof err === "string"
+            ? err
+            : err?.detail || err?.message || "Failed to start pool deletion",
+          {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Slide,
+          },
+        );
       });
-      navigate("/pools");
-    } catch (err) {
-      setIsLoading(false);
-    } finally {
-      setIsLoading(false);
-      setConfirmDeletePool(false);
-    }
+    toast.success(`Deleting pool "${poolName}"...`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Slide,
+    });
+    navigate("/pools");
   };
 
   const [rebuildModalOpen, setRebuildModalOpen] = useState(false);

@@ -176,22 +176,32 @@ export default function Auto_Mail() {
     navigate(-1);
   };
   return (
-    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] bg-white rounded-lg flex flex-col justify-start text-center m-auto mt-[1.125rem] font-inter overflow-auto md:overflow-hidden p-2 md:p-4 shadow-lg border border-gray-100">
-      <div className="w-full ">
-        <nav className="flex items-center mb-6 md:mb-12 w-full rounded-md h-[60px] relative border-b-2 border-gray-100">
-          <div
+    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+      {/* Header */}
+      <div className="flex items-center gap-3 pb-6 border-b border-gray-200 mb-6 w-full">
+        <div
           onClick={Goback}
-          className="ml-2 bg-[#1a365d]/80 text-[#f5f5f5] px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 cursor-pointer"
+          className="bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
         </div>
-          <h2 className="text-[1.5rem] md:text-[1.7rem] font-bold text-[#1a365d] mx-auto">Schedule</h2>
-        </nav>
-        <div className={`w-[95%] max-w-4xl bg-white p-4 md:p-8 rounded-lg shadow-md flex flex-col mx-auto border border-gray-100 ${scheduleSaveLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}>
-          <form onSubmit={handleSubmit} className="flex flex-col w-full h-full pr-2 text-left">
-            <div className="flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1a365d]">
+            {reports ? "Edit Schedule" : "Schedule Report"}
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Configure a recurring report to be emailed automatically.
+          </p>
+        </div>
+      </div>
+
+      <div
+        className={`bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-3xl mx-auto p-6 md:p-8 ${scheduleSaveLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col w-full text-left">
+            <div className="flex flex-col gap-4">
 
               <InputField
                 label="Email Address"
@@ -263,38 +273,48 @@ export default function Auto_Mail() {
 
               <div
                 id="container-footer"
-                className="mt-4 p-4 lg:ml-[188px] bg-gray-50 rounded text-left border border-gray-100"
+                className="mt-4 ml-[188px] max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-4 shadow-sm text-left"
                 style={{ display: formData.schedule_type ? "block" : "none" }}
               >
-                <h6 className="text-[14px] text-gray-700 mb-1">
+                <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                  Schedule Preview
+                </p>
+                <h6 className="text-[13px] text-gray-700 mb-1.5">
                   Date Range From: <span className="font-semibold text-[#1a365d]">{formData.report_start}</span>
                 </h6>
-                <h6 className="text-[14px] text-gray-700 mb-1">
+                <h6 className="text-[13px] text-gray-700 mb-1.5">
                   Date Range To: <span className="font-semibold text-[#1a365d]">{formData.report_end}</span>
                 </h6>
-                <h6 className="text-[14px] text-gray-700">
+                <h6 className="text-[13px] text-gray-700">
                   Reports generated on: <span className="font-semibold text-[#1a365d]">{formData.schedule_date}</span> at <span className="font-semibold text-[#1a365d]">{formData.time}</span>
                 </h6>
               </div>
             </div>
 
-            <div className="flex justify-start lg:ml-[188px] mt-6 w-full">
-              {scheduleSaveLoading ? (
-                <div className="flex items-center gap-2 px-6 py-2 rounded bg-[#1a365d] text-[#f5f5f5] cursor-wait shadow-sm">
-                  <CircularProgress size={16} style={{ color: "#f5f5f5" }} />
-                  <span className="text-sm font-medium">Submitting...</span>
-                </div>
-              ) : (
-                <button
-                  type="submit"
-                  className="px-6 py-2 rounded bg-[#1a365d]/80 text-[#f5f5f5] hover:bg-[#1a365d] transition-all font-medium shadow-sm active:scale-95"
-                >
-                  {reports ? "Update Scheduler" : "Submit"}
-                </button>
-              )}
+            <div className="flex justify-end gap-3 mt-8 w-full">
+              <button
+                type="button"
+                onClick={Goback}
+                className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={scheduleSaveLoading}
+                className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white bg-[#1a365d] rounded-lg hover:bg-[#122744] disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+              >
+                {scheduleSaveLoading && (
+                  <CircularProgress size={14} style={{ color: "#fff" }} />
+                )}
+                {scheduleSaveLoading
+                  ? "Submitting..."
+                  : reports
+                    ? "Update Scheduler"
+                    : "Submit"}
+              </button>
             </div>
           </form>
-        </div>
       </div>
     </div>
   );

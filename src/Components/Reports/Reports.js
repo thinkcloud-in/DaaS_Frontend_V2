@@ -177,130 +177,120 @@ const Reports = (tokenParsed) => {
   
   // schedule navigation removed (was unused)
   return (
-    <div className="Reports_main_container w-[98%] m-auto mt-5 p-5 rounded-[10px] bg-white overflow-hidden">
-      <div className="Report_page">
-        <div className="Reports_name">
-          {/* <h1>Reports</h1> */}
-          <div className="reports_title">
-            <button
-              className="report_type"
-              type="button"
-              
-            >
-              Horizon Reports
-            </button>
-          
-           
-          </div>
-        </div>
+    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+      {/* Header */}
+      <div className="pb-6 border-b border-gray-200 mb-6 w-full">
+        <h1 className="text-2xl font-bold text-[#1a365d]">Horizon Reports</h1>
+        <p className="text-xs text-gray-500 mt-1">
+          Generate and export session, daily, and consolidated usage reports.
+        </p>
+      </div>
 
-        {showHorizonReports && (
-          <form className="report-form" onSubmit={handleSubmit}>
-            <div className="form_main_container">
-              <div className="form_sub_container">
-                <div className="form-group">
-                  <label>Date Range : </label>
-
-                  <RangePicker
-                    onChange={handleValueChange}
-                    showTime={{
-                      hideDisabledOptions: true,
-                      defaultValue: [
-                        dayjs("00:00:00", "HH:mm:ss"),
-                        dayjs("23:59:59", "HH:mm:ss"),
-                      ],
-                    }}
-                    format="YYYY-MM-DD HH:mm:ss"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="user">Select User : </label>
-                  <select
-                    id="user"
-                    value={user}
-                    onChange={(e) => dispatch(setUser(e.target.value))}
-                  >
-                    <option value="All Users">All Users</option>
-                    {userOptions.map((userName, index) => (
-                      <option key={index} value={userName}>
-                        {userName}
-                      </option>
-                    ))}
-                  </select>
-                  {loader && (
-                    <ColorRing
-                      visible={true}
-                      height="50"
-                      width="50"
-                      ariaLabel="color-ring-loading"
-                      wrapperStyle={{}}
-                      wrapperClass="color-ring-wrapper"
-                      colors={[
-                        "#1a365dcc",
-                        "#1a365dcc",
-                        "#1a365dcc",
-                        "#1a365dcc",
-                        "#1a365dcc",
-                      ]}
-                    />
-                  )}
-                </div>
+      {showHorizonReports && (
+        <form
+          className="w-full flex flex-col"
+          onSubmit={handleSubmit}
+        >
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6 w-full">
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                  Date Range:
+                </label>
+                <RangePicker
+                  onChange={handleValueChange}
+                  showTime={{
+                    hideDisabledOptions: true,
+                    defaultValue: [
+                      dayjs("00:00:00", "HH:mm:ss"),
+                      dayjs("23:59:59", "HH:mm:ss"),
+                    ],
+                  }}
+                  format="YYYY-MM-DD HH:mm:ss"
+                />
               </div>
-              <div className="tab_container">
-                
-                <div className="tab_header">
-                  <div className="tab_buttons_group">
-                    <button
-                      className={`tab_button ${
-                        activeTab === "session" ? "active" : ""
-                      }`}
-                      type="button"
-                      onClick={() => {
-                        dispatch(setActiveTab("session"));
-                        fetchSessionReportsLocal();
-                      }}
-                    >
-                      Session Reports
-                    </button>
-                    <button
-                      className={`tab_button ${
-                        activeTab === "day" ? "active" : ""
-                      }`}
-                      type="button"
-                      onClick={() => {
-                        dispatch(setActiveTab("day"));
-                        fetchDayReportsLocal();
-                      }}
-                    >
-                      Day Reports
-                    </button>
-                    <button
-                      className={`tab_button ${
-                        activeTab === "consolidate" ? "active" : ""
-                      }`}
-                      type="button"
-                      onClick={() => {
-                        dispatch(setActiveTab("consolidate"));
-                        fetchConsolidateReportsLocal();
-                      }}
-                    >
-                      Consolidate Reports
-                    </button>
-                  </div>
-                  {print && (
-                    <button
-                      className="button"
-                      type="button"
-                      onClick={handlePrint}
-                    >
-                      Print
-                    </button>
-                  )}
-                </div>
-                {dateRange.start === "" && dateRange.end === "" && <div className="text-gray-500 mt-20 ">Please select Date Range</div>}
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="user"
+                  className="text-sm font-medium text-gray-500 whitespace-nowrap"
+                >
+                  Select User:
+                </label>
+                <select
+                  id="user"
+                  value={user}
+                  onChange={(e) => dispatch(setUser(e.target.value))}
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d]"
+                >
+                  <option value="All Users">All Users</option>
+                  {userOptions.map((userName, index) => (
+                    <option key={index} value={userName}>
+                      {userName}
+                    </option>
+                  ))}
+                </select>
+                {loader && (
+                  <ColorRing
+                    visible={true}
+                    height="28"
+                    width="28"
+                    ariaLabel="color-ring-loading"
+                    wrapperStyle={{}}
+                    wrapperClass="color-ring-wrapper"
+                    colors={[
+                      "#1a365dcc",
+                      "#1a365dcc",
+                      "#1a365dcc",
+                      "#1a365dcc",
+                      "#1a365dcc",
+                    ]}
+                  />
+                )}
               </div>
             </div>
-            <div ref={componentRef}>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full overflow-hidden">
+            <div className="flex items-center justify-between px-5 pt-4 border-b border-gray-200">
+              <div className="flex gap-6">
+                {[
+                  { key: "session", label: "Session Reports", onClick: fetchSessionReportsLocal },
+                  { key: "day", label: "Day Reports", onClick: fetchDayReportsLocal },
+                  { key: "consolidate", label: "Consolidate Reports", onClick: fetchConsolidateReportsLocal },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    className={`pb-3 text-sm relative transition-all duration-300 ${
+                      activeTab === tab.key
+                        ? "text-[#1a365d] font-semibold after:content-[''] after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
+                        : "text-gray-600 hover:text-[#1a365d]"
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      dispatch(setActiveTab(tab.key));
+                      tab.onClick();
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              {print && (
+                <button
+                  className="flex items-center gap-1.5 px-4 py-2 mb-2 rounded-md bg-[#1a365d] text-white hover:bg-[#153056] text-xs font-semibold shadow-sm transition-all"
+                  type="button"
+                  onClick={handlePrint}
+                >
+                  Print
+                </button>
+              )}
+            </div>
+            {dateRange.start === "" && dateRange.end === "" && (
+              <div className="text-gray-400 text-sm text-center py-16">
+                Please select a date range to view reports.
+              </div>
+            )}
+            <div ref={componentRef} className={dateRange.start ? "px-5 pb-5" : ""}>
               {/* Display Session Reports */}
 
               {showSessionReports && sessionReports.length > 0 && (
@@ -548,10 +538,9 @@ const Reports = (tokenParsed) => {
                 </div>
               )}
             </div>
-          </form>
-        )}
-     
-      </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 };
