@@ -6,12 +6,16 @@ const backendUrl = getEnv("BACKEND_URL");
 // Step 1: POST metadata only — returns item_id in <100ms
 // The backend derives the item's name from the uploaded file itself, so no
 // `name` field is sent here.
-export const createLibraryItem = async (token, { fileName, fileSize, type, harborRegistryId, version, metadata }) => {
+export const createLibraryItem = async (token, { fileName, fileSize, type, harborRegistryId, version, ownerName, name, metadata }) => {
     const body = { file_name: fileName };
     if (fileSize != null)  body.file_size          = fileSize;
     if (type)               body.type              = type;
     if (harborRegistryId)  body.harbor_registry_id = harborRegistryId;
     if (version)            body.version           = version;
+    // Only sent for Container uploads — everywhere else the backend derives
+    // the item's name automatically.
+    if (ownerName)          body.owner_name        = ownerName;
+    if (name)                body.name              = name;
     // Extracted client-side from the uploaded .zip's version_metadata.json, if present.
     if (metadata)            body.metadata          = metadata;
     const response = await axiosInstance.post(
