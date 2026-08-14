@@ -1,4 +1,4 @@
-import { Globe, Database } from "lucide-react";
+import { Globe, Database, DatabaseZap } from "lucide-react";
 
 // Central registry of deployable application types. Adding a new deployable
 // component (e.g. a future "Redis" or "n8n") is a matter of adding one entry
@@ -22,6 +22,13 @@ export const APP_TYPES = [
         label:   "Vector DB",
         Icon:    Database,
         desc:    "Deploy a Vector Database instance to a connected Kubernetes cluster.",
+    },
+    {
+        id:      "postgresql",
+        apiType: "postgresql",
+        label:   "PostgreSQL",
+        Icon:    DatabaseZap,
+        desc:    "Deploy a PostgreSQL instance to a connected Kubernetes cluster.",
     },
 ];
 

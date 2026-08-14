@@ -60,9 +60,10 @@ export const streamLibraryFile = (token, itemId, file, onProgress, xhrRef) => {
     });
 };
 
-export const fetchLibraryList = async (token, { type, page = 1, pageSize = 10 } = {}) => {
+export const fetchLibraryList = async (token, { type, page = 1, pageSize = 10, harborRegistryId } = {}) => {
     const params = new URLSearchParams({ page, page_size: pageSize });
     if (type) params.append("type", type);
+    if (harborRegistryId) params.append("harbor_registry_id", harborRegistryId);
     const response = await axiosInstance.get(
         `${backendUrl}/v1/library/list?${params}`,
         { headers: { Authorization: `Bearer ${token}` } }
