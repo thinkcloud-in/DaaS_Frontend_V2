@@ -22,6 +22,9 @@ const normalizeApplication = (raw) => {
         nodePort:     raw.node_port ?? null,
         harborUrl:    raw.harbor_url ?? null,
         image:        raw.image ?? null,
+        // Auto-created Open WebUI admin login — absent for other app types.
+        adminEmail:    raw.admin_email ?? null,
+        adminPassword: raw.admin_password ?? null,
         // Currently-linked Vector DB (Open WebUI deployments only) — field name
         // isn't documented on the detail response yet, so check a few likely ones.
         linkedVectorDbId: raw.vectordb_deploy_id ?? raw.connected_vectordb_id ?? raw.linked_vectordb_id ?? null,
@@ -94,15 +97,19 @@ export const fetchApplicationDetail = async (id) => {
 };
 
 // Deploys a new Open WebUI or Vector DB instance.
-export const deployApplication = async ({ name, deploymentType, clusterId, harborId, versionId, namespace }) => {
-    const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy`, {
+// postgresqlDeployId is mandatory when deploymentType is "openwebui" — Open
+// WebUI is deployed against an already-deployed PostgreSQL instance.
+export const deployApplication = async ({ name, deploymentType, clusterId, harborId, versionId, namespace, postgresqlDeployId }) => {
+    const body = {
         name,
         deployment_type:     deploymentType,
         k8s_cluster_id:      Number(clusterId),
         harbor_registry_id:  Number(harborId),
         version_id:          Number(versionId),
         namespace,
-    });
+    };
+    if (postgresqlDeployId) body.postgresql_deploy_id = Number(postgresqlDeployId);
+    const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy`, body);
     return normalizeApplication(res.data?.data || res.data);
 };
 
@@ -148,6 +155,69 @@ export const connectOpenWebUiKeycloak = async (applicationId) => {
 export const disconnectOpenWebUiKeycloak = async (applicationId) => {
     const res = await axiosInstance.delete(`${backendUrl}/v1/app-deploy/${applicationId}/connect-keycloak`);
     return normalizeApplication(res.data?.data || res.data);
+};
+
+// Lists every user registered in the Keycloak realm this Open WebUI instance
+// is connected to (not just the ones who have actually logged in). Paginated
+// — the realm can easily have 100+ users.
+export const fetchKeycloakUsers = async (applicationId, { page = 1, pageSize = 10, search } = {}) => {
+    const params = new URLSearchParams({ page, page_size: pageSize });
+    if (search) params.append("search", search);
+    const res = await axiosInstance.get(`${backendUrl}/v1/app-deploy/${applicationId}/keycloak-users?${params}`);
+    const envelope = res.data ?? {};
+    const body = envelope.data ?? envelope;
+    const items = Array.isArray(body.users) ? body.users : (Array.isArray(body) ? body : []);
+    const pg = body.pagination || {};
+    return {
+        items,
+        pagination: {
+            page:       pg.page ?? page,
+            totalPages: pg.total_pages ?? 1,
+            total:      pg.total ?? items.length,
+        },
+    };
+};
+
+// Shared response parsing for the ow-admin-users / ow-member-users endpoints
+// — paginated + searchable, same envelope shape as fetchKeycloakUsers.
+const parseOwUsersResponse = (res, page) => {
+    const envelope = res.data ?? {};
+    const body = envelope.data ?? envelope;
+    const items = Array.isArray(body.users) ? body.users : (Array.isArray(body.items) ? body.items : (Array.isArray(body) ? body : []));
+    const pg = body.pagination || {};
+    return {
+        items,
+        pagination: {
+            page:       pg.page ?? page,
+            totalPages: pg.total_pages ?? 1,
+            total:      pg.total ?? items.length,
+        },
+    };
+};
+
+// Lists Open WebUI users with the "admin" role.
+export const fetchOpenWebUiAdminUsers = async (applicationId, { page = 1, pageSize = 10, search } = {}) => {
+    const params = new URLSearchParams({ page, page_size: pageSize });
+    if (search) params.append("search", search);
+    const res = await axiosInstance.get(`${backendUrl}/v1/app-deploy/${applicationId}/ow-admin-users?${params}`);
+    return parseOwUsersResponse(res, page);
+};
+
+// Lists Open WebUI users with the "user" (member) role.
+export const fetchOpenWebUiMemberUsers = async (applicationId, { page = 1, pageSize = 10, search } = {}) => {
+    const params = new URLSearchParams({ page, page_size: pageSize });
+    if (search) params.append("search", search);
+    const res = await axiosInstance.get(`${backendUrl}/v1/app-deploy/${applicationId}/ow-member-users?${params}`);
+    return parseOwUsersResponse(res, page);
+};
+
+// Assigns roles to one or more Keycloak users in a single call — each entry
+// can have a different role. assignments: [{ userId, role }].
+export const assignOpenWebUiRoles = async (applicationId, assignments) => {
+    const res = await axiosInstance.post(`${backendUrl}/v1/app-deploy/${applicationId}/assign-roles`, {
+        assignments: assignments.map(({ userId, role }) => ({ user_id: userId, role })),
+    });
+    return res.data;
 };
 
 // Connects a deployed Vector DB instance to a deployed Open WebUI instance.

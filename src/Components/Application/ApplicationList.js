@@ -156,36 +156,36 @@ const ApplicationList = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left border-collapse">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[20%]">Name</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[14%]">Type</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[16%]">Namespace</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">
+                        <thead>
+                            <tr className="bg-[#1a365d] text-white text-sm font-semibold select-none">
+                                <th className="py-3.5 px-6">Name</th>
+                                <th className="py-3.5 px-6">Type</th>
+                                <th className="py-3.5 px-6">Namespace</th>
+                                <th className="py-3.5 px-6">
                                     <span className="inline-flex items-center gap-1"><Server className="h-3 w-3" /> Cluster</span>
                                 </th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[12%]">Status</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">
+                                <th className="py-3.5 px-6 text-center">Status</th>
+                                <th className="py-3.5 px-6">
                                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Created</span>
                                 </th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[8%] text-right">Actions</th>
+                                <th className="py-3.5 px-6 text-center w-24">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
                             {loading && applications.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="p-12 text-center">
+                                    <td colSpan="7" className="py-12 text-center text-gray-400">
                                         <Loader2 className="h-5 w-5 text-[#1a365d] animate-spin mx-auto mb-2" />
-                                        <p className="text-xs text-gray-400">Loading applications...</p>
+                                        Loading applications...
                                     </td>
                                 </tr>
                             ) : applications.length === 0 ? (
                                 <tr>
-                                    <td colSpan="7" className="p-12 text-center">
+                                    <td colSpan="7" className="py-12 text-center text-gray-400">
                                         <Layers className="h-7 w-7 text-gray-300 mx-auto mb-2" />
                                         <p className="text-sm font-medium text-gray-500">No applications deployed yet</p>
                                         <p className="text-xs text-gray-400 mt-1">
-                                            Click <span className="font-semibold">Deploy Open WebUI</span> or <span className="font-semibold">Deploy Vector DB</span> above to get started.
+                                            Click <span className="font-semibold">Deploy</span> above to get started.
                                         </p>
                                     </td>
                                 </tr>
@@ -197,27 +197,29 @@ const ApplicationList = () => {
                                         <tr
                                             key={app.id}
                                             onClick={() => navigate(`/application/detail/${app.id}`, { state: { applicationData: app } })}
-                                            className={`cursor-pointer transition-colors ${isActive(app.status) ? "bg-blue-50/20" : "hover:bg-gray-50/40"}`}
+                                            className="hover:bg-blue-50/20 cursor-pointer transition-colors"
                                         >
-                                            <td className="p-4 text-sm font-semibold text-gray-900">{app.name || "—"}</td>
-                                            <td className="p-4">
-                                                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                                            <td className="py-4 px-6 text-gray-900 font-bold whitespace-nowrap">{app.name || "—"}</td>
+                                            <td className="py-4 px-6">
+                                                <span className="inline-flex items-center gap-1.5 text-gray-600">
                                                     <Icon className="h-3.5 w-3.5 text-[#1a365d]" />
                                                     {meta?.label || app.type}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-xs font-mono text-gray-600">{app.namespace || "—"}</td>
-                                            <td className="p-4 text-xs text-gray-600">{clusterNames[app.clusterId] || app.clusterId || "—"}</td>
-                                            <td className="p-4"><StatusBadge status={app.status} /></td>
-                                            <td className="p-4 text-xs text-gray-500 whitespace-nowrap">{formatDateTime(app.createdAt)}</td>
-                                            <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    onClick={() => setDeleteConfirm({ id: app.id, name: app.name })}
-                                                    title="Delete"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 bg-white hover:bg-red-50 rounded border border-gray-200 transition-colors shadow-2xs"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
+                                            <td className="py-4 px-6 font-mono text-xs text-gray-600">{app.namespace || "—"}</td>
+                                            <td className="py-4 px-6 text-gray-600">{clusterNames[app.clusterId] || app.clusterId || "—"}</td>
+                                            <td className="py-4 px-6 text-center"><StatusBadge status={app.status} /></td>
+                                            <td className="py-4 px-6 text-xs text-gray-500 whitespace-nowrap">{formatDateTime(app.createdAt)}</td>
+                                            <td className="py-4 px-6 text-center" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button
+                                                        onClick={() => setDeleteConfirm({ id: app.id, name: app.name })}
+                                                        title="Delete"
+                                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

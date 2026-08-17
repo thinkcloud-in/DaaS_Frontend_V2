@@ -9,9 +9,9 @@ import {
 // Step 1: POST metadata only → returns { id, ... } in <100ms
 export const uploadLibraryThunk = createAsyncThunk(
     "library/upload",
-    async ({ token, fileName, fileSize, type, harborRegistryId, version, metadata }, { rejectWithValue }) => {
+    async ({ token, fileName, fileSize, type, harborRegistryId, version, ownerName, name, metadata }, { rejectWithValue }) => {
         try {
-            const res = await createLibraryItem(token, { fileName, fileSize, type, harborRegistryId, version, metadata });
+            const res = await createLibraryItem(token, { fileName, fileSize, type, harborRegistryId, version, ownerName, name, metadata });
             return res;
         } catch (err) {
             return rejectWithValue(

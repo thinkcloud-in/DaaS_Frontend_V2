@@ -9,16 +9,6 @@ import { fetchKubernetesClusters } from "../../Services/KubernetesService";
 import { deployApplication, fetchApplications } from "../../Services/ApplicationService";
 import { APP_TYPES, getAppType } from "./appTypes";
 
-// Kubernetes namespace names must be lowercase DNS-1123 labels.
-const slugifyNamespace = (value) =>
-    (value || "")
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9-]+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "")
-        .slice(0, 63);
-
 const Field = ({ label, required, children, hint }) => (
     <div className="flex flex-col gap-1.5">
         <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
@@ -47,7 +37,8 @@ const ApplicationDeploy = () => {
 
     const [name, setName] = useState("");
     const [namespace, setNamespace] = useState("");
-    const [namespaceTouched, setNamespaceTouched] = useState(false);
+    const [namespaceOptions, setNamespaceOptions] = useState([]);
+    const [namespaceDropdownOpen, setNamespaceDropdownOpen] = useState(false);
 
     const [clusters,        setClusters]        = useState([]);
     const [clustersLoading, setClustersLoading] = useState(true);
@@ -61,7 +52,10 @@ const ApplicationDeploy = () => {
     const [versionsLoading, setVersionsLoading] = useState(false);
     const [versionId,       setVersionId]       = useState("");
 
-    const [deployedNamespace, setDeployedNamespace] = useState("");
+    // Open WebUI must be linked to an already-deployed PostgreSQL instance.
+    const [postgresInstances, setPostgresInstances] = useState([]);
+    const [postgresLoading,   setPostgresLoading]   = useState(false);
+    const [postgresDeployId,  setPostgresDeployId]  = useState("");
 
     const [submitting, setSubmitting] = useState(false);
 
@@ -88,55 +82,73 @@ const ApplicationDeploy = () => {
             .catch(() => setHarbors([]))
             .finally(() => setHarborsLoading(false));
 
+        // Every namespace already in use, for the autocomplete suggestions below
+        // — there can easily be 100+ of these, so typing narrows it down instead
+        // of showing one fixed default.
         fetchApplications({ page: 1, pageSize: 100 })
             .then(({ items }) => {
-                const firstNamespace = items.find((item) => item.namespace)?.namespace ?? "";
-                setDeployedNamespace(firstNamespace);
+                const unique = Array.from(new Set(items.map((i) => i.namespace).filter(Boolean))).sort();
+                setNamespaceOptions(unique);
             })
-            .catch(() => setDeployedNamespace(""));
+            .catch(() => setNamespaceOptions([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
-    // Library versions depend on the selected application type. This page
-    // (only this page) filters by the app id itself ("openwebui" / "vectordb")
-    // rather than the shared Library upload type ("container"), so the two
-    // app types get their own version lists instead of sharing one pool.
+    // Library versions depend on the selected application type AND the chosen
+    // Harbor registry (this page only — filters by the app id itself,
+    // "openwebui" / "vectordb" / "postgresql", rather than the shared Library
+    // upload type "container", plus harbor_registry_id so only packages
+    // pushed to that specific registry show up).
     useEffect(() => {
-        if (!activeApp) { setVersions([]); setVersionId(""); return; }
+        if (!activeApp || !harborId) { setVersions([]); setVersionId(""); return; }
         setVersionsLoading(true);
         setVersionId("");
-        fetchLibraryList(token, { type: activeApp.id, page: 1, pageSize: 100 })
+        fetchLibraryList(token, { type: activeApp.id, page: 1, pageSize: 100, harborRegistryId: harborId })
             .then((res) => {
                 const dirs = res.data?.directories || {};
-                const allItems = Object.values(dirs).flat();
-                setVersions(allItems.filter((i) => i.type === activeApp.id || i.type === activeApp.apiType));
+                // The backend sub-categorizes a shared upload type (e.g. "container")
+                // into more specific directory buckets — a Postgres-flavored image
+                // lands under directories.postgresql even though its own `type`
+                // field still says "container". Prefer that bucket when it has
+                // entries; fall back to filtering everything by `type` for app
+                // types (openwebui/vectordb) that don't get their own bucket.
+                const bucket = dirs[activeApp.id];
+                const items = Array.isArray(bucket) && bucket.length > 0
+                    ? bucket
+                    : Object.values(dirs).flat().filter((i) => i.type === activeApp.id || i.type === activeApp.apiType);
+                setVersions(items);
             })
             .catch(() => setVersions([]))
             .finally(() => setVersionsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeApp, token]);
+    }, [activeApp, harborId, token]);
 
-    // Namespace defaults to the application name until the user edits it directly.
-    // TODO: once a "list deployed applications" API exists, prefer reusing the
-    // namespace already used for this app type + cluster instead of the name.
+    // Only fetched for Open WebUI, which requires linking to an existing
+    // PostgreSQL deployment.
     useEffect(() => {
-        if (!namespaceTouched) {
-            if (deployedNamespace) {
-                setNamespace(deployedNamespace);
-            } else {
-                setNamespace(slugifyNamespace(name));
-            }
-        }
-    }, [name, namespaceTouched, deployedNamespace]);
+        if (activeApp?.id !== "openwebui") { setPostgresInstances([]); setPostgresDeployId(""); return; }
+        setPostgresLoading(true);
+        setPostgresDeployId("");
+        fetchApplications({ deploymentType: "postgresql", pageSize: 100 })
+            .then(({ items }) => setPostgresInstances(items))
+            .catch(() => setPostgresInstances([]))
+            .finally(() => setPostgresLoading(false));
+    }, [activeApp]);
 
     const handleAppTypeChange = (id) => {
         setSelectedAppType(id);
         setName("");
-        setNamespace(deployedNamespace || "");
-        setNamespaceTouched(false);
+        setNamespace("");
     };
 
-    const isValid = !!(activeApp && name.trim() && clusterId && harborId && versionId && namespace.trim());
+    const filteredNamespaceOptions = namespace.trim()
+        ? namespaceOptions.filter((ns) => ns.toLowerCase().includes(namespace.trim().toLowerCase()))
+        : namespaceOptions;
+
+    const isValid = !!(
+        activeApp && name.trim() && clusterId && harborId && versionId && namespace.trim() &&
+        (activeApp.id !== "openwebui" || postgresDeployId)
+    );
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -151,6 +163,7 @@ const ApplicationDeploy = () => {
                 harborId,
                 versionId,
                 namespace:     namespace.trim(),
+                postgresqlDeployId: activeApp.id === "openwebui" ? postgresDeployId : undefined,
             });
             toast.success(`"${name}" deployment started!`);
             navigate(app?.id ? `/application/detail/${app.id}` : "/application");
@@ -279,6 +292,34 @@ const ApplicationDeploy = () => {
                                     )}
                                 </Field>
 
+                                {/* PostgreSQL Instance — Open WebUI only */}
+                                {activeApp.id === "openwebui" && (
+                                    <Field label="PostgreSQL Instance" required>
+                                        <select
+                                            value={postgresDeployId}
+                                            onChange={(e) => setPostgresDeployId(e.target.value)}
+                                            disabled={submitting || postgresLoading || postgresInstances.length === 0}
+                                            className={inputCls(submitting || postgresLoading || postgresInstances.length === 0)}
+                                        >
+                                            <option value="">
+                                                {postgresLoading
+                                                    ? "Loading PostgreSQL instances..."
+                                                    : postgresInstances.length === 0
+                                                    ? "No PostgreSQL instances available"
+                                                    : "Select a PostgreSQL instance"}
+                                            </option>
+                                            {postgresInstances.map((p) => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                        {!postgresLoading && postgresInstances.length === 0 && (
+                                            <p className="text-xs text-amber-600 mt-1">
+                                                Deploy a PostgreSQL instance first — pick "PostgreSQL" from Select Application above.
+                                            </p>
+                                        )}
+                                    </Field>
+                                )}
+
                                 {/* Version */}
                                 <Field label={`${activeApp.label} Version`} required>
                                     <select
@@ -288,7 +329,9 @@ const ApplicationDeploy = () => {
                                         className={inputCls(submitting || versionsLoading || versions.length === 0)}
                                     >
                                         <option value="">
-                                            {versionsLoading
+                                            {!harborId
+                                                ? "Select a Harbor registry first"
+                                                : versionsLoading
                                                 ? "Loading versions..."
                                                 : versions.length === 0
                                                 ? "No versions uploaded"
@@ -300,9 +343,9 @@ const ApplicationDeploy = () => {
                                             </option>
                                         ))}
                                     </select>
-                                    {!versionsLoading && versions.length === 0 && (
+                                    {harborId && !versionsLoading && versions.length === 0 && (
                                         <p className="text-xs text-amber-600 mt-1">
-                                            Upload a {activeApp.label} package from the Library page first.
+                                            Upload a {activeApp.label} package for this Harbor registry from the Library page first.
                                         </p>
                                     )}
                                 </Field>
@@ -311,23 +354,42 @@ const ApplicationDeploy = () => {
                                 <Field
                                     label="Namespace"
                                     required
-                                    hint={
-                                        deployedNamespace
-                                            ? "Defaults to the most recently deployed namespace — edit if you want a different one."
-                                            : "Defaults to the application name — edit if you want to reuse an existing namespace."
-                                    }
+                                    hint="Start typing to see existing namespaces, or enter a new one."
                                 >
-                                    <input
-                                        type="text"
-                                        value={namespace}
-                                        disabled={submitting}
-                                        onChange={(e) => {
-                                            setNamespace(e.target.value);
-                                            setNamespaceTouched(true);
-                                        }}
-                                        placeholder="e.g. openwebui"
-                                        className={inputCls(submitting)}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={namespace}
+                                            disabled={submitting}
+                                            onChange={(e) => {
+                                                setNamespace(e.target.value);
+                                                setNamespaceDropdownOpen(true);
+                                            }}
+                                            onFocus={() => setNamespaceDropdownOpen(true)}
+                                            onBlur={() => setNamespaceDropdownOpen(false)}
+                                            placeholder="e.g. openwebui"
+                                            autoComplete="off"
+                                            className={inputCls(submitting)}
+                                        />
+                                        {namespaceDropdownOpen && filteredNamespaceOptions.length > 0 && (
+                                            <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                                                {filteredNamespaceOptions.map((ns) => (
+                                                    <button
+                                                        key={ns}
+                                                        type="button"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault();
+                                                            setNamespace(ns);
+                                                            setNamespaceDropdownOpen(false);
+                                                        }}
+                                                        className="w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 transition-colors"
+                                                    >
+                                                        {ns}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </Field>
                             </>
                         )}

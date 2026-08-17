@@ -35,6 +35,7 @@ const UPLOAD_TYPES = [
         accept:      ".zst,.tar,.gz,.tar.gz,.zip,.rar",
         fileHint:    ".tar.zst / .tar.gz / .zip / .rar",
         needsHarbor: true,
+        needsContainerMeta: true,
     },
     {
         value:       "llm_model",
@@ -275,6 +276,11 @@ const LibraryUpload = () => {
     const [harbors,          setHarbors]          = useState([]);
     const [harborsLoading,   setHarborsLoading]   = useState(false);
 
+    // Version / Owner Name / Name — only for Container uploads
+    const [containerVersion,   setContainerVersion]   = useState("");
+    const [containerOwnerName, setContainerOwnerName] = useState("");
+    const [containerName,      setContainerName]      = useState("");
+
     // XHR ref for cancel support
     const xhrRef     = useRef(null);
     const mountedRef = useRef(true);
@@ -291,6 +297,7 @@ const LibraryUpload = () => {
 
     const activeType   = UPLOAD_TYPES.find((t) => t.value === selectedType);
     const needsHarbor  = !!activeType?.needsHarbor;
+    const needsContainerMeta = !!activeType?.needsContainerMeta;
 
     // Fetch deployed Harbor registries when the type needs one
     useEffect(() => {
@@ -317,6 +324,7 @@ const LibraryUpload = () => {
 
     const resetFields = () => {
         setFile(null); setHarborRegistryId(""); setMetadata(null); setMetadataStatus(null); setMetadataExpanded(false);
+        setContainerVersion(""); setContainerOwnerName(""); setContainerName("");
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -350,7 +358,10 @@ const LibraryUpload = () => {
         }
     };
 
-    const isFormValid = !!(activeType && file && (!needsHarbor || harborRegistryId) && !metadataLoading);
+    const isFormValid = !!(
+        activeType && file && (!needsHarbor || harborRegistryId) && !metadataLoading &&
+        (!needsContainerMeta || (containerVersion.trim() && containerOwnerName.trim() && containerName.trim()))
+    );
     const isBusy       = phase === "creating" || phase === "streaming";
 
     const handleSubmit = async (e) => {
@@ -370,6 +381,9 @@ const LibraryUpload = () => {
                 fileSize:         file.size,
                 type:             activeType?.apiType || null,
                 harborRegistryId: harborRegistryId || undefined,
+                version:          needsContainerMeta ? containerVersion.trim() : undefined,
+                ownerName:        needsContainerMeta ? containerOwnerName.trim() : undefined,
+                name:             needsContainerMeta ? containerName.trim() : undefined,
                 metadata:         metadata || undefined,
             })).unwrap();
             itemId = result?.id ?? result?.item_id ?? result?.data?.id;
@@ -553,6 +567,51 @@ const LibraryUpload = () => {
                                         {activeType.label} Details
                                     </h2>
                                 </div>
+
+                                {/* Version / Owner Name / Name — Container uploads only */}
+                                {needsContainerMeta && (
+                                    <>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                                Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={containerName}
+                                                disabled={isBusy}
+                                                onChange={(e) => setContainerName(e.target.value)}
+                                                placeholder="e.g. open-webui"
+                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                                Owner Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={containerOwnerName}
+                                                disabled={isBusy}
+                                                onChange={(e) => setContainerOwnerName(e.target.value)}
+                                                placeholder="e.g. Open WebUI"
+                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                                Version <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={containerVersion}
+                                                disabled={isBusy}
+                                                onChange={(e) => setContainerVersion(e.target.value)}
+                                                placeholder="e.g. 1.0.0"
+                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 {/* Harbor registry selector — only for types with needsHarbor */}
                                 {needsHarbor && (

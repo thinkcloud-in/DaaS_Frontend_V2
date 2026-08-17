@@ -3,8 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import {
-    ChevronLeft, ChevronDown, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
-    ShieldCheck, Plus, AlertCircle,
+    ChevronLeft, ChevronRight, ChevronDown, Loader2, Cpu, Box, Link2, Link2Off, Layers, ExternalLink,
+    ShieldCheck, Plus, AlertCircle, Eye, EyeOff, Copy, Check, X, Users, Search,
 } from "lucide-react";
 import { getAppType } from "./appTypes";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
@@ -15,6 +15,10 @@ import {
     fetchDeployedPrivateLLMs,
     connectOpenWebUiKeycloak,
     disconnectOpenWebUiKeycloak,
+    fetchKeycloakUsers,
+    fetchOpenWebUiAdminUsers,
+    fetchOpenWebUiMemberUsers,
+    assignOpenWebUiRoles,
     linkVectorDb,
     unlinkVectorDb,
 } from "../../Services/ApplicationService";
@@ -31,12 +35,17 @@ const InfoRow = ({ label, value, mono }) => (
     </div>
 );
 
-const Panel = ({ title, icon: Icon, children, action }) => (
+const Panel = ({ title, icon: Icon, children, action, badge }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                 <Icon className="h-4 w-4 text-[#1a365d]" />
                 {title}
+                {badge && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 ring-1 ring-inset ring-red-200">
+                        {badge}
+                    </span>
+                )}
             </h3>
             {action}
         </div>
@@ -44,11 +53,87 @@ const Panel = ({ title, icon: Icon, children, action }) => (
     </div>
 );
 
-// ── Service panel: shared between Open WebUI and Vector DB ───────────────────
+// A masked-but-real <input> (not rendered dots) so selecting the text and
+// hitting Ctrl+C copies the actual value, plus a dedicated copy button for
+// one-click copy — either path works regardless of whether it's revealed.
+// navigator.clipboard needs a secure context (HTTPS or localhost) — this app
+// is often served over plain HTTP on a LAN IP, where that API is unavailable.
+// Falls back to the legacy execCommand("copy") trick via a hidden textarea,
+// which still works over HTTP.
+const copyToClipboard = async (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    let ok = false;
+    try {
+        ok = document.execCommand("copy");
+    } finally {
+        document.body.removeChild(textarea);
+    }
+    if (!ok) throw new Error("execCommand copy failed");
+};
+
+const CopyableField = ({ label, value, maskable }) => {
+    const [visible, setVisible] = useState(!maskable);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await copyToClipboard(value);
+            setCopied(true);
+            toast.success(`${label} copied.`);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            toast.error("Unable to copy — please select and copy manually.");
+        }
+    };
+
+    return (
+        <div>
+            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block mb-0.5">{label}</span>
+            <div className="flex items-center gap-1.5">
+                <input
+                    type={maskable && !visible ? "password" : "text"}
+                    value={value}
+                    readOnly
+                    onFocus={(e) => e.target.select()}
+                    className="flex-1 min-w-0 text-xs font-mono text-gray-800 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                />
+                {maskable && (
+                    <button
+                        type="button"
+                        onClick={() => setVisible((s) => !s)}
+                        className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                    >
+                        {visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    </button>
+                )}
+                <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                >
+                    {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// ── Connection Details panel: shared between Open WebUI and Vector DB ────────
 const ServicePanel = ({ application }) => {
     const ready = !!application.serviceUrl;
+
     return (
-        <Panel title="Service" icon={ExternalLink}>
+        <Panel title="Connection Details" icon={ExternalLink}>
             {!ready ? (
                 <div className="flex items-center gap-2 py-6 justify-center text-xs text-gray-400">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -72,10 +157,12 @@ const ServicePanel = ({ application }) => {
                             <span className="text-sm font-mono text-gray-800 break-all block">{application.serviceUrl}</span>
                         )}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <InfoRow label="External IP" value={application.externalIp} mono />
-                        <InfoRow label="Node Port" value={application.nodePort} mono />
-                    </div>
+                    {application.adminEmail && (
+                        <CopyableField label="Admin Email" value={application.adminEmail} maskable />
+                    )}
+                    {application.adminPassword && (
+                        <CopyableField label="Admin Password" value={application.adminPassword} maskable />
+                    )}
                 </div>
             )}
         </Panel>
@@ -384,10 +471,11 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
     );
 };
 
-// ── Open WebUI: Keycloak SSO toggle ───────────────────────────────────────────
+// ── Open WebUI: Keycloak SSO toggle + user management ─────────────────────────
 const KeycloakConfigPanel = ({ application, onChanged }) => {
     const connected = !!application.keycloakConnected;
     const [toggling, setToggling] = useState(false);
+    const [showUsersModal, setShowUsersModal] = useState(false);
 
     const handleToggle = async () => {
         if (toggling) return;
@@ -410,7 +498,22 @@ const KeycloakConfigPanel = ({ application, onChanged }) => {
     };
 
     return (
-        <Panel title="Keycloak Configuration" icon={ShieldCheck}>
+        <Panel
+            title="Keycloak Configuration"
+            icon={ShieldCheck}
+            action={
+                connected && (
+                    <button
+                        type="button"
+                        onClick={() => setShowUsersModal(true)}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
+                    >
+                        <Users className="h-3.5 w-3.5" />
+                        Manage Users
+                    </button>
+                )
+            }
+        >
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-800">
@@ -435,7 +538,385 @@ const KeycloakConfigPanel = ({ application, onChanged }) => {
                     </span>
                 </button>
             </div>
+
+            {showUsersModal && (
+                <KeycloakUsersModal application={application} onClose={() => setShowUsersModal(false)} />
+            )}
         </Panel>
+    );
+};
+
+// ── Open WebUI: Keycloak user role management (popup) ─────────────────────────
+// Two lists: everyone registered in the Keycloak realm (read-only reference),
+// and Open WebUI users who've actually logged in — those get an editable
+// User/Admin role selector. Opened from the Keycloak Configuration card.
+const ROLE_OPTIONS = ["user", "admin"];
+
+const kcUserLabel = (u) => u.username ?? u.name ?? u.email ?? u.preferred_username ?? `User #${u.id ?? u.user_id ?? "?"}`;
+const kcUserId    = (u) => u.id ?? u.user_id;
+
+// One role-filtered, paginated, searchable list ("Users" or "Admins" tab) —
+// each row can flip the user's role, which moves them out of this list on
+// the next load since the lists are already split by role.
+const RoleUsersList = ({ application, role, fetchFn }) => {
+    const [items, setItems]           = useState([]);
+    const [page, setPage]             = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [search, setSearch]         = useState("");
+    const [loading, setLoading]       = useState(true);
+    const [error, setError]           = useState("");
+    const [updatingId, setUpdatingId] = useState(null);
+    const searchMountedRef = useRef(false);
+
+    const load = useCallback((pageNum, searchTerm) => {
+        setLoading(true);
+        setError("");
+        fetchFn(application.id, { page: pageNum, pageSize: 10, search: searchTerm || undefined })
+            .then(({ items: list, pagination }) => {
+                setItems(list);
+                setPage(pagination.page);
+                setTotalPages(pagination.totalPages);
+            })
+            .catch((err) => {
+                setItems([]);
+                setError(err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Failed to load users.");
+            })
+            .finally(() => setLoading(false));
+    }, [application.id, fetchFn]);
+
+    useEffect(() => { load(1, ""); }, [load]);
+
+    // Debounced — refetch page 1 as the user types, skipping the initial mount.
+    useEffect(() => {
+        if (!searchMountedRef.current) { searchMountedRef.current = true; return; }
+        const t = setTimeout(() => load(1, search), 400);
+        return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [search]);
+
+    const handleRoleChange = async (user, newRole) => {
+        const id = kcUserId(user);
+        if (updatingId || newRole === role) return;
+        setUpdatingId(id);
+        try {
+            await assignOpenWebUiRoles(application.id, [{ userId: id, role: newRole }]);
+            toast.success(`${kcUserLabel(user)} is now ${newRole}.`);
+            load(page, search);
+        } catch (err) {
+            const msg = err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Unable to update role right now.";
+            toast.error(msg);
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    return (
+        <>
+            <div className="relative mb-4">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search by name or email..."
+                    className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-xs text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all"
+                />
+            </div>
+
+            {error ? (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-red-700">{error}</span>
+                </div>
+            ) : loading ? (
+                <div className="flex items-center gap-2 py-6 justify-center text-xs text-gray-400">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading users...
+                </div>
+            ) : items.length === 0 ? (
+                <div className="py-6 text-center">
+                    <ShieldCheck className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-500">
+                        {search ? "No users match your search" : `No ${role === "admin" ? "admins" : "users"} yet`}
+                    </p>
+                </div>
+            ) : (
+                <>
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {items.map((u) => {
+                            const id = kcUserId(u);
+                            return (
+                                <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-gray-800 truncate">{kcUserLabel(u)}</p>
+                                        {u.email && u.email !== kcUserLabel(u) && (
+                                            <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                        {updatingId === id && <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />}
+                                        <select
+                                            value={role}
+                                            onChange={(e) => handleRoleChange(u, e.target.value)}
+                                            disabled={updatingId === id}
+                                            className="rounded border border-gray-300 bg-white py-1 px-2 text-xs font-semibold text-gray-800 capitalize focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none disabled:opacity-50"
+                                        >
+                                            {ROLE_OPTIONS.map((r) => (
+                                                <option key={r} value={r} className="capitalize">{r}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between pt-3 mt-1 border-t border-gray-100">
+                            <p className="text-[11px] text-gray-400">Page {page} of {totalPages}</p>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => load(page - 1, search)}
+                                    disabled={page <= 1 || loading}
+                                    className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => load(page + 1, search)}
+                                    disabled={page >= totalPages || loading}
+                                    className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+        </>
+    );
+};
+
+const KeycloakUsersModal = ({ application, onClose }) => {
+    const [activeTab, setActiveTab] = useState("users"); // "users" | "admins" | "keycloak"
+
+    const [kcUsers, setKcUsers]     = useState([]);
+    const [kcLoading, setKcLoading] = useState(false);
+    const [kcError, setKcError]     = useState("");
+    const [kcLoaded, setKcLoaded]   = useState(false);
+    const [kcPage, setKcPage]           = useState(1);
+    const [kcTotalPages, setKcTotalPages] = useState(1);
+    const [kcSearch, setKcSearch]       = useState("");
+    const kcSearchMountedRef = useRef(false);
+
+    const loadKcUsers = (pageNum, search) => {
+        setKcLoading(true);
+        setKcError("");
+        fetchKeycloakUsers(application.id, { page: pageNum, pageSize: 10, search: search || undefined })
+            .then(({ items, pagination }) => {
+                setKcUsers(items);
+                setKcPage(pagination.page);
+                setKcTotalPages(pagination.totalPages);
+                setKcLoaded(true);
+            })
+            .catch((err) => {
+                setKcUsers([]);
+                setKcError(err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Failed to load Keycloak users.");
+            })
+            .finally(() => setKcLoading(false));
+    };
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        if (tab === "keycloak" && !kcLoaded) {
+            loadKcUsers(1, kcSearch);
+        }
+    };
+
+    // Debounced — refetch page 1 as the user types, skipping the initial mount.
+    useEffect(() => {
+        if (!kcSearchMountedRef.current) { kcSearchMountedRef.current = true; return; }
+        const t = setTimeout(() => loadKcUsers(1, kcSearch), 400);
+        return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [kcSearch]);
+
+    // Staged role picks for the "All Keycloak Users" tab — userId -> role.
+    // Kept independent of the current page's list so picks survive pagination,
+    // and submitted together (single user or many, possibly different roles).
+    const [pendingRoles, setPendingRoles] = useState({});
+    const [assigning, setAssigning]       = useState(false);
+
+    const handlePendingRoleChange = (userId, role) => {
+        setPendingRoles((prev) => ({ ...prev, [userId]: role }));
+    };
+
+    const pendingCount = Object.keys(pendingRoles).length;
+
+    const handleAssignRoles = async () => {
+        const assignments = Object.entries(pendingRoles).map(([userId, role]) => ({ userId, role }));
+        if (assignments.length === 0 || assigning) return;
+        setAssigning(true);
+        try {
+            await assignOpenWebUiRoles(application.id, assignments);
+            toast.success(assignments.length === 1 ? "Role assigned." : `${assignments.length} roles assigned.`);
+            setPendingRoles({});
+        } catch (err) {
+            const msg = err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Unable to assign roles right now.";
+            toast.error(msg);
+        } finally {
+            setAssigning(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+                <div className="p-5 border-b border-gray-200 flex items-start justify-between gap-3">
+                    <div>
+                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <ShieldCheck className="h-4 w-4 text-[#1a365d]" />
+                            Keycloak Users
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5">{application.name}</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="p-1 text-gray-400 hover:text-gray-700 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div className="p-5 overflow-y-auto flex-1 min-h-0">
+                    <div className="flex items-center gap-1 mb-4">
+                        {[{ key: "users", label: "Users" }, { key: "admins", label: "Admins" }, { key: "keycloak", label: "All Keycloak Users" }].map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                onClick={() => handleTabChange(tab.key)}
+                                className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors
+                                    ${activeTab === tab.key
+                                        ? "bg-[#1a365d] text-white shadow-sm"
+                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#1a365d]"
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {activeTab === "keycloak" && (
+                        <div className="relative mb-4">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+                            <input
+                                type="text"
+                                value={kcSearch}
+                                onChange={(e) => setKcSearch(e.target.value)}
+                                placeholder="Search by name or email..."
+                                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-xs text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all"
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === "keycloak" && pendingCount > 0 && (
+                        <div className="flex items-center justify-between gap-3 mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+                            <span className="text-xs font-semibold text-blue-800">
+                                {pendingCount} role{pendingCount !== 1 ? "s" : ""} pending
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleAssignRoles}
+                                disabled={assigning}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#1a365d] hover:bg-[#122744] rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                {assigning && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                Assign Roles
+                            </button>
+                        </div>
+                    )}
+
+                    {activeTab === "users" ? (
+                        <RoleUsersList application={application} role="user" fetchFn={fetchOpenWebUiMemberUsers} />
+                    ) : activeTab === "admins" ? (
+                        <RoleUsersList application={application} role="admin" fetchFn={fetchOpenWebUiAdminUsers} />
+                    ) : (
+                kcError ? (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-center gap-2.5">
+                        <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <span className="text-xs font-semibold text-red-700">{kcError}</span>
+                    </div>
+                ) : kcLoading ? (
+                    <div className="flex items-center gap-2 py-6 justify-center text-xs text-gray-400">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Keycloak users...
+                    </div>
+                ) : kcUsers.length === 0 ? (
+                    <div className="py-6 text-center">
+                        <ShieldCheck className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-gray-500">
+                            {kcSearch ? "No users match your search" : "No Keycloak users found"}
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                            {kcUsers.map((u) => {
+                                const id = kcUserId(u);
+                                return (
+                                    <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-gray-800 truncate">{kcUserLabel(u)}</p>
+                                            {u.email && u.email !== kcUserLabel(u) && (
+                                                <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
+                                            )}
+                                        </div>
+                                        <select
+                                            value={pendingRoles[id] ?? ""}
+                                            onChange={(e) => handlePendingRoleChange(id, e.target.value)}
+                                            disabled={assigning}
+                                            className={`rounded border py-1 px-2 text-xs font-semibold capitalize focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none disabled:opacity-50 flex-shrink-0
+                                                ${pendingRoles[id] ? "border-blue-300 bg-blue-50 text-blue-800" : "border-gray-300 bg-white text-gray-800"}`}
+                                        >
+                                            <option value="" disabled>Set role...</option>
+                                            {ROLE_OPTIONS.map((r) => (
+                                                <option key={r} value={r} className="capitalize">{r}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {kcTotalPages > 1 && (
+                            <div className="flex items-center justify-between pt-3 mt-1 border-t border-gray-100">
+                                <p className="text-[11px] text-gray-400">Page {kcPage} of {kcTotalPages}</p>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => loadKcUsers(kcPage - 1)}
+                                        disabled={kcPage <= 1 || kcLoading}
+                                        className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => loadKcUsers(kcPage + 1)}
+                                        disabled={kcPage >= kcTotalPages || kcLoading}
+                                        className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                    )
+                )}
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -489,7 +970,7 @@ const VectorDbLinkPanel = ({ application, onChanged }) => {
     };
 
     return (
-        <Panel title="Vector DB Integration" icon={Link2}>
+        <Panel title="Vector DB Integration" icon={Link2} badge="Mandatory">
             {loading ? (
                 <div className="flex items-center gap-2 py-4 text-xs text-gray-400">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading Vector DB applications...
