@@ -151,38 +151,63 @@ export default function Navbar(tokenParsed) {
                           </div>
 
                           {/* Light/dark theme toggle */}
-                          <div className="flex items-center justify-center gap-3 py-3 bg-gray-50 dark:bg-gray-900/60 transition-colors">
+                          <div className="flex items-center justify-center gap-4 py-3.5 px-4 bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-900/80 dark:via-gray-800/90 dark:to-gray-900/80 transition-all duration-300">
                             <SunIcon
-                              className={`h-4 w-4 transition-colors ${theme === "light" ? "text-amber-500" : "text-gray-400"}`}
+                              className={`h-5 w-5 transition-all duration-300 ${theme === "light" ? "text-amber-500 scale-110 drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]" : "text-gray-400 scale-90"}`}
                             />
                             <button
                               type="button"
                               role="switch"
                               aria-checked={theme === "dark"}
+                              aria-label="Toggle dark mode"
                               onClick={toggleTheme}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a365d] ${
-                                theme === "dark" ? "bg-[#1a365d]" : "bg-gray-300"
+                              className={`group relative inline-flex h-7 w-14 items-center rounded-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-[#1a365d] shadow-inner ${
+                                theme === "dark"
+                                  ? "bg-gradient-to-r from-[#1a365d] to-indigo-600 shadow-indigo-500/20"
+                                  : "bg-gradient-to-r from-gray-300 to-gray-400 shadow-gray-400/20"
                               }`}
                             >
+                              {/* Glow effect behind the knob */}
                               <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${
-                                  theme === "dark" ? "translate-x-6" : "translate-x-1"
+                                className={`absolute rounded-full transition-all duration-500 ${
+                                  theme === "dark"
+                                    ? "h-8 w-8 translate-x-[1.65rem] bg-indigo-400/20 blur-md"
+                                    : "h-8 w-8 translate-x-0.5 bg-amber-400/20 blur-md"
                                 }`}
                               />
+                              {/* Knob */}
+                              <span
+                                className={`relative inline-flex items-center justify-center h-5 w-5 transform rounded-full bg-white shadow-lg ring-1 ring-black/5 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110 group-active:scale-95 ${
+                                  theme === "dark" ? "translate-x-8" : "translate-x-1"
+                                }`}
+                              >
+                                {/* Sun icon inside knob (light mode) */}
+                                <SunIcon
+                                  className={`absolute h-3 w-3 text-amber-500 transition-all duration-300 ${
+                                    theme === "light" ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-0"
+                                  }`}
+                                />
+                                {/* Moon icon inside knob (dark mode) */}
+                                <MoonIcon
+                                  className={`absolute h-3 w-3 text-indigo-600 transition-all duration-300 ${
+                                    theme === "dark" ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-0"
+                                  }`}
+                                />
+                              </span>
                             </button>
                             <MoonIcon
-                              className={`h-4 w-4 transition-colors ${theme === "dark" ? "text-indigo-400" : "text-gray-400"}`}
+                              className={`h-5 w-5 transition-all duration-300 ${theme === "dark" ? "text-indigo-400 scale-110 drop-shadow-[0_0_6px_rgba(129,140,248,0.5)]" : "text-gray-400 scale-90"}`}
                             />
                           </div>
 
                           {/* barcode strip -- purely decorative ID-card flavor */}
-                          <div
+                          {/* <div
                             className="h-3 w-full opacity-70"
                             style={{
                               backgroundImage:
                                 "repeating-linear-gradient(90deg, #1a1a1a 0px, #1a1a1a 2px, transparent 2px, transparent 4px, #1a1a1a 4px, #1a1a1a 5px, transparent 5px, transparent 8px)",
                             }}
-                          />
+                          /> */}
 
                           <button
                             type="button"
