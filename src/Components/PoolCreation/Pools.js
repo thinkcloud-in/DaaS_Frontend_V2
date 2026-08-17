@@ -9,7 +9,7 @@ const Pools = () => {
   // that triggered the fetch and re-fires it on remount, looping forever.
   return (
     <div>
-      <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar">
+      <div className="flex-1 overflow-auto rounded-md bg-white dark:bg-gray-800 table-container custom-scrollbar">
         <ShowPools />
       </div>
     </div>

@@ -122,7 +122,7 @@ const ManagePool = (props) => {
   useEffect(() => {
     const isAutomated = selectedPoolDetails?.pool_type === "Automated";
     if (isAutomated && (!clusters || clusters.length === 0) && token) {
-      dispatch(fetchClustersThunk(token));
+      dispatch(fetchClustersThunk({ token, page: 1, pageSize: 100 }));
     }
   }, [dispatch, token, selectedPoolDetails?.pool_type]);
   useEffect(() => {
@@ -808,15 +808,15 @@ const ManagePool = (props) => {
           // Actions: Circle placeholders for icons/buttons
           <td key={j} className="py-4 px-3">
             <div className="flex gap-2">
-              <div className="h-6 w-6 bg-gray-100 rounded-full animate-pulse" />
-              <div className="h-6 w-6 bg-gray-100 rounded-full animate-pulse" />
-              <div className="h-6 w-12 bg-gray-100 rounded-lg animate-pulse" />
+              <div className="h-6 w-6 bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse" />
+              <div className="h-6 w-6 bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse" />
+              <div className="h-6 w-12 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
             </div>
           </td>
         ) : (
           <td key={j} className="py-4 px-3">
             <div
-              className={`h-5 ${width} bg-gray-100 rounded-md animate-pulse`}
+              className={`h-5 ${width} bg-gray-100 dark:bg-gray-700 rounded-md animate-pulse`}
             />
           </td>
         ),
@@ -834,8 +834,8 @@ const ManagePool = (props) => {
     }
   };
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full relative">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
         <div className="flex items-center gap-3">
           <div
             onClick={Goback}
@@ -857,10 +857,10 @@ const ManagePool = (props) => {
             </svg>
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[#1a365d]">
+            <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300">
               {selectedPoolDetails.pool_name || "—"}
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Click on any machine row to view its details and actions.
             </p>
           </div>
@@ -874,7 +874,7 @@ const ManagePool = (props) => {
               Status
             </button>
             {showStatusDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded border border-gray-200 z-50">
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 shadow-lg rounded border border-gray-200 dark:border-gray-700 z-50">
                 <button
                   onClick={() =>
                     selectedRows.length > 0 && handleStatusAction("enable")
@@ -962,7 +962,7 @@ const ManagePool = (props) => {
           </button>
 
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 text-sm font-medium shadow-sm transition-all"
             onClick={editPool}
           >
             Edit Pool
@@ -970,7 +970,7 @@ const ManagePool = (props) => {
 
           {cluster && cluster?.type === "Hyper-V" && (
             <button
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 text-sm font-medium shadow-sm transition-all"
               onClick={() => setRebuildModalOpen(true)}
             >
               Rebuild Pool
@@ -999,7 +999,7 @@ const ManagePool = (props) => {
           </button>
 
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 text-sm font-medium shadow-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             onClick={handleRefresh}
             title="Refresh"
             disabled={refreshing || machinesLoading}
@@ -1015,7 +1015,7 @@ const ManagePool = (props) => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 flex-1 w-full">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex-1">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex-1">
           {machinesLoading ? (
             <Box sx={{ width: "100%" }}>
               <div className={`overflow-x-auto max-w-full ${styles["table-responsive"]}`}>
@@ -1056,7 +1056,7 @@ const ManagePool = (props) => {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 text-sm text-gray-700">{skeletonRows}</tbody>
+                  <tbody className="divide-y divide-gray-200 text-sm text-gray-700 dark:text-gray-300">{skeletonRows}</tbody>
                 </table>
               </div>
             </Box>
@@ -1107,7 +1107,7 @@ const ManagePool = (props) => {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+                <tbody className="divide-y divide-gray-200 text-sm text-gray-700 dark:text-gray-300">
                   {vmAvailable.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="py-12 text-center text-gray-400">
@@ -1214,7 +1214,7 @@ const ManagePool = (props) => {
                                 <span className="text-green-600">
                                   {capitalizeStatus(item.status)}
                                 </span>
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   {item.error_message &&
                                     ` - ${item.error_message}`}
                                 </span>
@@ -1226,7 +1226,7 @@ const ManagePool = (props) => {
                                 <span className="text-blue-600">
                                   {capitalizeStatus(item.status)}
                                 </span>
-                                <span className="text-gray-700">
+                                <span className="text-gray-700 dark:text-gray-300">
                                   {item.error_message &&
                                     ` - ${item.error_message}`}
                                 </span>
@@ -1238,7 +1238,7 @@ const ManagePool = (props) => {
                                 <span className="text-red-600">
                                   {capitalizeStatus(item.status)}
                                 </span>
-                                <span className="text-gray-700">
+                                <span className="text-gray-700 dark:text-gray-300">
                                   {item.error_message &&
                                     ` - ${item.error_message}`}
                                 </span>
@@ -1250,7 +1250,7 @@ const ManagePool = (props) => {
                                 <span className="text-yellow-600">
                                   {capitalizeStatus(item.status)}
                                 </span>
-                                <span className="text-gray-700">
+                                <span className="text-gray-700 dark:text-gray-300">
                                   {item.error_message &&
                                     ` - ${item.error_message}`}
                                 </span>
@@ -1258,11 +1258,11 @@ const ManagePool = (props) => {
                             )}
                             {item.status === "CANCELED" && (
                               <span className="flex items-center gap-1">
-                                <Loader2 className="animate-spin text-gray-500 text-sm" />
-                                <span className="text-gray-600">
+                                <Loader2 className="animate-spin text-gray-500 dark:text-gray-400 text-sm" />
+                                <span className="text-gray-600 dark:text-gray-400">
                                   {capitalizeStatus(item.status)}
                                 </span>
-                                <span className="text-gray-700">
+                                <span className="text-gray-700 dark:text-gray-300">
                                   {item.error_message &&
                                     ` - ${item.error_message}`}
                                 </span>
@@ -1337,7 +1337,7 @@ const ManagePool = (props) => {
                                   }}
                                 >
                                   <button
-                                    className="px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-left"
+                                    className="px-4 py-2 hover:bg-gray-100 dark:bg-gray-700 text-sm flex items-center gap-2 text-left"
                                     onClick={(e) => {
                                       editVM(item);
                                     }}
@@ -1346,7 +1346,7 @@ const ManagePool = (props) => {
                                     Edit
                                   </button>
                                   <button
-                                    className="px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-left"
+                                    className="px-4 py-2 hover:bg-gray-100 dark:bg-gray-700 text-sm flex items-center gap-2 text-left"
                                     onClick={(e) => {
                                       if (!deletingMachine) {
                                         handleDeleteVM(item);
@@ -1369,7 +1369,7 @@ const ManagePool = (props) => {
                                     "Automated" &&
                                     item.status !== "RUNNING" && (
                                       <button
-                                        className={`px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-2 text-left ${
+                                        className={`px-4 py-2 hover:bg-gray-100 dark:bg-gray-700 text-sm flex items-center gap-2 text-left ${
                                           powerActionLoading ===
                                           "rebuild-" + item.identifier
                                             ? "text-black cursor-not-allowed"
@@ -1434,14 +1434,14 @@ const ManagePool = (props) => {
               className="fixed inset-0 bg-black/30 backdrop-blur-xs z-[90]"
               onClick={closeMachineDrawer}
             />
-            <div className="fixed top-0 bottom-0 right-0 max-w-md w-full bg-white shadow-2xl z-[100] flex flex-col border-l border-gray-200 h-full p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-4">
+            <div className="fixed top-0 bottom-0 right-0 max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl z-[100] flex flex-col border-l border-gray-200 dark:border-gray-700 h-full p-6">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-4">
               <div className="flex gap-3">
                 <button
                   className={`pb-2 text-sm relative transition-all duration-300 ${
                     selectedTab === "users"
-                      ? "text-[#1a365d] font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
-                      : "text-gray-600 hover:text-[#1a365d]"
+                      ? "text-[#1a365d] dark:text-blue-300 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
+                      : "text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300"
                   }`}
                   onClick={() => setSelectedTab("users")}
                 >
@@ -1451,8 +1451,8 @@ const ManagePool = (props) => {
                   <button
                     className={`pb-2 text-sm relative transition-all duration-300 ${
                       selectedTab === "VM-Details"
-                        ? "text-[#1a365d]  font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
-                        : "text-gray-600 hover:text-[#1a365d]"
+                        ? "text-[#1a365d] dark:text-blue-300  font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
+                        : "text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300"
                     }`}
                     onClick={() => setSelectedTab("VM-Details")}
                   >
@@ -1462,7 +1462,7 @@ const ManagePool = (props) => {
               </div>
               <button
                 onClick={closeMachineDrawer}
-                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-md text-gray-400 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 transition-colors"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
@@ -1489,7 +1489,7 @@ const ManagePool = (props) => {
                         className="flex justify-between items-center border-b py-2"
                         key={item}
                       >
-                        <p className="text-gray-600 text-sm">{item}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">{item}</p>
                         {deletingUser === item ? (
                           <CircularProgress
                             size={20}
@@ -1504,7 +1504,7 @@ const ManagePool = (props) => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500 text-center">
+                    <p className="text-gray-500 dark:text-gray-400 text-center">
                       No Users Assigned
                     </p>
                   )}
@@ -1512,7 +1512,7 @@ const ManagePool = (props) => {
               )}
 
               {selectedTab === "VM-Details" && (
-                <div className="mt-2 p-2 rounded text-sm text-gray-800 mb-2">
+                <div className="mt-2 p-2 rounded text-sm text-gray-800 dark:text-gray-100 mb-2">
                   {isLoadingMachine ? (
                     <div className="flex flex-col gap-3 w-full">
                       {[...Array(4)].map((_, idx) => (
@@ -1521,7 +1521,7 @@ const ManagePool = (props) => {
                           className="mb-3 flex flex-row items-start"
                         >
                           <Skeleton variant="text" width={120} height={24} />
-                          <span className="mx-3 text-gray-700 font-bold">
+                          <span className="mx-3 text-gray-700 dark:text-gray-300 font-bold">
                             :
                           </span>
                           <Skeleton variant="text" width={140} height={24} />
@@ -1578,28 +1578,28 @@ const ManagePool = (props) => {
                               key={label}
                               className="mb-3 flex flex-row items-start"
                             >
-                              <span className="text-gray-800 min-w-[120px]">
+                              <span className="text-gray-800 dark:text-gray-100 min-w-[120px]">
                                 {label}
                               </span>
-                              <span className="mx-3 text-gray-700 font-bold">
+                              <span className="mx-3 text-gray-700 dark:text-gray-300 font-bold">
                                 :
                               </span>
-                              <span className="text-gray-600">{value}</span>
+                              <span className="text-gray-600 dark:text-gray-400">{value}</span>
                             </div>
                           ));
                         })()}
                       </div>
                     </div>
                   ) : (
-                    <div className="text-gray-500">No details available.</div>
+                    <div className="text-gray-500 dark:text-gray-400">No details available.</div>
                   )}
                 </div>
               )}
             </div>
             {selectedPoolDetails.pool_type === "Automated" &&
               selectedVmObj?.status === "COMPLETED" && (
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3 text-center">
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 dark:bg-gray-900/60">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 text-center">
                     Actions
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
@@ -1611,7 +1611,7 @@ const ManagePool = (props) => {
               ${
                 selectedVmObj?.error_message === "power-off" &&
                 !powerActionLoading
-                  ? "bg-white hover:bg-gray-200 text-green-600"
+                  ? "bg-white dark:bg-gray-800 hover:bg-gray-200 text-green-600"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
               }
             `}
@@ -1636,7 +1636,7 @@ const ManagePool = (props) => {
               ${
                 selectedVmObj?.error_message === "power-on" &&
                 !powerActionLoading
-                  ? "bg-white hover:bg-gray-200 text-red-600"
+                  ? "bg-white dark:bg-gray-800 hover:bg-gray-200 text-red-600"
                   : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
               }
             `}
@@ -1656,7 +1656,7 @@ const ManagePool = (props) => {
                       <>
                         <button
                           onClick={handleReboot}
-                          className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-gray-200 text-yellow-500 rounded-md text-sm font-medium transition-colors"
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-200 text-yellow-500 rounded-md text-sm font-medium transition-colors"
                           disabled={powerActionLoading === "reboot"}
                         >
                           {powerActionLoading === "reboot" ? (
@@ -1669,7 +1669,7 @@ const ManagePool = (props) => {
 
                         <button
                           onClick={handleShutdown}
-                          className="flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-gray-200 text-gray-600 rounded-md text-sm font-medium transition-colors"
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 hover:bg-gray-200 text-gray-600 dark:text-gray-400 rounded-md text-sm font-medium transition-colors"
                           disabled={powerActionLoading === "shutdown"}
                         >
                           {powerActionLoading === "shutdown" ? (
@@ -1736,19 +1736,19 @@ const ManagePool = (props) => {
             onClick={() => !isLoading && setConfirmDeletePool(false)}
           />
           <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
               <div className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                     <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-gray-900">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       Delete Pool
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Are you sure you want to delete pool{" "}
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-gray-800 dark:text-gray-100">
                         "{selectedPoolDetails.pool_name}"
                       </span>
                       ? This action cannot be undone.
@@ -1760,7 +1760,7 @@ const ManagePool = (props) => {
                 <button
                   onClick={() => setConfirmDeletePool(false)}
                   disabled={isLoading}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 disabled:opacity-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1795,19 +1795,19 @@ const ManagePool = (props) => {
             onClick={() => !deletingMachine && setConfirmDeleteVM(null)}
           />
           <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
               <div className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                     <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-gray-900">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       Delete Machine
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Are you sure you want to delete machine{" "}
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-gray-800 dark:text-gray-100">
                         "{confirmDeleteVM.name}"
                       </span>
                       ? This action cannot be undone.
@@ -1819,7 +1819,7 @@ const ManagePool = (props) => {
                 <button
                   onClick={() => setConfirmDeleteVM(null)}
                   disabled={!!deletingMachine}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 disabled:opacity-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1857,19 +1857,19 @@ const ManagePool = (props) => {
             }
           />
           <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
               <div className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                     <ExclamationTriangleIcon className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-gray-900">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       Rebuild Machine
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Do you want to rebuild machine{" "}
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-gray-800 dark:text-gray-100">
                         "{confirmRebuildVM.name}"
                       </span>
                       ?
@@ -1883,7 +1883,7 @@ const ManagePool = (props) => {
                   disabled={
                     powerActionLoading === "rebuild-" + confirmRebuildVM.identifier
                   }
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 disabled:opacity-50 transition-colors"
                 >
                   Cancel
                 </button>

@@ -38,8 +38,8 @@ const MultiSelect = ({ options = [], selected = [], onChange, placeholder, disab
         <div className="relative w-full" ref={ref}>
             <div
                 onClick={() => !disabled && !loading && setOpen((o) => !o)}
-                className={`w-full min-h-[42px] border rounded-lg px-3 py-2 flex items-center justify-between bg-white text-sm cursor-pointer transition-all
-                    ${disabled || loading ? "bg-gray-100 cursor-not-allowed border-gray-200 text-gray-400" : "border-gray-300 hover:border-gray-400"}
+                className={`w-full min-h-[42px] border rounded-lg px-3 py-2 flex items-center justify-between bg-white dark:bg-gray-800 text-sm cursor-pointer transition-all
+                    ${disabled || loading ? "bg-gray-100 dark:bg-gray-700 cursor-not-allowed border-gray-200 dark:border-gray-700 text-gray-400" : "border-gray-300 dark:border-gray-600 hover:border-gray-400"}
                     ${open ? "border-[#1a365d] ring-1 ring-[#1a365d]/20" : ""}`}
             >
                 <div className="flex flex-wrap gap-1 flex-1 min-w-0">
@@ -51,7 +51,7 @@ const MultiSelect = ({ options = [], selected = [], onChange, placeholder, disab
                         <span className="text-gray-400 text-sm">{placeholder || "Select..."}</span>
                     ) : (
                         selected.map((v) => (
-                            <span key={v} className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] text-xs font-medium px-2 py-0.5 rounded">
+                            <span key={v} className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] dark:text-blue-300 text-xs font-medium px-2 py-0.5 rounded">
                                 {v}
                                 <X className="h-2.5 w-2.5 cursor-pointer opacity-60 hover:opacity-100"
                                    onClick={(e) => { e.stopPropagation(); toggle(v); }} />
@@ -62,17 +62,17 @@ const MultiSelect = ({ options = [], selected = [], onChange, placeholder, disab
                 <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 ml-1 transition-transform ${open ? "rotate-180" : ""}`} />
             </div>
             {open && !disabled && !loading && (
-                <div className="absolute z-50 top-[calc(100%+2px)] left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute z-50 top-[calc(100%+2px)] left-0 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     {options.length === 0 ? (
                         <p className="px-3 py-3 text-xs text-gray-400 text-center">No options available</p>
                     ) : options.map((opt) => {
                         const val = typeof opt === "object" ? opt.value || opt.name || opt : opt;
                         const lbl = typeof opt === "object" ? opt.label || opt.name || opt.value || opt : opt;
                         return (
-                            <label key={val} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer text-gray-800">
+                            <label key={val} className="flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-gray-50 dark:bg-gray-900/60 cursor-pointer text-gray-800 dark:text-gray-100">
                                 <input type="checkbox" checked={selected.includes(val)}
                                     onChange={() => toggle(val)}
-                                    className="rounded border-gray-300 text-[#1a365d] h-3.5 w-3.5" />
+                                    className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 h-3.5 w-3.5" />
                                 {lbl}
                             </label>
                         );
@@ -86,7 +86,7 @@ const MultiSelect = ({ options = [], selected = [], onChange, placeholder, disab
 // ── Field wrapper ─────────────────────────────────────────────────────────────
 const Field = ({ label, required, children, hint }) => (
     <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-bold text-gray-600 uppercase tracking-wide">
+        <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         {children}
@@ -95,9 +95,9 @@ const Field = ({ label, required, children, hint }) => (
 );
 
 const inputCls = (disabled) =>
-    `w-full rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm text-gray-900
+    `w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100
     focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all
-    ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`;
+    ${disabled ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed" : ""}`;
 
 // ── Deployment Target Toggle ──────────────────────────────────────────────────
 const TargetToggle = ({ value, onChange }) => {
@@ -117,21 +117,21 @@ const TargetToggle = ({ value, onChange }) => {
                         className={`flex flex-col items-start gap-1 p-3.5 rounded-xl border-2 text-left transition-all
                             ${active
                                 ? "border-[#1a365d] bg-[#1a365d]/5 shadow-sm"
-                                : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:bg-gray-900/60"
                             }`}
                     >
                         <div className="flex items-center gap-2 w-full">
-                            <div className={`p-1.5 rounded-lg flex-shrink-0 ${active ? "bg-[#1a365d]/10" : "bg-gray-100"}`}>
-                                <Icon className={`h-3.5 w-3.5 ${active ? "text-[#1a365d]" : "text-gray-500"}`} />
+                            <div className={`p-1.5 rounded-lg flex-shrink-0 ${active ? "bg-[#1a365d]/10" : "bg-gray-100 dark:bg-gray-700"}`}>
+                                <Icon className={`h-3.5 w-3.5 ${active ? "text-[#1a365d] dark:text-blue-300" : "text-gray-500 dark:text-gray-400"}`} />
                             </div>
-                            <span className={`text-sm font-bold ${active ? "text-[#1a365d]" : "text-gray-700"}`}>{label}</span>
+                            <span className={`text-sm font-bold ${active ? "text-[#1a365d] dark:text-blue-300" : "text-gray-700 dark:text-gray-300"}`}>{label}</span>
                             {active && (
-                                <span className="ml-auto text-[10px] font-bold text-[#1a365d] bg-[#1a365d]/10 px-1.5 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
+                                <span className="ml-auto text-[10px] font-bold text-[#1a365d] dark:text-blue-300 bg-[#1a365d]/10 px-1.5 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
                                     Selected
                                 </span>
                             )}
                         </div>
-                        <p className={`text-xs pl-0.5 ${active ? "text-[#1a365d]/70" : "text-gray-400"}`}>{desc}</p>
+                        <p className={`text-xs pl-0.5 ${active ? "text-[#1a365d] dark:text-blue-300/70" : "text-gray-400"}`}>{desc}</p>
                     </button>
                 );
             })}
@@ -173,7 +173,7 @@ const HarborDeploy = () => {
     const [deployStatusMessage, setDeployStatusMessage] = useState("");
 
     useEffect(() => {
-        dispatch(fetchClustersThunk(token));
+        dispatch(fetchClustersThunk({ token, page: 1, pageSize: 100 }));
         dispatch(fetchIpPoolNames(token));
 
         fetchLibraryList(token, { type: "harbor_template", page: 1, pageSize: 100 })
@@ -312,28 +312,28 @@ const HarborDeploy = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen w-full text-left">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen w-full text-left">
 
             {/* Header */}
-            <div className="mb-6 pb-4 border-b border-gray-200 flex items-center gap-3">
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                 <button
                     onClick={() => navigate("/harbor")}
                     disabled={submitting}
-                    className="p-1.5 text-gray-500 hover:text-[#1a365d] hover:bg-gray-100 rounded transition-colors disabled:opacity-40"
+                    className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 hover:bg-gray-100 dark:bg-gray-700 rounded transition-colors disabled:opacity-40"
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <div className="h-9 w-9 rounded-lg bg-[#1a365d]/10 flex items-center justify-center flex-shrink-0">
-                    <Rocket className="h-4 w-4 text-[#1a365d]" />
+                    <Rocket className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-[#1a365d]">Deploy Harbor Template</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">Configure and deploy a Harbor container registry to a cluster.</p>
+                    <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">Deploy Harbor Template</h1>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Configure and deploy a Harbor container registry to a cluster.</p>
                 </div>
             </div>
 
             {/* Form card */}
-            <div className="max-w-xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                 <form onSubmit={handleSubmit}>
                     <div className="p-6 space-y-5">
 
@@ -363,7 +363,7 @@ const HarborDeploy = () => {
                         {templateId && (
                             <>
                                 <div>
-                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2.5">
+                                    <p className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2.5">
                                         Deployment Target <span className="text-red-500">*</span>
                                     </p>
                                     <TargetToggle value={deployTarget} onChange={handleTargetChange} />
@@ -469,10 +469,10 @@ const HarborDeploy = () => {
                     </div>
 
                     {/* Footer buttons */}
-                    <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between gap-3">
+                    <div className="bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between gap-3">
                         {deployStatusMessage && (
-                            <p className="text-xs text-gray-500 flex items-center gap-1.5">
-                                <Loader2 className="h-3 w-3 animate-spin text-[#1a365d]" />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                                <Loader2 className="h-3 w-3 animate-spin text-[#1a365d] dark:text-blue-300" />
                                 {deployStatusMessage}
                             </p>
                         )}
@@ -481,7 +481,7 @@ const HarborDeploy = () => {
                                 type="button"
                                 onClick={() => navigate("/harbor")}
                                 disabled={submitting}
-                                className="px-5 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
+                                className="px-5 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors uppercase tracking-wider disabled:opacity-50"
                             >
                                 Cancel
                             </button>

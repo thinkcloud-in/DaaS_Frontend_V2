@@ -5,10 +5,12 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { useTheme } from '../../../Context/ThemeContext';
 import { getEnv } from "utils/getEnv";
  
 const VamanitServerDashboard = ({ vamanitServer = "All" }) => {
   const gc = useContext(GrafanaToolbarContext);
+  const { theme } = useTheme();
  
   // You can make this dynamic or use an env variable as needed
   const grafanaUrl = getEnv("GRAFANA_URL")
@@ -19,7 +21,7 @@ const VamanitServerDashboard = ({ vamanitServer = "All" }) => {
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
     `&var-VamanitServer=${vamanitServer}` +
-    `&theme=light` +
+    `&theme=${theme}` +
     `&kiosk`;
  
   return (

@@ -7,7 +7,7 @@ const Clusters = () => {
     navigate("/");
   };
   return (
-    <div className="pools w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md overflow-hidden ">
+    <div className="pools w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md overflow-hidden ">
       <div className="flex justify-start ml-16 mt-3 mb-2">
         <div
           onClick={Goback}

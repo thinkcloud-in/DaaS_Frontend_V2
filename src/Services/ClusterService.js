@@ -19,11 +19,12 @@ export const createCluster = async (token, payload) => {
   );
   return res.data;
 };
-export const fetchClusters = async (token) => {
+export const fetchClusters = async (token, page = 1, pageSize = 10) => {
   const res = await axiosInstance.get(`${backendUrl}/v1/cluster/clusters`, {
     headers: { Authorization: `Bearer ${token}` },
+    params: { page, page_size: pageSize },
   });
-  return res.data?.data || [];
+  return res.data?.data || { items: [], pagination: null };
 };
 export const fetchClusterById = async (token, clusterId) => {
   const res = await axiosInstance.get(`${backendUrl}/v1/cluster/${clusterId}`, {

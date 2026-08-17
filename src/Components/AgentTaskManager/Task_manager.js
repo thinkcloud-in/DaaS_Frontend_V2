@@ -9,6 +9,7 @@ import {
 import { toast } from "react-toastify";
 import { getEnv } from "utils/getEnv";
 import { Loader2 } from "lucide-react";
+import { useTheme } from "../../Context/ThemeContext";
 import {
   ArrowLeftIcon,
   CpuChipIcon,
@@ -25,6 +26,7 @@ const TABS = [
 ];
 
 const TaskManagerPage = () => {
+  const { theme } = useTheme();
   const { poolId, vmId } = useParams();
   const [vmDetails, setVmDetails] = useState(null);
   const [activeTab, setActiveTab] = useState("details");
@@ -317,9 +319,9 @@ const TaskManagerPage = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center gap-4 pb-6 border-b border-gray-200 mb-6 w-full">
+      <div className="flex flex-col md:flex-row md:items-center gap-4 pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
         <div
           onClick={Goback}
           className="flex-shrink-0 p-2.5 bg-[#1a365d]/80 hover:bg-[#1a365d] rounded-md text-white cursor-pointer transition-colors"
@@ -327,11 +329,11 @@ const TaskManagerPage = () => {
           <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-[#1a365d] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300 flex items-center gap-2">
             <ServerIcon className="h-5 w-5" />
             {vmName || vmId}
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Live CPU/process monitoring and process management for this
             machine.
           </p>
@@ -343,8 +345,8 @@ const TaskManagerPage = () => {
               key={tab.key}
               className={`pb-2 text-sm relative transition-all duration-300 ${
                 activeTab === tab.key
-                  ? "text-[#1a365d] font-semibold after:content-[''] after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d] after:z-10"
-                  : "text-gray-600 hover:text-[#1a365d]"
+                  ? "text-[#1a365d] dark:text-blue-300 font-semibold after:content-[''] after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d] after:z-10"
+                  : "text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300"
               }`}
               onClick={() => setActiveTab(tab.key)}
             >
@@ -356,9 +358,9 @@ const TaskManagerPage = () => {
       <div className="flex-1 min-h-0 w-full">
         {activeTab === "details" && (
           <div className="w-full">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
-              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <ServerIcon className="h-4 w-4 text-[#1a365d]" />
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6">
+              <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <ServerIcon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                 Virtual Machine
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-y-3 gap-x-4 text-sm">
@@ -366,7 +368,7 @@ const TaskManagerPage = () => {
                   <span className="text-gray-400 font-semibold uppercase tracking-wide text-[10px] block">
                     Computer Name
                   </span>
-                  <span className="font-semibold text-gray-900 break-all">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 break-all">
                     {vmName || "-"}
                   </span>
                 </div>
@@ -375,10 +377,10 @@ const TaskManagerPage = () => {
 
             {/* Grafana Dashboard */}
             {vmName && osTypeFromProps ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="px-5 py-3 border-b border-gray-100">
-                  <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <ChartBarIcon className="h-4 w-4 text-[#1a365d]" />
+                  <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider flex items-center gap-1.5">
+                    <ChartBarIcon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                     VM Metrics Dashboard
                   </h3>
                 </div>
@@ -401,29 +403,29 @@ const TaskManagerPage = () => {
                     "";
                   return (
                     <>
-                      <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                      <div className="px-5 py-2.5 bg-gray-50 dark:bg-gray-900/60 border-b border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                         <span>
                           OS:{" "}
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">
                             {osType.toUpperCase()}
                           </span>
                         </span>
                         <span>
                           Datasource:{" "}
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">
                             {config.datasource}
                           </span>
                         </span>
                         <span>
                           Bucket:{" "}
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">
                             {config.bucket}
                           </span>
                         </span>
                         {internalIp && (
                           <span>
                             Detected IP:{" "}
-                            <span className="font-semibold text-gray-800">
+                            <span className="font-semibold text-gray-800 dark:text-gray-100">
                               {internalIp}
                             </span>
                           </span>
@@ -437,7 +439,7 @@ const TaskManagerPage = () => {
                           `&var-datasource=${encodeURIComponent(config.datasource)}` +
                           `&var-bucket=${encodeURIComponent(config.bucket)}` +
                           `&var-host=${encodeURIComponent(hostForGrafana)}` +
-                          `&from=now-1h&to=now&theme=light&disableLazyLoad=true&kiosk`
+                          `&from=now-1h&to=now&theme=${theme}&disableLazyLoad=true&kiosk`
                         }
                         width="100%"
                         height="800"
@@ -449,7 +451,7 @@ const TaskManagerPage = () => {
                 })()}
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center text-sm text-gray-400">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center text-sm text-gray-400">
                 <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />
                 Dashboards are loading....
               </div>
@@ -461,20 +463,20 @@ const TaskManagerPage = () => {
           <div className="flex flex-col h-full w-full">
             {/* Stat tiles + End Process */}
             <div className="flex flex-wrap items-stretch gap-3 mb-5">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3">
                 <div className="p-2 rounded-md bg-blue-50">
-                  <CpuChipIcon className="h-5 w-5 text-[#1a365d]" />
+                  <CpuChipIcon className="h-5 w-5 text-[#1a365d] dark:text-blue-300" />
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">
                     Host CPU
                   </span>
-                  <span className="text-base font-bold text-gray-900">
+                  <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                     {hostCpu}
                   </span>
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3">
                 <div className="p-2 rounded-md bg-violet-50">
                   <CircleStackIcon className="h-5 w-5 text-violet-700" />
                 </div>
@@ -482,12 +484,12 @@ const TaskManagerPage = () => {
                   <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">
                     Host Memory
                   </span>
-                  <span className="text-base font-bold text-gray-900">
+                  <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                     {hostMemory}
                   </span>
                 </div>
               </div>
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center gap-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-3">
                 <div className="p-2 rounded-md bg-emerald-50">
                   <ServerIcon className="h-5 w-5 text-emerald-700" />
                 </div>
@@ -495,7 +497,7 @@ const TaskManagerPage = () => {
                   <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide block">
                     Processes
                   </span>
-                  <span className="text-base font-bold text-gray-900">
+                  <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                     {processesCount}
                   </span>
                 </div>
@@ -505,7 +507,7 @@ const TaskManagerPage = () => {
                 className={`ml-auto flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold shadow-sm transition-all ${
                   selectedRows.length > 0 && !isLoading
                     ? "bg-red-600 text-white hover:bg-red-700"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                 }`}
                 disabled={selectedRows.length === 0 || isLoading}
                 onClick={handleKillProcess}
@@ -520,7 +522,7 @@ const TaskManagerPage = () => {
             </div>
 
             {/* Table */}
-            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-auto max-h-full custom-scrollbar">
               <table className="min-w-full text-sm">
                 <thead>
@@ -534,10 +536,10 @@ const TaskManagerPage = () => {
                         }}
                         onChange={handleSelectAll}
                         aria-label="Select all processes"
-                        className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
+                        className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d] cursor-pointer h-4 w-4"
                       />
                       {selectedRows.length > 0 && (
-                        <span className="inline-flex items-center justify-center ml-2 h-4 px-1 rounded-full bg-emerald-400 text-[#1a365d] text-[10px] font-bold">
+                        <span className="inline-flex items-center justify-center ml-2 h-4 px-1 rounded-full bg-emerald-400 text-[#1a365d] dark:text-blue-300 text-[10px] font-bold">
                           {selectedRows.length}
                         </span>
                       )}
@@ -550,7 +552,7 @@ const TaskManagerPage = () => {
                     <th className="py-3 px-4 text-left">Username</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-gray-700">
+                <tbody className="divide-y divide-gray-100 text-gray-700 dark:text-gray-300">
                   {processData.length === 0 ? (
                     <tr>
                       <td
@@ -585,7 +587,7 @@ const TaskManagerPage = () => {
                                 onChange={() => handleSelectRow(idx)}
                                 aria-label={`Select process ${proc.ID_Process || idx}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
+                                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d] cursor-pointer h-4 w-4"
                               />
                             </td>
                             <td className="py-3.5 px-4 text-left font-medium break-all">
@@ -631,7 +633,7 @@ const TaskManagerPage = () => {
                                 onChange={() => handleSelectRow(idx)}
                                 aria-label={`Select process ${proc.process_name || idx}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer h-4 w-4"
+                                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d] cursor-pointer h-4 w-4"
                               />
                             </td>
                             <td className="py-3.5 px-4 text-left font-medium break-all">
@@ -666,7 +668,7 @@ const TaskManagerPage = () => {
 
         {activeTab === "applications" && (
           <div className="flex flex-col items-center py-12">
-            <span className="text-gray-500">
+            <span className="text-gray-500 dark:text-gray-400">
               Applications view coming soon...
             </span>
           </div>

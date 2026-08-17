@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { PoolContext } from "../../Context/PoolContext";
 import DomainCard from "./DomainCard";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import "./ShowDomainsSkeleton.css";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDomains } from '../../redux/features/Domain/DomainThunks';
@@ -24,21 +25,11 @@ const ShowDomains = (props) => {
   };
 
   return (
-    <div className="w-[98%] h-[90vh] m-auto bg-white mt-[1.125rem] rounded-lg flex flex-col overflow-hidden">
-      <div className="flex justify-start ml=0">
-        <div
-          onClick={Goback}
-          className="ml-12 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
-        >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-        </div>
-      </div>
+    <div className="w-[98%] h-[90vh] m-auto bg-white dark:bg-gray-800 mt-[1.125rem] rounded-lg flex flex-col overflow-hidden">
       <div className="show-pools flex justify-start items-start gap-2 h-4/5 overflow-y-auto m-3">
         <div className="p-3 pb-0 w-full h-full">
           <div className="flex justify-between mb-3 items-center">
-            <h2 className="font-bold leading-7 text-[#00000099] text-lg pl-4">
+            <h2 className="font-bold leading-7 text-[#00000099] dark:text-gray-100 text-lg pl-4">
               Identity Providers
             </h2>
             <button

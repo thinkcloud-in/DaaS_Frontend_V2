@@ -73,7 +73,7 @@ const EditLLMInference = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-left items-start p-6 w-full overflow-y-auto">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900/60 text-left items-start p-6 w-full overflow-y-auto">
       <div className="w-full max-w-3xl mx-auto flex flex-col text-left items-start pb-10">
         
         {/* Header Section */}
@@ -81,17 +81,17 @@ const EditLLMInference = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-600"
+            className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-600 dark:text-gray-400"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-bold text-[#1a365d] text-left">Edit Machine Configuration</h1>
+          <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300 text-left">Edit Machine Configuration</h1>
         </div>
 
         {/* Main Form Layout - Exactly identical to creation UI block structure */}
         <form
           onSubmit={handleUpdateSubmit}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col text-left items-start w-full overflow-hidden"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col text-left items-start w-full overflow-hidden"
         >
           
           {/* Main Inputs Form Body */}
@@ -104,19 +104,19 @@ const EditLLMInference = () => {
                 type="text"
                 value={formData.name}
                 disabled
-                className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed select-none outline-none"
+                className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed select-none outline-none"
               />
             </div>
 
             {/* 2. IP Pools Display (Read-Only Chip Elements) */}
             <div className="flex flex-col gap-1.5 w-full text-left items-start">
               <label className="text-sm font-semibold text-gray-400 text-left w-full uppercase tracking-wider text-[11px]">IP Pools</label>
-              <div className="w-full min-h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed select-none">
+              <div className="w-full min-h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed select-none">
                 {formData.ip_pools.length === 0 ? (
                   <span className="text-gray-400 select-none">No IP pools configured</span>
                 ) : (
                   formData.ip_pools.map((val) => (
-                    <span key={val} className="inline-flex items-center bg-white text-gray-500 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200">
+                    <span key={val} className="inline-flex items-center bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">
                       {val}
                     </span>
                   ))
@@ -131,13 +131,13 @@ const EditLLMInference = () => {
                 type="text"
                 value={formData.base_os || "N/A"}
                 disabled
-                className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed select-none outline-none"
+                className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed select-none outline-none"
               />
             </div>
 
             {/* 4. Cluster Section Containers (Read-Only Layout Sync) */}
             <div className="flex flex-col gap-5 border border-blue-100 bg-blue-50/10 p-5 rounded-lg w-full text-left items-start select-none">
-              <h3 className="text-sm font-bold text-[#1a365d] tracking-wide uppercase border-b border-blue-100 pb-1.5 w-full text-left">
+              <h3 className="text-sm font-bold text-[#1a365d] dark:text-blue-300 tracking-wide uppercase border-b border-blue-100 pb-1.5 w-full text-left">
                 Cluster Properties (Locked)
               </h3>
               <div className="flex flex-col gap-5 w-full text-left items-start">
@@ -145,9 +145,9 @@ const EditLLMInference = () => {
                 {/* Cluster Multi-Display */}
                 <div className="flex flex-col gap-1.5 w-full text-left items-start">
                   <label className="text-xs font-semibold text-gray-400 uppercase">Cluster Node</label>
-                  <div className="w-full min-h-[42px] rounded-md border-2 border-blue-100/60 bg-gray-100/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed">
+                  <div className="w-full min-h-[42px] rounded-md border-2 border-blue-100/60 bg-gray-100 dark:bg-gray-700/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed">
                     {formData.clusters.map((val) => (
-                      <span key={val} className="bg-white text-gray-500 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200">{val}</span>
+                      <span key={val} className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">{val}</span>
                     ))}
                   </div>
                 </div>
@@ -155,9 +155,9 @@ const EditLLMInference = () => {
                 {/* Nodes Multi-Display */}
                 <div className="flex flex-col gap-1.5 w-full text-left items-start">
                   <label className="text-xs font-semibold text-gray-400 uppercase">Node Selection</label>
-                  <div className="w-full min-h-[42px] rounded-md border-2 border-blue-100/60 bg-gray-100/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed">
+                  <div className="w-full min-h-[42px] rounded-md border-2 border-blue-100/60 bg-gray-100 dark:bg-gray-700/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed">
                     {formData.nodes.map((val) => (
-                      <span key={val} className="bg-white text-gray-500 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200">{val}</span>
+                      <span key={val} className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">{val}</span>
                     ))}
                   </div>
                 </div>
@@ -165,9 +165,9 @@ const EditLLMInference = () => {
                 {/* GPUs Multi-Display */}
                 <div className="flex flex-col gap-1.5 w-full text-left items-start">
                   <label className="text-xs font-semibold text-gray-400 uppercase">GPU Selection</label>
-                  <div className="w-full min-h-[42px] rounded-md border-2 border-blue-100/60 bg-gray-100/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed">
+                  <div className="w-full min-h-[42px] rounded-md border-2 border-blue-100/60 bg-gray-100 dark:bg-gray-700/80 py-1.5 px-3 flex flex-wrap gap-1 items-center justify-start cursor-not-allowed">
                     {formData.gpus.map((val) => (
-                      <span key={val} className="bg-white text-gray-500 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200">{val}</span>
+                      <span key={val} className="bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs font-semibold px-2 py-0.5 rounded border border-gray-200 dark:border-gray-700">{val}</span>
                     ))}
                   </div>
                 </div>
@@ -182,7 +182,7 @@ const EditLLMInference = () => {
                 type="text"
                 value={formData.cpu}
                 disabled
-                className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed outline-none"
+                className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed outline-none"
               />
             </div>
 
@@ -193,13 +193,13 @@ const EditLLMInference = () => {
                 type="text"
                 value={formData.ram}
                 disabled
-                className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed outline-none"
+                className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed outline-none"
               />
             </div>
 
             {/* 7. Hardware Model Name Input -> ACTIVE & EDITABLE FIELD */}
             <div className="flex flex-col gap-1.5 w-full text-left items-start">
-              <label className="text-sm font-bold text-gray-800 text-left w-full">
+              <label className="text-sm font-bold text-gray-800 dark:text-gray-100 text-left w-full">
                 Model Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -209,13 +209,13 @@ const EditLLMInference = () => {
                 onChange={handleInputChange} // Only active update binding
                 placeholder="Enter targeted machine hardware target version model type"
                 required
-                className="w-full h-[42px] rounded-md border-2 border-gray-300 py-2 px-3 focus:border-[#1a365d] focus:outline-none text-sm text-gray-900 font-semibold text-left shadow-xs transition-colors"
+                className="w-full h-[42px] rounded-md border-2 border-gray-300 dark:border-gray-600 py-2 px-3 focus:border-[#1a365d] focus:outline-none text-sm text-gray-900 dark:text-gray-100 font-semibold text-left shadow-xs transition-colors"
               />
             </div>
 
             {/* 8. Storage Block Config (Read-Only) */}
-            <div className="flex flex-col gap-5 border border-gray-200 bg-gray-50/40 p-5 rounded-lg w-full text-left items-start select-none">
-              <h3 className="text-sm font-bold text-gray-400 tracking-wide uppercase border-b border-gray-200 pb-1.5 w-full text-left">
+            <div className="flex flex-col gap-5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60/40 p-5 rounded-lg w-full text-left items-start select-none">
+              <h3 className="text-sm font-bold text-gray-400 tracking-wide uppercase border-b border-gray-200 dark:border-gray-700 pb-1.5 w-full text-left">
                 Storage Provisioning (Locked)
               </h3>
               <div className="flex flex-col gap-5 w-full text-left items-start">
@@ -226,7 +226,7 @@ const EditLLMInference = () => {
                     type="text"
                     value={formData.datastore}
                     disabled
-                    className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed outline-none"
+                    className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed outline-none"
                   />
                 </div>
 
@@ -236,7 +236,7 @@ const EditLLMInference = () => {
                     type="text"
                     value={formData.os_disk_size}
                     disabled
-                    className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed outline-none"
+                    className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed outline-none"
                   />
                 </div>
 
@@ -246,7 +246,7 @@ const EditLLMInference = () => {
                     type="text"
                     value={formData.data_disk_size}
                     disabled
-                    className="w-full h-[42px] rounded-md border-2 border-gray-200 bg-gray-100/80 py-2 px-3 text-sm text-gray-500 text-left cursor-not-allowed outline-none"
+                    className="w-full h-[42px] rounded-md border-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/80 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-left cursor-not-allowed outline-none"
                   />
                 </div>
 
@@ -256,11 +256,11 @@ const EditLLMInference = () => {
           </div>
 
           {/* Bottom Control Actions Strip */}
-          <div className="w-full bg-gray-50 border-t border-gray-200 p-4 px-6 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-lg">
+          <div className="w-full bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 p-4 px-6 flex items-center justify-end gap-3 flex-shrink-0 rounded-b-lg">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="inline-flex justify-center rounded-md bg-white hover:bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 transition-colors"
+              className="inline-flex justify-center rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-gray-300 transition-colors"
             >
               Cancel
             </button>

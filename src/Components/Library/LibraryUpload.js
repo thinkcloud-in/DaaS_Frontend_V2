@@ -439,25 +439,25 @@ const LibraryUpload = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen text-left flex flex-col w-full relative select-none">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full relative select-none">
 
             {/* Header */}
-            <div className="pb-4 border-b border-gray-200 mb-6 w-full flex items-center gap-3">
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-6 w-full flex items-center gap-3">
                 <button
                     onClick={() => nav("/library")}
-                    className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+                    className="p-1.5 rounded hover:bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition-colors"
                 >
                     <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div>
-                    <h1 className="text-xl font-bold text-[#1a365d]">Library Upload</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">Library Upload</h1>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         Upload files to the centralized library — Base OS, Harbor Templates, LXC Backups, or General files.
                     </p>
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-2xl flex flex-col">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full max-w-2xl flex flex-col">
                 <form onSubmit={handleSubmit} className="w-full flex flex-col">
                     <div className="p-6 space-y-5">
 
@@ -512,7 +512,7 @@ const LibraryUpload = () => {
 
                         {/* Type Dropdown */}
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                            <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                 Upload Type <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -520,11 +520,11 @@ const LibraryUpload = () => {
                                     type="button"
                                     disabled={isBusy}
                                     onClick={() => setDropdownOpen((o) => !o)}
-                                    className="w-full flex items-center justify-between rounded border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full flex items-center justify-between rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm text-gray-900 dark:text-gray-100 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {activeType ? (
                                         <span className="flex items-center gap-2">
-                                            <activeType.icon className="h-4 w-4 text-[#1a365d]" />
+                                            <activeType.icon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                                             {activeType.label}
                                         </span>
                                     ) : (
@@ -534,7 +534,7 @@ const LibraryUpload = () => {
                                 </button>
 
                                 {dropdownOpen && (
-                                    <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                                    <div className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden">
                                         {UPLOAD_TYPES.map((t) => {
                                             const Icon = t.icon;
                                             return (
@@ -545,9 +545,9 @@ const LibraryUpload = () => {
                                                     className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors
                                                         ${selectedType === t.value ? "bg-blue-50/60" : ""}`}
                                                 >
-                                                    <Icon className="h-4 w-4 text-[#1a365d] mt-0.5 flex-shrink-0" />
+                                                    <Icon className="h-4 w-4 text-[#1a365d] dark:text-blue-300 mt-0.5 flex-shrink-0" />
                                                     <div>
-                                                        <p className="text-sm font-semibold text-gray-800">{t.label}</p>
+                                                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t.label}</p>
                                                         <p className="text-xs text-gray-400">{t.description}</p>
                                                     </div>
                                                 </button>
@@ -560,10 +560,10 @@ const LibraryUpload = () => {
 
                         {/* Fields */}
                         {activeType && (
-                            <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
-                                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                                    <activeType.icon className="h-4 w-4 text-[#1a365d]" />
-                                    <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                            <div className="bg-gray-50 dark:bg-gray-900/60/50 border border-gray-200 dark:border-gray-700/80 rounded-xl p-5 space-y-4">
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                                    <activeType.icon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
+                                    <h2 className="text-xs font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wider">
                                         {activeType.label} Details
                                     </h2>
                                 </div>
@@ -572,7 +572,7 @@ const LibraryUpload = () => {
                                 {needsContainerMeta && (
                                     <>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                            <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                                 Name <span className="text-red-500">*</span>
                                             </label>
                                             <input
@@ -581,11 +581,11 @@ const LibraryUpload = () => {
                                                 disabled={isBusy}
                                                 onChange={(e) => setContainerName(e.target.value)}
                                                 placeholder="e.g. open-webui"
-                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
+                                                className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 dark:text-gray-100 transition-all disabled:opacity-50"
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                            <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                                 Owner Name <span className="text-red-500">*</span>
                                             </label>
                                             <input
@@ -594,11 +594,11 @@ const LibraryUpload = () => {
                                                 disabled={isBusy}
                                                 onChange={(e) => setContainerOwnerName(e.target.value)}
                                                 placeholder="e.g. Open WebUI"
-                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
+                                                className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 dark:text-gray-100 transition-all disabled:opacity-50"
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                            <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                                 Version <span className="text-red-500">*</span>
                                             </label>
                                             <input
@@ -607,7 +607,7 @@ const LibraryUpload = () => {
                                                 disabled={isBusy}
                                                 onChange={(e) => setContainerVersion(e.target.value)}
                                                 placeholder="e.g. 1.0.0"
-                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 transition-all disabled:opacity-50"
+                                                className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-sm text-gray-900 dark:text-gray-100 transition-all disabled:opacity-50"
                                             />
                                         </div>
                                     </>
@@ -616,11 +616,11 @@ const LibraryUpload = () => {
                                 {/* Harbor registry selector — only for types with needsHarbor */}
                                 {needsHarbor && (
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                             Harbor Registry <span className="text-red-500">*</span>
                                         </label>
                                         {harborsLoading ? (
-                                            <div className="flex items-center gap-2 py-2 px-3 rounded border border-gray-200 bg-gray-50 text-xs text-gray-400">
+                                            <div className="flex items-center gap-2 py-2 px-3 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 text-xs text-gray-400">
                                                 <Loader2 className="h-3 w-3 animate-spin" /> Loading Harbor registries...
                                             </div>
                                         ) : harbors.length === 0 ? (
@@ -632,7 +632,7 @@ const LibraryUpload = () => {
                                                 value={harborRegistryId}
                                                 onChange={(e) => setHarborRegistryId(e.target.value)}
                                                 disabled={isBusy}
-                                                className="w-full rounded border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
+                                                className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                                             >
                                                 <option value="">Select a Harbor registry...</option>
                                                 {harbors.map((h) => (
@@ -646,7 +646,7 @@ const LibraryUpload = () => {
                                 )}
 
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                                    <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                         File <span className="text-red-500">*</span>
                                         <span className="ml-1 normal-case font-normal text-gray-400">({activeType.fileHint})</span>
                                     </label>
@@ -659,22 +659,22 @@ const LibraryUpload = () => {
                                     />
                                     <div
                                         onClick={() => !isBusy && fileInputRef.current.click()}
-                                        className={`border-2 border-dashed rounded bg-white p-4 flex items-center gap-2.5 transition-all group
+                                        className={`border-2 border-dashed rounded bg-white dark:bg-gray-800 p-4 flex items-center gap-2.5 transition-all group
                                             ${isBusy
-                                                ? "opacity-50 cursor-not-allowed border-gray-200"
-                                                : "border-gray-300 cursor-pointer hover:bg-blue-50/20 hover:border-[#1a365d]"
+                                                ? "opacity-50 cursor-not-allowed border-gray-200 dark:border-gray-700"
+                                                : "border-gray-300 dark:border-gray-600 cursor-pointer hover:bg-blue-50/20 hover:border-[#1a365d]"
                                             }`}
                                     >
                                         {file ? (
                                             <>
                                                 <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                                                <span className="text-xs font-semibold text-gray-800 truncate flex-1">{file.name}</span>
+                                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate flex-1">{file.name}</span>
                                                 <span className="text-[11px] text-gray-400 flex-shrink-0">{formatSize(file.size)}</span>
                                             </>
                                         ) : (
                                             <>
-                                                <UploadCloud className="h-4 w-4 text-gray-400 group-hover:text-[#1a365d] transition-colors" />
-                                                <span className="text-xs text-gray-500 font-medium group-hover:text-gray-700">
+                                                <UploadCloud className="h-4 w-4 text-gray-400 group-hover:text-[#1a365d] dark:text-blue-300 transition-colors" />
+                                                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium group-hover:text-gray-700 dark:text-gray-300">
                                                     Click to browse or drop a file
                                                 </span>
                                             </>
@@ -732,7 +732,7 @@ const LibraryUpload = () => {
                         )}
 
                         {!selectedType && (
-                            <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center text-center">
+                            <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-10 flex flex-col items-center justify-center text-center">
                                 <UploadCloud className="h-8 w-8 text-gray-300 mb-3" />
                                 <p className="text-sm font-semibold text-gray-400">Select an upload type above</p>
                                 <p className="text-xs text-gray-300 mt-1">Fields will appear based on your selection</p>
@@ -742,12 +742,12 @@ const LibraryUpload = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="w-full bg-gray-50 border-t border-gray-200 p-4 px-6 flex items-center justify-end gap-3 rounded-b-lg">
+                    <div className="w-full bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 p-4 px-6 flex items-center justify-end gap-3 rounded-b-lg">
                         <button
                             type="button"
                             onClick={handleCancel}
                             disabled={phase === "creating"}
-                            className="inline-flex justify-center rounded-md bg-white hover:bg-gray-100 px-5 py-2 text-xs font-bold text-gray-700 shadow-xs ring-1 ring-gray-300 transition-colors uppercase tracking-wider disabled:opacity-50"
+                            className="inline-flex justify-center rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 px-5 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 shadow-xs ring-1 ring-gray-300 transition-colors uppercase tracking-wider disabled:opacity-50"
                         >
                             {phase === "streaming" ? "Cancel Upload" : "Cancel"}
                         </button>

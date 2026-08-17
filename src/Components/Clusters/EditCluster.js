@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Slide, toast } from "react-toastify";
 import CircularProgress from "@mui/material/CircularProgress";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchClusterByIdThunk,
@@ -179,7 +180,7 @@ const EditCluster = () => {
   // Still loading skeleton loader
   if (loading || !formCluster || !formCluster.type) {
     return (
-      <div className="w-[95%] min-h-[90vh] m-auto rounded-md bg-white">
+      <div className="w-[95%] min-h-[90vh] m-auto rounded-md bg-white dark:bg-gray-800">
         <div className="flex justify-start ml=0 mt-5">
           <div className="ml-12 h-10 w-16 bg-gray-200 rounded animate-pulse"></div>
         </div>
@@ -189,41 +190,29 @@ const EditCluster = () => {
   }
 
   return (
-    <div className="w-[98%] mt-4 h-[90vh] min-h-[75vh] m-auto bg-white rounded-lg  shadow-md flex flex-col overflow-hidden">
+    <div className="w-[98%] mt-4 h-[90vh] min-h-[75vh] m-auto bg-white dark:bg-gray-800 rounded-lg  shadow-md flex flex-col overflow-hidden">
       <div className="flex justify-start ml-2 mt-5">
-        <div
+        <button
+          type="button"
           onClick={Goback}
-          className="ml-12 bg-[#1a365dcc] text-[#f5f5f5] hover:bg-[#1a365d] hover:text-white px-2 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10"
+          className="ml-12 p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors text-gray-700 dark:text-gray-300"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </div>
+          <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
+        </button>
       </div>
-      <div className="cluster-creation-form overflow-y-auto rounded-md bg-white custom-scrollbar ">
+      <div className="cluster-creation-form overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar ">
         <div
           className={`space-y-5 m-2 ${isLoading ? "opacity-50 pointer-events-none select-none transition-all" : ""}`}
         >
           <div className="mx-10 p-3 rounded-md w-3/4">
-            <h2 className="font-bold leading-7 text-gray-900 text-left">
+            <h2 className="font-bold leading-7 text-gray-900 dark:text-gray-100 text-left">
               Edit Cluster
             </h2>
             <div className="text-left table-auto mt-10">
               {/* CLUSTER FORM */}
               <div className="tr">
                 <div className="th">
-                  <label className="text-sm font-medium leading-6 text-gray-900  border-0 ">
+                  <label className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-100  border-0 ">
                     Cluster Type
                   </label>
                 </div>
@@ -233,7 +222,7 @@ const EditCluster = () => {
                       disabled
                       value={formCluster.type}
                       name="clusterType"
-                      className="block cursor-pointer rounded-md py-1.5 text-gray-900  shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 border-2"
+                      className="block cursor-pointer rounded-md py-1.5 text-gray-900 dark:text-gray-100  shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 border-2"
                     >
                       <option value={formCluster.type} disabled>
                         {formCluster.type}
@@ -244,7 +233,7 @@ const EditCluster = () => {
               </div>
               <div className="tr">
                 <div className="th">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                  <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                     Cluster Name
                   </label>
                 </div>
@@ -257,7 +246,7 @@ const EditCluster = () => {
                         name="name"
                         onChange={handleOnChange}
                         value={formCluster.name || ""}
-                        className="block flex-1 rounded-md  py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                        className="block flex-1 rounded-md  py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                       />
                     </div>
                   </div>
@@ -267,7 +256,7 @@ const EditCluster = () => {
               {formCluster.type === "VMware" && (
                 <div className="tr">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Vcenter IP / FQDN
                     </label>
                   </div>
@@ -284,7 +273,7 @@ const EditCluster = () => {
                               ? formCluster.ip[0]
                               : formCluster.ip
                           }
-                          className="block flex-1 rounded-md   py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                          className="block flex-1 rounded-md   py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                         />
                       </div>
                     </div>
@@ -294,7 +283,7 @@ const EditCluster = () => {
               {formCluster.type === "KVM" && (
                 <div className="tr">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       KVM IP / FQDN
                     </label>
                   </div>
@@ -311,7 +300,7 @@ const EditCluster = () => {
                               ? formCluster.ip[0]
                               : formCluster.ip
                           }
-                          className="block flex-1 rounded-md bg-zinc-300 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                          className="block flex-1 rounded-md bg-zinc-300 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                         />
                       </div>
                     </div>
@@ -321,7 +310,7 @@ const EditCluster = () => {
               {formCluster.type === "Proxmox" && (
                 <div className="tr">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Proxmox IP / FQDN
                     </label>
                   </div>
@@ -338,7 +327,7 @@ const EditCluster = () => {
                               ? formCluster.ip[0]
                               : formCluster.ip
                           }
-                          className="block flex-1 rounded-md py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                          className="block flex-1 rounded-md py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                         />
                       </div>
                     </div>
@@ -348,7 +337,7 @@ const EditCluster = () => {
               {
                 <div className="tr">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                       {formCluster.type === "Hyper-V" ? "Agent Port" : "Port"}
                     </label>
                   </div>
@@ -368,7 +357,7 @@ const EditCluster = () => {
                               ? "agent_port"
                               : "port"
                           }
-                          className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                          className="block flex-1 rounded-md bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                         />
                       </div>
                     </div>
@@ -377,7 +366,7 @@ const EditCluster = () => {
               }
               <div className="tr">
                 <div className="th">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                  <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                     Username
                   </label>
                 </div>
@@ -389,7 +378,7 @@ const EditCluster = () => {
                         name="username"
                         onChange={handleOnChange}
                         value={formCluster.username || ""}
-                        className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                        className="block flex-1 rounded-md bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                       />
                     </div>
                   </div>
@@ -397,7 +386,7 @@ const EditCluster = () => {
               </div>
               <div className="tr">
                 <div className="th">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                  <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                     Password
                   </label>
                 </div>
@@ -408,12 +397,12 @@ const EditCluster = () => {
                       name="password"
                       onChange={handleOnChange}
                       value={formCluster.password || ""}
-                      className="block w-full rounded-md border border-gray-300 py-1.5 pl-2 pr-8 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 py-1.5 pl-2 pr-8 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-sm sm:leading-6"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                      className="absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 focus:outline-none"
                       tabIndex={-1}
                       aria-label={
                         showPassword ? "Hide password" : "Show password"
@@ -427,7 +416,7 @@ const EditCluster = () => {
               {/* {formCluster.type === "Hyper-V" && (
                 <div className="tr mt-4 mb-4">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Node Type
                     </label>
                   </div>
@@ -468,7 +457,7 @@ const EditCluster = () => {
               {formCluster.type === "Hyper-V" && (
                 <div className="tr mt-4 mb-4">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Node Type
                     </label>
                   </div>
@@ -498,7 +487,7 @@ const EditCluster = () => {
               {formCluster.type.toLowerCase() !== "hyper-v" && (
                 <div className="tr">
                   <div className="th">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Insecure Skip Verify
                     </label>
                   </div>
@@ -530,7 +519,7 @@ const EditCluster = () => {
                 onChange={handleMonitoringCheckbox}
                 disabled={monitoring.monitoringLoading}
               />
-              <span className="font-medium text-gray-800">Monitoring</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">Monitoring</span>
               {monitoring.monitoringLoading && (
                 <CircularProgress size={16} color="inherit" />
               )}
@@ -538,7 +527,7 @@ const EditCluster = () => {
             {showMonitoringConfirm && (
               <div className="modal-overlay">
                 <div className="modal-content">
-                  <span className="text-base font-semibold text-gray-800 mb-4 text-center">
+                  <span className="text-base font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center">
                     Do you want to integrate InfluxDB into Proxmox?
                   </span>
                   <div className="flex gap-6">
@@ -549,7 +538,7 @@ const EditCluster = () => {
                       Yes
                     </button>
                     <button
-                      className="px-4 py-1 rounded-md bg-gray-300 text-gray-800 font-semibold hover:bg-gray-400"
+                      className="px-4 py-1 rounded-md bg-gray-300 text-gray-800 dark:text-gray-100 font-semibold hover:bg-gray-400"
                       onClick={() => handleMonitoringConfirm(false)}
                     >
                       No
@@ -560,14 +549,14 @@ const EditCluster = () => {
             )}
             {/* Show current monitoring data if enabled */}
             {monitoringChecked && monitoring.monitoringData && (
-              <div className="p-8 rounded-md shadow-sm bg-white mt-0">
-                <h3 className="text-lg font-semibold text-[#00000099] mb-1 pb-1">
+              <div className="p-8 rounded-md shadow-sm bg-white dark:bg-gray-800 mt-0">
+                <h3 className="text-lg font-semibold text-[#00000099] dark:text-gray-100 mb-1 pb-1">
                   InfluxDB Metric Server
                 </h3>
                 <div className="monitoring-table-form w-[60%]">
                   <div className="tr flex items-center mb-2 ">
                     <div className="th w-16 flex-shrink-0">
-                      <label className="block mt-2 flex items-start text-sm font-medium text-gray-900 border-0">
+                      <label className="block mt-2 flex items-start text-sm font-medium text-gray-900 dark:text-gray-100 border-0">
                         Organization
                       </label>
                     </div>
@@ -577,14 +566,14 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.organization || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400  focus:ring-indigo-600 border-2",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400  focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
                   </div>
                   <div className="tr flex items-center mb-2 ">
                     <div className="th w-24 flex-shrink-0">
-                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Bucket
                       </label>
                     </div>
@@ -594,14 +583,14 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.bucket || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
                   </div>
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
-                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Token
                       </label>
                     </div>
@@ -610,7 +599,7 @@ const EditCluster = () => {
                         type="text"
                         value="••••••••••••"
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                         readOnly
                       />
@@ -618,7 +607,7 @@ const EditCluster = () => {
                   </div>
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
-                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Server
                       </label>
                     </div>
@@ -628,14 +617,14 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.server || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
                   </div>
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
-                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Port
                       </label>
                     </div>
@@ -645,14 +634,14 @@ const EditCluster = () => {
                         readOnly
                         value={monitoring.monitoringData.port || ""}
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>
                   </div>
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
-                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block mt-2 flex items-start text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Protocol
                       </label>
                     </div>
@@ -666,7 +655,7 @@ const EditCluster = () => {
                           ""
                         }
                         className={classNames(
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-indigo-600 border-2",
                         )}
                       />
                     </div>

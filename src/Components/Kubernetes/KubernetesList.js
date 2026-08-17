@@ -35,13 +35,13 @@ const PasswordInput = ({ name, value, onChange, placeholder, error }) => {
         onChange={onChange}
         placeholder={placeholder}
         className={`w-full px-3.5 py-2 pr-10 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-          ${error ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+          ${error ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
       />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
         tabIndex={-1}
-        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors"
       >
         {visible ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
       </button>
@@ -422,15 +422,15 @@ const KubernetesList = () => {
   };
 
   return (
-    <div className="p-6 pb-32 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+    <div className="p-6 pb-32 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a365d] flex items-center gap-2">
-            <CpuChipIcon className="h-7 w-7 text-[#1a365d]" />
+          <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300 flex items-center gap-2">
+            <CpuChipIcon className="h-7 w-7 text-[#1a365d] dark:text-blue-300" />
             Kubernetes Pools
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Connect existing Kubernetes clusters or deploy new ones. Click on any cluster row to view node-level monitoring.
           </p>
         </div>
@@ -439,7 +439,7 @@ const KubernetesList = () => {
           <button
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
           >
             <ArrowPathIcon className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Refreshing..." : "Refresh"}
@@ -458,7 +458,7 @@ const KubernetesList = () => {
           <button
             disabled
             title="Deployment features are coming soon"
-            className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-300 text-gray-500 cursor-not-allowed text-sm font-medium shadow-sm opacity-60"
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed text-sm font-medium shadow-sm opacity-60"
           >
             <ServerIcon className="h-4 w-4" />
             Deploy (Disabled)
@@ -467,7 +467,7 @@ const KubernetesList = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full">
         <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
@@ -483,11 +483,11 @@ const KubernetesList = () => {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+            <tbody className="divide-y divide-gray-200 text-sm text-gray-700 dark:text-gray-300">
               {loading && clusters.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="py-12 text-center text-gray-400">
-                    <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto mb-2 text-[#1a365d]" />
+                    <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto mb-2 text-[#1a365d] dark:text-blue-300" />
                     Loading clusters...
                   </td>
                 </tr>
@@ -504,22 +504,22 @@ const KubernetesList = () => {
                     onClick={() => handleRowClick(item)}
                     className="hover:bg-blue-50/20 cursor-pointer transition-colors"
                   >
-                    <td className="py-4 px-6 text-gray-900 font-bold whitespace-nowrap">
+                    <td className="py-4 px-6 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">
                       {item.name}
                     </td>
-                    <td className="py-4 px-6 font-mono text-xs text-gray-600">
+                    <td className="py-4 px-6 font-mono text-xs text-gray-600 dark:text-gray-400">
                       {item.headIp}
                     </td>
-                    <td className="py-4 px-6 font-mono text-xs text-gray-600">
+                    <td className="py-4 px-6 font-mono text-xs text-gray-600 dark:text-gray-400">
                       {item.port}
                     </td>
-                    <td className="py-4 px-6 text-gray-600">{item.username}</td>
+                    <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{item.username}</td>
                     <td className="py-4 px-6 text-center">
-                      <span className="inline-flex items-center justify-center bg-blue-50 border border-blue-200 text-[#1a365d] text-xs font-bold px-2.5 py-0.5 rounded-md min-w-[28px]">
+                      <span className="inline-flex items-center justify-center bg-blue-50 border border-blue-200 text-[#1a365d] dark:text-blue-300 text-xs font-bold px-2.5 py-0.5 rounded-md min-w-[28px]">
                         {item.nodeCount}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-xs text-gray-500 whitespace-nowrap">
+                    <td className="py-4 px-6 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {item.createdAt}
                     </td>
                     <td className="py-4 px-6 text-center">
@@ -532,7 +532,7 @@ const KubernetesList = () => {
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={(e) => handleEditClick(e, item)}
-                          className="p-1.5 text-[#1a365d] hover:bg-blue-50 rounded-md transition-colors"
+                          className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition-colors"
                           title="Update Cluster Connection"
                         >
                           <PencilSquareIcon className="h-5 w-5" />
@@ -565,16 +565,16 @@ const KubernetesList = () => {
 
           {/* Modal Container */}
           <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50 dark:bg-gray-900/60">
                 <div className="flex items-center gap-2">
-                  <CpuChipIcon className="h-6 w-6 text-[#1a365d]" />
-                  <h3 className="text-lg font-bold text-gray-900">Connect Kubernetes Cluster</h3>
+                  <CpuChipIcon className="h-6 w-6 text-[#1a365d] dark:text-blue-300" />
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Connect Kubernetes Cluster</h3>
                 </div>
                 <button
                   onClick={() => setShowConnectModal(false)}
-                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 transition-colors"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -583,7 +583,7 @@ const KubernetesList = () => {
               {/* Form */}
               <form onSubmit={handleSubmit}>
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar text-left">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex gap-2.5 text-xs text-[#1a365d]">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex gap-2.5 text-xs text-[#1a365d] dark:text-blue-300">
                     <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-500" />
                     <div>
                       Connect to an existing Kubernetes deployment. Provide the API Server address, credentials or kubeconfig token to establish a connection.
@@ -592,7 +592,7 @@ const KubernetesList = () => {
 
                   {/* Cluster Name */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                       Cluster Name *
                     </label>
                     <input
@@ -602,7 +602,7 @@ const KubernetesList = () => {
                       onChange={handleInputChange}
                       placeholder="e.g. k8s-prod-cluster"
                       className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                        ${formErrors.name ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                        ${formErrors.name ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                     />
                     {formErrors.name && (
                       <span className="text-xs text-red-500 mt-1 block">{formErrors.name}</span>
@@ -611,11 +611,11 @@ const KubernetesList = () => {
 
                   {/* Connection Method */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2">
                       Connection Method
                     </label>
                     <div className="flex items-center gap-6">
-                      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
                         <input
                           type="radio"
                           name="connectionMode"
@@ -626,7 +626,7 @@ const KubernetesList = () => {
                         />
                         Credentials
                       </label>
-                      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
                         <input
                           type="radio"
                           name="connectionMode"
@@ -644,7 +644,7 @@ const KubernetesList = () => {
                     /* Host IP & Port */
                     <div className="grid grid-cols-3 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                           Control Plane IP *
                         </label>
                         <input
@@ -654,14 +654,14 @@ const KubernetesList = () => {
                           onChange={handleInputChange}
                           placeholder="e.g. 192.168.1.100"
                           className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                            ${formErrors.headIp ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                            ${formErrors.headIp ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                         />
                         {formErrors.headIp && (
                           <span className="text-xs text-red-500 mt-1 block">{formErrors.headIp}</span>
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                           API Port *
                         </label>
                         <input
@@ -671,7 +671,7 @@ const KubernetesList = () => {
                           onChange={handleInputChange}
                           placeholder="6443"
                           className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                            ${formErrors.port ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                            ${formErrors.port ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                         />
                         {formErrors.port && (
                           <span className="text-xs text-red-500 mt-1 block">{formErrors.port}</span>
@@ -681,7 +681,7 @@ const KubernetesList = () => {
                   ) : (
                     /* Control Plane IP (manual) */
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Control Plane IP *
                       </label>
                       <input
@@ -691,7 +691,7 @@ const KubernetesList = () => {
                         onChange={handleInputChange}
                         placeholder="e.g. 192.168.1.100"
                         className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                          ${formErrors.headIp ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                          ${formErrors.headIp ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                       />
                       {formErrors.headIp && (
                         <span className="text-xs text-red-500 mt-1 block">{formErrors.headIp}</span>
@@ -702,7 +702,7 @@ const KubernetesList = () => {
                   {/* SSH Username & Password — required for both connection methods */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Username *
                       </label>
                       <input
@@ -712,14 +712,14 @@ const KubernetesList = () => {
                         onChange={handleInputChange}
                         placeholder="e.g. root"
                         className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                          ${formErrors.username ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                          ${formErrors.username ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                       />
                       {formErrors.username && (
                         <span className="text-xs text-red-500 mt-1 block">{formErrors.username}</span>
                       )}
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Password *
                       </label>
                       <PasswordInput
@@ -741,7 +741,7 @@ const KubernetesList = () => {
                   {connectionMode === "credentials" ? (
                     /* Auth Token (optional) */
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Auth Token
                       </label>
                       <PasswordInput
@@ -757,7 +757,7 @@ const KubernetesList = () => {
                   ) : (
                     /* Kubeconfig data */
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Kubeconfig YAML *
                       </label>
                       <textarea
@@ -767,7 +767,7 @@ const KubernetesList = () => {
                         onChange={handleKubeconfigChange}
                         placeholder="apiVersion: v1&#10;clusters: ...&#10;contexts: ...&#10;users: ..."
                         className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] font-mono text-xs transition-all
-                          ${formErrors.kubeconfig ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                          ${formErrors.kubeconfig ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                       />
                       {formErrors.kubeconfig ? (
                         <span className="text-xs text-red-500 mt-1 block">{formErrors.kubeconfig}</span>
@@ -781,11 +781,11 @@ const KubernetesList = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 dark:bg-gray-900/60 flex justify-end gap-3 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowConnectModal(false)}
-                    className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors"
                   >
                     Cancel
                   </button>
@@ -793,7 +793,7 @@ const KubernetesList = () => {
                     type="button"
                     onClick={handleTestConnection}
                     disabled={testingConnection || loading}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#1a365d] bg-white border border-[#1a365d]/30 rounded-lg hover:bg-blue-50 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 border border-[#1a365d]/30 rounded-lg hover:bg-blue-50 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {testingConnection ? (
                       <>
@@ -842,18 +842,18 @@ const KubernetesList = () => {
 
           {/* Modal Container */}
           <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg border border-gray-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50 dark:bg-gray-900/60">
                 <div className="flex items-center gap-2">
-                  <PencilSquareIcon className="h-6 w-6 text-[#1a365d]" />
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <PencilSquareIcon className="h-6 w-6 text-[#1a365d] dark:text-blue-300" />
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     Update Cluster {editTarget?.name ? `— ${editTarget.name}` : ""}
                   </h3>
                 </div>
                 <button
                   onClick={() => setShowEditModal(false)}
-                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 transition-colors"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -862,7 +862,7 @@ const KubernetesList = () => {
               {/* Form */}
               <form onSubmit={handleEditSubmit}>
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar text-left">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex gap-2.5 text-xs text-[#1a365d]">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex gap-2.5 text-xs text-[#1a365d] dark:text-blue-300">
                     <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-500" />
                     <div>
                       Update the Control Plane IP and re-upload the kubeconfig for this cluster's connection.
@@ -871,7 +871,7 @@ const KubernetesList = () => {
 
                   {/* Control Plane IP */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                       Control Plane IP *
                     </label>
                     <input
@@ -881,7 +881,7 @@ const KubernetesList = () => {
                       onChange={handleEditInputChange}
                       placeholder="e.g. 192.168.1.100"
                       className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                        ${editFormErrors.controlIp ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                        ${editFormErrors.controlIp ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                     />
                     {editFormErrors.controlIp && (
                       <span className="text-xs text-red-500 mt-1 block">{editFormErrors.controlIp}</span>
@@ -891,7 +891,7 @@ const KubernetesList = () => {
                   {/* SSH Username & Password */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Username *
                       </label>
                       <input
@@ -901,14 +901,14 @@ const KubernetesList = () => {
                         onChange={handleEditInputChange}
                         placeholder="e.g. root"
                         className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] transition-all
-                          ${editFormErrors.username ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                          ${editFormErrors.username ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                       />
                       {editFormErrors.username && (
                         <span className="text-xs text-red-500 mt-1 block">{editFormErrors.username}</span>
                       )}
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                         Password *
                       </label>
                       <PasswordInput
@@ -929,7 +929,7 @@ const KubernetesList = () => {
 
                   {/* Kubeconfig YAML */}
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1">
                       Kubeconfig YAML *
                     </label>
                     <textarea
@@ -939,7 +939,7 @@ const KubernetesList = () => {
                       onChange={handleEditInputChange}
                       placeholder="apiVersion: v1&#10;clusters: ...&#10;contexts: ...&#10;users: ..."
                       className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] font-mono text-xs transition-all
-                        ${editFormErrors.kubeconfig ? "border-red-500 bg-red-50/10" : "border-gray-300"}`}
+                        ${editFormErrors.kubeconfig ? "border-red-500 bg-red-50/10" : "border-gray-300 dark:border-gray-600"}`}
                     />
                     {editFormErrors.kubeconfig && (
                       <span className="text-xs text-red-500 mt-1 block">{editFormErrors.kubeconfig}</span>
@@ -948,11 +948,11 @@ const KubernetesList = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 dark:bg-gray-900/60 flex justify-end gap-3 shrink-0">
                   <button
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors"
                   >
                     Cancel
                   </button>

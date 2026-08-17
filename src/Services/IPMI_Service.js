@@ -3,12 +3,13 @@ import { getEnv } from "utils/getEnv";
 import { toast } from "react-toastify";
 
 const backendUrl = getEnv("BACKEND_URL");
-export const GetAllIpmiLists = async (token) => {
+export const GetAllIpmiLists = async (token, page = 1, pageSize = 10) => {
   try {
     const response = await axiosInstance.get(`${backendUrl}/v1/ipmi/get_all_ipmi_servers`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
+      params: { page, page_size: pageSize },
     });
-    return response.data?.data || [];
+    return response.data?.data || { items: [], pagination: null };
   } catch (error) {
     toast.error(error?.data?.msg || "Failed to fetch IPMI list", { position: "top-right", autoClose: 3000 });
     throw error;

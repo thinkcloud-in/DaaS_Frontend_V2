@@ -5,8 +5,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   BellIcon,
   ArrowRightOnRectangleIcon,
+  SunIcon,
+  MoonIcon,
 } from "@heroicons/react/24/outline";
 import keycloakConfig from "../Login/keycloak/keycloak";
+import { useTheme } from "../../Context/ThemeContext";
 
 // Keycloak always includes these on every user's token -- never meaningful
 // to show as "the" role, so they're filtered out when picking a display role.
@@ -65,6 +68,7 @@ export default function Navbar(tokenParsed) {
   const profileicon=nameoftheuser.charAt(0)
   const displayRole = getDisplayRole(tokenParsed.tokenParsed)
   const [showIdCard, setShowIdCard] = useState(false)
+  const { theme, toggleTheme } = useTheme();
 
   updateCurrentPage();
 
@@ -121,7 +125,7 @@ export default function Navbar(tokenParsed) {
                         leaveFrom="opacity-100 scale-100"
                         leaveTo="opacity-0 scale-95"
                       >
-                        <Dialog.Panel className="w-56 rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden">
+                        <Dialog.Panel className="w-56 rounded-2xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 overflow-hidden">
                           {/* ── ID card ── */}
                           <div className="relative bg-gradient-to-b from-[#2a4a85] to-[#16305c] pt-3 pb-4 flex flex-col items-center">
                             {/* lanyard punch hole */}
@@ -144,6 +148,31 @@ export default function Navbar(tokenParsed) {
                                 {displayRole}
                               </span>
                             )}
+                          </div>
+
+                          {/* Light/dark theme toggle */}
+                          <div className="flex items-center justify-center gap-3 py-3 bg-gray-50 dark:bg-gray-900/60 transition-colors">
+                            <SunIcon
+                              className={`h-4 w-4 transition-colors ${theme === "light" ? "text-amber-500" : "text-gray-400"}`}
+                            />
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={theme === "dark"}
+                              onClick={toggleTheme}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1a365d] ${
+                                theme === "dark" ? "bg-[#1a365d]" : "bg-gray-300"
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform ${
+                                  theme === "dark" ? "translate-x-6" : "translate-x-1"
+                                }`}
+                              />
+                            </button>
+                            <MoonIcon
+                              className={`h-4 w-4 transition-colors ${theme === "dark" ? "text-indigo-400" : "text-gray-400"}`}
+                            />
                           </div>
 
                           {/* barcode strip -- purely decorative ID-card flavor */}

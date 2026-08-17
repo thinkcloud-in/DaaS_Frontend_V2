@@ -3,17 +3,17 @@ import "./css/RDPsettings.css";
 const VNCsettings = ({onChange,poolDetails }) => {
   return (
     <div className=" p-3 pool_creation  rounded-b-md">
-      {/* <h2 className="font-semibold leading-7 text-gray-900 mb-3">
+      {/* <h2 className="font-semibold leading-7 text-gray-900 dark:text-gray-100 mb-3">
         VNC Settings
       </h2> */}
       <div className="divide-slate-500 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Network
         </h3>
         <div className="text-left table-auto ml-3">
           {/* <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Hostname
               </label>
             </div>
@@ -29,8 +29,8 @@ const VNCsettings = ({onChange,poolDetails }) => {
                      onChange={onChange}
                     className={`block flex-1 rounded-md py-1.5 pl-1 border-2 sm:text-sm sm:leading-6 focus:ring-0
           ${poolDetails.pool_type?.toLowerCase() === 'automated'
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            : 'bg-white text-gray-900'}
+            ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'}
            placeholder:text-gray-400 bg-transparent`}
                   />
                 </div>
@@ -39,7 +39,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
             </div> */}
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Port 
               </label>
             </div>
@@ -54,13 +54,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
             </div>
           </div></div></div>
       <div className="divide-slate-500 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Concurrency Limits
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Maximum number of connections
               </label>
             </div>
@@ -76,7 +76,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Maximum connections per user
               </label>
             </div>
@@ -93,13 +93,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Load Balancing
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Load balance info/cookie:
               </label>
             </div>
@@ -116,13 +116,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           GUACAMOLE PROXY PARAMETERS (GUACD)
         </h3>
         <div className="text-left table-auto ml-3">
           {/* <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Hostname
               </label>
             </div>
@@ -133,7 +133,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="text"
                     placeholder="Hostname"
                     name=""
-                    className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1 rounded-md bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -141,7 +141,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div> */}
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Port
               </label>
             </div>
@@ -157,7 +157,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Encryption
               </label>
             </div>
@@ -179,13 +179,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-500 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Authentication
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Username
               </label>
             </div>
@@ -204,7 +204,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Password
               </label>
             </div>
@@ -224,11 +224,11 @@ const VNCsettings = ({onChange,poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Display</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">Display</h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Read Only
               </label>
             </div>
@@ -239,7 +239,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_read_only" onChange={onChange}
                     checked={poolDetails.pool_read_only}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded"
                   />
                 </div>
               </div>
@@ -247,7 +247,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Swap red/blue components
               </label>
             </div>
@@ -258,7 +258,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_swap_red_blue" onChange={onChange}
                     checked={poolDetails.pool_swap_red_blue}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -267,7 +267,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
 
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Cursor
               </label>
             </div>
@@ -287,7 +287,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Color Depth
               </label>
             </div>
@@ -307,7 +307,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           {/* <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
               Force lossless compression 
               </label>
             </div>
@@ -317,7 +317,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                   <input
                     type="checkbox"
                     name=""
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -326,11 +326,11 @@ const VNCsettings = ({onChange,poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Clipboard</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">Clipboard</h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Encoding
               </label>
             </div>
@@ -340,7 +340,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                   <select
                     name="pool_clipboard_encoding" onChange={onChange}
                     value={poolDetails.pool_clipboard_encoding}
-                    className="block flex-1  bg-white py-1.5 pl-1 text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 py-1.5 pl-1 text-gray-900 dark:text-gray-100 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   >
                     <option value="">Select Encoding</option>
                     <option value="base64">base64</option>
@@ -355,7 +355,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Disable copying from remote desktop
               </label>
             </div>
@@ -366,7 +366,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_disable_copy" onChange={onChange}
                     checked={poolDetails.pool_disable_copy}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -374,7 +374,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Disable pasting from client
               </label>
             </div>
@@ -385,7 +385,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_disable_paste" onChange={onChange}
                     checked={poolDetails.pool_disable_paste}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -394,11 +394,11 @@ const VNCsettings = ({onChange,poolDetails }) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">VNC Repeater</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">VNC Repeater</h3>
         <div className="text-left table-auto ml-3">
         <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
               Destination host
               </label>
             </div>
@@ -410,7 +410,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     placeholder="Destination Host"
                     name="pool_dest_host" onChange={onChange}
                     value={poolDetails.pool_dest_host}
-                    className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1 bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -418,7 +418,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
               Destination Port
               </label>
             </div>
@@ -435,13 +435,13 @@ const VNCsettings = ({onChange,poolDetails }) => {
           
           </div></div>
           <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Screen Recording
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Recording path
               </label>
             </div>
@@ -457,7 +457,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Recording Name
               </label>
             </div>
@@ -473,7 +473,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Automatically create recording path
               </label>
             </div>
@@ -484,7 +484,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_create_typescript_path" onChange={onChange}
                     checked={poolDetails.pool_create_typescript_path}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -492,7 +492,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Include key events
               </label>
             </div>
@@ -503,7 +503,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_recording_include_keys" onChange={onChange}
                     checked={poolDetails.pool_recording_include_keys}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -511,7 +511,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Exclude Mouse
               </label>
             </div>
@@ -523,7 +523,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     name="pool_recording_exclude_mouse" 
                     onChange={onChange}
                     checked={poolDetails.pool_recording_exclude_mouse}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -531,7 +531,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
               Exclude graphics/streams
               </label>
             </div>
@@ -542,7 +542,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_exclude_graphics_streams" onChange={onChange}
                     checked={poolDetails.pool_exclude_graphics_streams}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -550,11 +550,11 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           </div></div>
           <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">SFTP</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">SFTP</h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Enable SFTP
               </label>
             </div>
@@ -565,7 +565,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_enable_sftp" onChange={onChange}
                     checked={poolDetails.pool_enable_sftp}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -573,7 +573,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 SFTP Port
               </label>
             </div>
@@ -589,7 +589,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 SFTP Username
               </label>
             </div>
@@ -605,7 +605,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 SFTP Password
               </label>
             </div>
@@ -621,7 +621,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 SFTP Host Key
               </label>
             </div>
@@ -637,7 +637,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 SFTP Private Key
               </label>
             </div>
@@ -652,7 +652,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 SFTP Passphrase
               </label>
             </div>
@@ -668,7 +668,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 File browser root directory
               </label>
             </div>
@@ -684,7 +684,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Default upload directory
               </label>
             </div>
@@ -700,7 +700,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 SFTP keepalive interval
               </label>
             </div>
@@ -716,11 +716,11 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           </div></div>
           <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Audio</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">Audio</h3>
         <div className="text-left table-auto ml-3">
         <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
              Enable Audio
               </label>
             </div>
@@ -731,7 +731,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
                     type="checkbox"
                     name="pool_enable_audio" onChange={onChange}
                     checked={poolDetails.pool_enable_audio}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded   "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded   "
                   />
                 </div>
               </div>
@@ -739,7 +739,7 @@ const VNCsettings = ({onChange,poolDetails }) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Audio Server Name
               </label>
             </div>

@@ -261,7 +261,7 @@ export default function EditMahchinePopover(props) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-auto divide-y divide-slate-400">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-auto divide-y divide-slate-400">
                 <div className="p-6">
                   <table className="w-full">
                     <tbody>
@@ -269,7 +269,7 @@ export default function EditMahchinePopover(props) {
                         <td className="pl-4">
                           <label
                             htmlFor="name"
-                            className="mb-2 text-sm font-medium leading-6 text-gray-900"
+                            className="mb-2 text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                           >
                             Name
                           </label>
@@ -285,7 +285,7 @@ export default function EditMahchinePopover(props) {
                                 value={editMachine.name}
                                 onChange={handleChange}
                                 placeholder="Name"
-                                className="block flex-1 rounded-md  bg-white  border-slate-300 py-1.5 pl-1 text-gray-700 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                className="block flex-1 rounded-md  bg-white dark:bg-gray-800  border-slate-300 py-1.5 pl-1 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                               />
                             </div>
                           </div>
@@ -295,7 +295,7 @@ export default function EditMahchinePopover(props) {
                         <td className="pl-4">
                           <label
                             htmlFor="ip"
-                            className="mb-2 text-sm font-medium leading-6 text-gray-900"
+                            className="mb-2 text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                           >
                             Hostname/IP
                           </label>
@@ -311,7 +311,7 @@ export default function EditMahchinePopover(props) {
                                 value={editMachine.hostname}
                                 onChange={handleChange}
                                 placeholder="Hostname / IP"
-                                className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                                className="block flex-1 rounded-md bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                               />
                             </div>
                           </div>
@@ -321,7 +321,7 @@ export default function EditMahchinePopover(props) {
                         <td className="pl-4">
                           <label
                             htmlFor="protocol"
-                            className="mb-2 text-sm font-medium leading-6 text-gray-900"
+                            className="mb-2 text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                           >
                             Protocol
                           </label>
@@ -336,7 +336,7 @@ export default function EditMahchinePopover(props) {
                                 onChange={handleChange}
                                 value={editMachine.protocol}
                                 placeholder="Protocol"
-                                className="block flex-1 rounded-md bg-blue-100 py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 focus:border-indigo-500"
+                                className="block flex-1 rounded-md bg-blue-100 py-1.5 pl-3 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 dark:border-gray-600 focus:border-indigo-500"
                               />
                             </div>
                           </div>
@@ -354,7 +354,7 @@ export default function EditMahchinePopover(props) {
 
                           <label
                             htmlFor="custom settings"
-                            className="mb-2 text-sm font-medium leading-6 text-gray-900"
+                            className="mb-2 text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                           >
                             Custom Settings
                           </label>
@@ -385,7 +385,7 @@ export default function EditMahchinePopover(props) {
                       />
                     )}
                 </div>
-                <div className="bg-gray-100 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     onClick={handleConfirm}
                     type="submit"
@@ -408,7 +408,7 @@ export default function EditMahchinePopover(props) {
                   </button>
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-white hover:bg-slate-200 px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                    className="inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 hover:bg-slate-200 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 sm:mt-0 sm:w-auto"
                     onClick={() => props.setOpen(false)}
                     ref={cancelButtonRef}
                   >

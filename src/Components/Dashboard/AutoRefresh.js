@@ -30,7 +30,7 @@ export default function AutoRefresh(props) {
       className="relative inline-block text-left rounded rounded-2"
     >
       <div>
-        <Menu.Button className="inline-flex w-auto justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+        <Menu.Button className="inline-flex w-auto justify-center gap-x-1.5 rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-900/60">
           {gc.autoOption ? gc.autoOption : "Auto refresh"}
           <ChevronDownIcon
             className="-mr-1 h-5 w-5 text-gray-400"
@@ -48,14 +48,14 @@ export default function AutoRefresh(props) {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none ">
+        <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none ">
           {autoRefreshMenu.map((item,index) => {
             return (
               <Menu.Item>
                 {({ active }) => (
                   <li
                     key={index}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700"
                     onClick={() => {
                       gc.setAutoOption(item);
                       localStorage.setItem("grafanaAutoRefresh", item);

@@ -607,7 +607,7 @@ export default function AddMachinePopover(props) {
               leaveFrom="opacity-100 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-auto divide-y divide-gray-200">
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-auto divide-y divide-gray-200">
                 <div className="p-6">
                   <table className="w-full">
                     <tbody>
@@ -615,7 +615,7 @@ export default function AddMachinePopover(props) {
                         <td className="pl-4 w-1/3">
                           <label
                             htmlFor="name"
-                            className="text-sm font-semibold text-gray-900"
+                            className="text-sm font-semibold text-gray-900 dark:text-gray-100"
                           >
                             Name <span className="text-red-500 text-xl">*</span>
                           </label>
@@ -631,7 +631,7 @@ export default function AddMachinePopover(props) {
                                 onChange={handleChange}
                                 placeholder="Name"
                                 required
-                                className="block flex-1 rounded-md bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 focus:border-indigo-500"
+                                className="block flex-1 rounded-md bg-white dark:bg-gray-800 py-1.5 pl-3 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 dark:border-gray-600 focus:border-indigo-500"
                               />
                             </div>
                             <div className="text-red-500">{rename}</div>
@@ -643,7 +643,7 @@ export default function AddMachinePopover(props) {
                         <td className="pl-4 w-1/3">
                           <label
                             htmlFor="ip"
-                            className="text-sm font-semibold text-gray-900"
+                            className="text-sm font-semibold text-gray-900 dark:text-gray-100"
                           >
                             Hostname/IP{" "}
                             <span className="text-red-500 text-xl">*</span>
@@ -660,7 +660,7 @@ export default function AddMachinePopover(props) {
                                 onChange={handleChange}
                                 placeholder="Hostname / IP"
                                 required
-                                className="block flex-1 rounded-md bg-white py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 focus:border-indigo-500"
+                                className="block flex-1 rounded-md bg-white dark:bg-gray-800 py-1.5 pl-3 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 dark:border-gray-600 focus:border-indigo-500"
                               />
                             </div>
                           </div>
@@ -670,7 +670,7 @@ export default function AddMachinePopover(props) {
                         <td className="pl-4 w-1/3">
                           <label
                             htmlFor="protocol"
-                            className="text-sm font-semibold text-gray-900"
+                            className="text-sm font-semibold text-gray-900 dark:text-gray-100"
                           >
                             Protocol
                           </label>
@@ -685,7 +685,7 @@ export default function AddMachinePopover(props) {
                                 value={addMachine.protocol}
                                 placeholder="Protocol"
                                 disabled
-                                className="block flex-1 rounded-md bg-blue-100 py-1.5 pl-3 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 focus:border-indigo-500"
+                                className="block flex-1 rounded-md bg-blue-100 py-1.5 pl-3 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 dark:border-gray-600 focus:border-indigo-500"
                               />
                             </div>
                           </div>
@@ -695,7 +695,7 @@ export default function AddMachinePopover(props) {
                            <td className="pl-4 w-1/3">
                           <label
                             htmlFor="protocol"
-                            className="text-sm font-semibold text-gray-900"
+                            className="text-sm font-semibold text-gray-900 dark:text-gray-100"
                           >
                             OS Type
                           </label>
@@ -710,7 +710,7 @@ export default function AddMachinePopover(props) {
                                 onChange={handleChange}
                                 value={addMachine.os_type}
                                 
-                                className="block w-full rounded-md  py-1.5 pl-3 pr-10 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 "
+                                className="block w-full rounded-md  py-1.5 pl-3 pr-10 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm border border-gray-300 dark:border-gray-600 "
                               >
                                 <option value="" >
                                   Select OS Type
@@ -729,14 +729,14 @@ export default function AddMachinePopover(props) {
                         <td className="pl-4 w-1/3 flex items-center">
                           <input
                             type="checkbox"
-                            className="mr-2 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            className="mr-2 h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-500"
                             name="is_custom_machine"
                             checked={addMachine.is_custom_machine}
                             onChange={handleChange}
                           />
                           <label
                             htmlFor="custom-settings"
-                            className="text-sm font-semibold text-gray-900"
+                            className="text-sm font-semibold text-gray-900 dark:text-gray-100"
                           >
                             Custom Settings
                           </label>
@@ -767,7 +767,7 @@ export default function AddMachinePopover(props) {
                       />
                     )}
                 </div>
-                <div className="bg-gray-100 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     onClick={handleConfirm}
                     type="submit"
@@ -785,7 +785,7 @@ export default function AddMachinePopover(props) {
                   </button>
                   <button
                     type="button"
-                    className="inline-flex w-full justify-center rounded-md bg-white hover:bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 hover:ring-gray-400 sm:mt-0 sm:w-auto"
+                    className="inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-gray-300 hover:ring-gray-400 sm:mt-0 sm:w-auto"
                     onClick={() => props.setOpen(false)}
                     ref={cancelButtonRef}
                   >

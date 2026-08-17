@@ -6,6 +6,7 @@ import AutoRefresh from "./AutoRefresh";
 import axios from "axios";
 
 import { GrafanaToolbarContext } from "../../Context/GrafanaToolbarContext";
+import { useTheme } from "../../Context/ThemeContext";
 import { getEnv } from "utils/getEnv";
 import { useSelector } from "react-redux";
 import { selectAuthToken } from '../../redux/features/Auth/AuthSelectors'; 
@@ -16,6 +17,7 @@ const Hosts = () => {
   const DASHBOARD_GRAFANA_URL = getEnv('GRAFANA_URL')
 
   const gc = useContext(GrafanaToolbarContext);
+  const { theme } = useTheme();
 
   const token = useSelector(selectAuthToken);
  
@@ -194,7 +196,7 @@ const Hosts = () => {
   };
  
   const buildIframeUrl = () => {
-    let url = `${DASHBOARD_GRAFANA_URL}/d/vsphereOverview/vmware-vsphere-overview?orgId=1&from=${gc.timeStamp.startDate}&to=${gc.timeStamp.endDate}&theme=light&disableLazyLoad=true&kiosk`;
+    let url = `${DASHBOARD_GRAFANA_URL}/d/vsphereOverview/vmware-vsphere-overview?orgId=1&from=${gc.timeStamp.startDate}&to=${gc.timeStamp.endDate}&theme=${theme}&disableLazyLoad=true&kiosk`;
     Object.entries(selections).forEach(([name, values]) => {
       if (values.length > 0) {
         values.forEach((value) => {
@@ -250,10 +252,10 @@ const Hosts = () => {
  
     if (variable.name === "inter") {
       return (
-        <button className="flex items-center bg-white text-gray-700 font-bold px-4 py-2 rounded-lg border border-gray-300 min-w-[160px] text-sm transition-colors">
+        <button className="flex items-center bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 min-w-[160px] text-sm transition-colors">
           <span className="mr-2">{variable.label || "Sampling"}</span>
           <select
-            className="flex items-center text-gray-600 mr-2 bg-white border-2 border-gray-200 px-2 py-1 ml-2 rounded-lg"
+            className="flex items-center text-gray-600 dark:text-gray-400 mr-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 px-2 py-1 ml-2 rounded-lg"
             value={selections["inter"] || "auto"}
             onChange={(e) => handleSelectionChange("inter", e.target.value)}
           >
@@ -271,11 +273,11 @@ const Hosts = () => {
       <>
         <button
           onClick={() => handleToggleDropdown(variable.name)}
-          className="flex items-center bg-white text-gray-700 font-bold px-4 py-2 rounded-lg border border-gray-300 min-w-[160px] text-sm transition-colors"
+          className="flex items-center bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 min-w-[160px] text-sm transition-colors"
         >
           <span className="mr-2">{variable.label || variable.name}</span>
-          <div className="flex items-center border-2 border-gray-200 px-2 py-1 ml-2 rounded-lg">
-            <span className="text-gray-600">
+          <div className="flex items-center border-2 border-gray-200 dark:border-gray-700 px-2 py-1 ml-2 rounded-lg">
+            <span className="text-gray-600 dark:text-gray-400">
               {currentSelection.length > 0
                 ? `Selected (${currentSelection.length})`
                 : "All"}
@@ -285,18 +287,18 @@ const Hosts = () => {
         </button>
  
         {openDropdown === variable.name && (
-          <div className="absolute z-10 mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg">
-            <div className="p-3 border-b border-gray-300">
+          <div className="absolute z-10 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg">
+            <div className="p-3 border-b border-gray-300 dark:border-gray-600">
               <input
                 type="text"
                 value={searchValues[variable.name] || ""}
                 onChange={(e) => handleSearch(variable.name, e.target.value)}
                 placeholder={`Search ${variable.label || variable.name}`}
-                className="w-full px-3 py-2 bg-gray-50 text-gray-700 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-400"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
-            <div className="p-2 border-b border-gray-300">
-              <label className="flex items-center px-3 py-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+            <div className="p-2 border-b border-gray-300 dark:border-gray-600">
+              <label className="flex items-center px-3 py-2 hover:bg-gray-100 dark:bg-gray-700 rounded-lg cursor-pointer">
                 <input
                   type="checkbox"
                   className="mr-2"
@@ -317,7 +319,7 @@ const Hosts = () => {
                     handleSelectAll(variable.name, filteredValues, e.target.checked);
                   }}
                 />
-                <span className="text-gray-700 text-sm font-medium">Select All</span>
+                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">Select All</span>
               </label>
             </div>
             <div className="max-h-64 overflow-y-auto">
@@ -338,7 +340,7 @@ const Hosts = () => {
                       checked={selections[variable.name]?.includes(value)}
                       onChange={() => handleSelectionChange(variable.name, value)}
                     />
-                    <span className="text-gray-700 text-sm">{value}</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">{value}</span>
                   </label>
                 ))}
             </div>
@@ -350,14 +352,14 @@ const Hosts = () => {
  
   return (
     <div className="w-full">
-      <div className="nav-toolbar h-auto flex flex-wrap text-gray-700 border-b border-gray-200 rounded-lg p-4">
+      <div className="nav-toolbar h-auto flex flex-wrap text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 rounded-lg p-4">
         <TimeRangeSelector />
         <AutoRefresh />
       </div>
  
       <div className="p-4 rounded-lg">
         {loading ? (
-          <div className="text-gray-700">Loading variables...</div>
+          <div className="text-gray-700 dark:text-gray-300">Loading variables...</div>
         ) : error ? (
           <div className="text-red-500">Error: {error}</div>
         ) : (

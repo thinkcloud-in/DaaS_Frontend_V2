@@ -47,7 +47,7 @@ const poolType = ["Automated", "Manual"];
 // Mirrors the SectionHeader used in the Private LLM pool creation UI
 // (LLMInferenceCreate.js) so both pool-creation flows look consistent.
 const SectionHeader = ({ title }) => (
-  <h3 className="text-xs font-bold text-[#1a365d] uppercase tracking-wide mt-6 mb-3 pb-1.5 border-b border-gray-200 first:mt-0">
+  <h3 className="text-xs font-bold text-[#1a365d] dark:text-blue-300 uppercase tracking-wide mt-6 mb-3 pb-1.5 border-b border-gray-200 dark:border-gray-700 first:mt-0">
     {title}
   </h3>
 );
@@ -98,7 +98,7 @@ const PoolCreationForm = () => {
 
   useEffect(() => {
     if (poolDetails?.pool_type === "Automated" && (!clusters || clusters.length === 0) && token) {
-      dispatch(fetchClustersThunk(token));
+      dispatch(fetchClustersThunk({ token, page: 1, pageSize: 100 }));
     }
   }, [dispatch, token, poolDetails?.pool_type]);
 
@@ -714,7 +714,7 @@ const PoolCreationForm = () => {
   const isDynamicMemory = !!poolDetails.pool_template_vm_id?.dynamic_memory;
 
   return (
-    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
+    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
@@ -738,11 +738,11 @@ const PoolCreationForm = () => {
       </div>
 
       <div
-        className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${isLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
+        className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar ${isLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
       >
         <div className="space-y-5 m-2">
-          <div className="w-full mx-auto p-3 rounded-md bg-white">
-            <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+          <div className="w-full mx-auto p-3 rounded-md bg-white dark:bg-gray-800">
+            <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
               Create New Pool
             </h2>
             {error && (
@@ -889,7 +889,7 @@ const PoolCreationForm = () => {
                   {isProxmoxCluster && (
                     <>
                       <div className="mb-6 flex items-start">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                           <span>
                             <i className="fas fa-network-wired mr-2"></i>
                           </span>
@@ -912,7 +912,7 @@ const PoolCreationForm = () => {
                               label: name,
                               value: name,
                             }))}
-                            className="basic-multi-select bg-white"
+                            className="basic-multi-select bg-white dark:bg-gray-800"
                             classNamePrefix="select"
                             placeholder="Select IP Pools"
                             required
@@ -921,7 +921,7 @@ const PoolCreationForm = () => {
                       </div>
 
                       <div className="mb-6 flex items-start">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                           <span>
                             <i className="fas fa-file-invoice mr-2"></i>
                           </span>
@@ -936,7 +936,7 @@ const PoolCreationForm = () => {
                                 ? String(poolDetails.pool_template_vm_id.vmid)
                                 : ""
                             }
-                            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white"
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white dark:bg-gray-800"
                             required
                           >
                             {/* <option value="">Select Template</option> */}
@@ -953,7 +953,7 @@ const PoolCreationForm = () => {
                       </div>
 
                       <div className="mb-6 flex items-start">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                           <span>
                             <i className="fas fa-server mr-2"></i>
                           </span>
@@ -970,7 +970,7 @@ const PoolCreationForm = () => {
                             )}
                             onChange={handleNodesChange}
                             options={nodeOptions}
-                            className="basic-multi-select bg-white"
+                            className="basic-multi-select bg-white dark:bg-gray-800"
                             classNamePrefix="select"
                             placeholder="Select Nodes"
                             noOptionsMessage={() => "No nodes available"}
@@ -980,7 +980,7 @@ const PoolCreationForm = () => {
                       </div>
 
                       <div className="mb-6 flex items-start">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                           <span>
                             <i className="fas fa-database mr-2"></i>
                           </span>
@@ -995,7 +995,7 @@ const PoolCreationForm = () => {
                               label: s.storage,
                               value: s.storage,
                             }))}
-                            className="basic-single bg-white"
+                            className="basic-single bg-white dark:bg-gray-800"
                             classNamePrefix="select"
                             placeholder="Select Storage"
                             isClearable={true}
@@ -1032,7 +1032,7 @@ const PoolCreationForm = () => {
                   {isHyperVCluster && (
                     <>
                       <div className="mb-6 flex items-start">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                           <span>
                             <i className="fas fa-network-wired mr-2"></i>
                           </span>
@@ -1055,7 +1055,7 @@ const PoolCreationForm = () => {
                               label: name,
                               value: name,
                             }))}
-                            className="basic-multi-select bg-white"
+                            className="basic-multi-select bg-white dark:bg-gray-800"
                             classNamePrefix="select"
                             placeholder="Select IP Pools"
                             required
@@ -1064,7 +1064,7 @@ const PoolCreationForm = () => {
                       </div>
 
                       <div className="mb-6 flex items-start">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                           <span>
                             <i className="fas fa-server mr-2"></i>
                           </span>
@@ -1086,7 +1086,7 @@ const PoolCreationForm = () => {
                             }
                             onChange={handleNodesChange}
                             options={nodeOptions}
-                            className="basic-multi-select bg-white"
+                            className="basic-multi-select bg-white dark:bg-gray-800"
                             classNamePrefix="select"
                             placeholder={
                               isHyperVCluster &&
@@ -1242,7 +1242,7 @@ const PoolCreationForm = () => {
                       />
 
                       <div className="mb-4 flex items-center">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                           <span>
                             <i className="fas fa-sliders mr-2"></i>
                           </span>
@@ -1252,7 +1252,7 @@ const PoolCreationForm = () => {
                           <input
                             type="checkbox"
                             name="hyperv_dynamic_memory"
-                            className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-pointer"
+                            className="w-4 h-4 text-[#1a365d] dark:text-blue-300 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#1a365d] cursor-pointer"
                             checked={isDynamicMemory}
                             onChange={handleOnChange}
                           />
@@ -1262,7 +1262,7 @@ const PoolCreationForm = () => {
                       {/* Dynamic Memory sub-fields — appear as a card when checked */}
                       {isDynamicMemory && (
                         <div className="mb-5 ml-[188px] mr-0 max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-1 shadow-sm">
-                          <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                          <p className="text-xs font-semibold text-[#1a365d] dark:text-blue-300/70 uppercase tracking-wide mb-3">
                             Dynamic Memory Settings
                           </p>
                           <InputField
@@ -1423,7 +1423,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
                     <>
                       <SectionHeader title="Domain Join" />
                       <div className="mb-4 flex items-center">
-                        <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                        <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                           <span>
                             <i className="fas fa-sitemap mr-2"></i>
                           </span>
@@ -1436,7 +1436,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
                           <input
                             type="checkbox"
                             name="join_ad"
-                            className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-pointer"
+                            className="w-4 h-4 text-[#1a365d] dark:text-blue-300 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#1a365d] cursor-pointer"
                             checked={poolDetails.join_ad || false}
                             onChange={handleOnChange}
                           />
@@ -1445,7 +1445,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
 
                       {poolDetails.join_ad && (
                         <div className="mb-5 ml-[188px] mr-0 max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-1 shadow-sm">
-                          <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                          <p className="text-xs font-semibold text-[#1a365d] dark:text-blue-300/70 uppercase tracking-wide mb-3">
                             Active Directory Settings
                           </p>
                           <InputField
@@ -1493,7 +1493,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
             </div>
           </div>
 
-          <div className="w-full rounded-md bg-white">
+          <div className="w-full rounded-md bg-white dark:bg-gray-800">
             {selectedProtocol && (
               <div className="ml-5 max-w-4xl">
                 <SectionHeader title="Access & Credentials" />
@@ -1534,7 +1534,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
           <button
             type="button"
             onClick={Goback}
-            className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors"
           >
             Cancel
           </button>

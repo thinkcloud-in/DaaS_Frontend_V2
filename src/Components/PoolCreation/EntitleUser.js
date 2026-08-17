@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 // Simple skeleton loader for popup
 function SkeletonLoader() {
   return (
-    <div className="bg-white p-6 rounded shadow-lg w-1/2 animate-pulse">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-1/2 animate-pulse">
       <div className="h-6 w-32 bg-gray-200 rounded mb-4" />
       <div className="h-10 w-full bg-gray-200 rounded mb-4" />
       <div className="space-y-2 mb-4">
@@ -26,7 +26,7 @@ function EntitleUser(props) {
         {props.usersLoading ? (
           <SkeletonLoader />
         ) : (
-          <div className="bg-white rounded shadow-lg w-1/2 h-[600px] flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded shadow-lg w-1/2 h-[600px] flex flex-col">
             {/* Header - fixed height */}
             <div className="flex-shrink-0 p-6 pb-4 border-b">
               <h2 className="text-2xl font-semibold">Select User</h2>
@@ -49,7 +49,7 @@ function EntitleUser(props) {
                       type="button"
                       onClick={props.handleSearchUsers}
                       disabled={props.usersLoading}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 hover:text-[#1a365d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       title="Search"
                     >
                       <Search size={20} />
@@ -58,13 +58,13 @@ function EntitleUser(props) {
                 </div>
                 
                 {/* Pagination controls */}
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">Showing</label>
+                    <label className="text-sm text-gray-600 dark:text-gray-400">Showing</label>
                     <select
                       value={props.userSearchPageSize}
                       onChange={(e) => props.handleUserPageSizeChange(e.target.value)}
-                      className="w-24 p-2 border rounded focus:ring-2 focus:ring-[#1a365d]/100 bg-white"
+                      className="w-24 p-2 border rounded focus:ring-2 focus:ring-[#1a365d]/100 bg-white dark:bg-gray-800"
                     >
                       <option value={10}>10</option>
                       <option value={20}>20</option>
@@ -76,7 +76,7 @@ function EntitleUser(props) {
                       type="button"
                       onClick={() => props.handleUserPageChange(props.userSearchPage - 1)}
                       disabled={props.userSearchPage === 1 || props.usersLoading}
-                      className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
                     >
                       Previous
                     </button>
@@ -85,7 +85,7 @@ function EntitleUser(props) {
                       type="button"
                       onClick={() => props.handleUserPageChange(props.userSearchPage + 1)}
                       disabled={props.filteredData.length < props.userSearchPageSize || props.usersLoading}
-                      className="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 disabled:opacity-50"
                     >
                       Next
                     </button>
@@ -97,21 +97,21 @@ function EntitleUser(props) {
             {/* User list - flexible height with scroll */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4">
               {props.filteredData.length === 0 ? (
-                <div className="text-center text-gray-600 flex items-center justify-center h-full">
+                <div className="text-center text-gray-600 dark:text-gray-400 flex items-center justify-center h-full">
                   No users found
                 </div>
               ) : (
                 <ul className="space-y-0">
                   {props.filteredData.map((user) => (
                     <span
-                      className="flex w-full justify-between items-center border-b p-3 hover:bg-gray-50 transition-colors"
+                      className="flex w-full justify-between items-center border-b p-3 hover:bg-gray-50 dark:bg-gray-900/60 transition-colors"
                       key={user.username}
                     >
-                      <li className="cursor-default text-base text-gray-700">
+                      <li className="cursor-default text-base text-gray-700 dark:text-gray-300">
                         {user.username}
                       </li>
                       <UserPlusIcon
-                        className="h-6 w-6 text-gray-400 cursor-pointer hover:text-[#1a365d] transition-colors"
+                        className="h-6 w-6 text-gray-400 cursor-pointer hover:text-[#1a365d] dark:text-blue-300 transition-colors"
                         onClick={() => props.entitleUser(user.username)}
                       />
                     </span>

@@ -4,10 +4,12 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { useTheme } from '../../../Context/ThemeContext';
 import { getEnv } from "utils/getEnv";
  
 let ProxmoxVMs = () => {
   let gc = useContext(GrafanaToolbarContext);
+  const { theme } = useTheme();
  
   const grafanaUrl = getEnv("GRAFANA_URL");
   const dashboardUid = getEnv("PX_VM_DASHBOARD_UID");
@@ -17,7 +19,7 @@ let ProxmoxVMs = () => {
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
-    `&theme=light` +
+    `&theme=${theme}` +
     `&disableLazyLoad=true` +
     `&kiosk`;
  

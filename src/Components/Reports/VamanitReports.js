@@ -184,8 +184,8 @@ const VamanitReports = () => {
   };
 
   return (
-    <div className="Reports_main_container w-[98%] m-auto mt-5 p-5 rounded-[10px] bg-white overflow-hidden">
-      <div className="Report_page w-[98%] m-auto mt-5 p-5 rounded-[10px] bg-white overflow-hidden">
+    <div className="Reports_main_container w-[98%] m-auto mt-5 p-5 rounded-[10px] bg-white dark:bg-gray-800 overflow-hidden">
+      <div className="Report_page w-[98%] m-auto mt-5 p-5 rounded-[10px] bg-white dark:bg-gray-800 overflow-hidden">
         <div className="Reports_name">
           <div className="reports_title">
             <button className="report_type" type="button">
@@ -295,7 +295,7 @@ const VamanitReports = () => {
                 )}
               </div>
               {dateRange.start === "" && dateRange.end === "" && (
-                <div className="text-gray-500 mt-20 ">
+                <div className="text-gray-500 dark:text-gray-400 mt-20 ">
                   Please select Date Range
                 </div>
               )}

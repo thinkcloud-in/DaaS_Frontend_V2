@@ -130,7 +130,7 @@ const EditPool = (props) => {
 
   useEffect(() => {
     if (poolDetails.pool_type === "Automated" && token && clusters.length === 0) {
-      dispatch(fetchClustersThunk(token));
+      dispatch(fetchClustersThunk({ token, page: 1, pageSize: 100 }));
     }
   }, [token, poolDetails.pool_type, dispatch]);
 
@@ -316,7 +316,7 @@ const EditPool = (props) => {
   const hasJoinAD = !!poolDetails.pool_ad_username;
 
   return (
-    <div className="pool_creation w-[98%] h-[86vh] m-auto flex-1 mx-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
+    <div className="pool_creation w-[98%] h-[86vh] m-auto flex-1 mx-auto bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
@@ -339,17 +339,17 @@ const EditPool = (props) => {
         </div>
       </div>
 
-      <div className="pool-creation-form flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
+      <div className="pool-creation-form flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar">
         {loading ? (
           <SkeletonEditPool />
         ) : (
           <div
             className={`space-y-5 m-2 ${isLoading ? "opacity-60 pointer-events-none select-none" : ""}`}
           >
-            <div className="w-full mx-auto p-3 rounded-md bg-white">
-              <h2 className="font-semibold leading-7 text-gray-900">
-                <span className="text-[#1a365d] text-xl">Edit </span>:{" "}
-                <span className="text-[#00000099] text-xl">
+            <div className="w-full mx-auto p-3 rounded-md bg-white dark:bg-gray-800">
+              <h2 className="font-semibold leading-7 text-gray-900 dark:text-gray-100">
+                <span className="text-[#1a365d] dark:text-blue-300 text-xl">Edit </span>:{" "}
+                <span className="text-[#00000099] dark:text-gray-100 text-xl">
                   {poolDetails.pool_name}
                 </span>
               </h2>
@@ -414,7 +414,7 @@ const EditPool = (props) => {
                     />
                     {/* IP Pools */}
                     <div className="mb-6 flex items-start">
-                      <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                      <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                         <span>
                           <i className="fas fa-network-wired mr-2"></i>
                         </span>
@@ -437,7 +437,7 @@ const EditPool = (props) => {
                             label: name,
                             value: name,
                           }))}
-                          className="basic-multi-select bg-white"
+                          className="basic-multi-select bg-white dark:bg-gray-800"
                           classNamePrefix="select"
                           placeholder="Select IP Pools"
                         />
@@ -446,7 +446,7 @@ const EditPool = (props) => {
 
                     {/* Node */}
                     <div className="mb-6 flex items-start">
-                      <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-1">
+                      <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-1">
                         <span>
                           <i className="fas fa-server mr-2"></i>
                         </span>
@@ -468,7 +468,7 @@ const EditPool = (props) => {
                           }
                           onChange={handleNodesChange}
                           options={nodeOptions}
-                          className="basic-multi-select bg-white"
+                          className="basic-multi-select bg-white dark:bg-gray-800"
                           classNamePrefix="select"
                           placeholder={
                             isHyperV && poolDetails.pool_template_vm_id?.is_cluster
@@ -535,7 +535,7 @@ const EditPool = (props) => {
 
                     {/* ── Join AD (read-only indicator + card) ──────────────── */}
                     <div className="mb-4 flex items-center">
-                      <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                      <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                         <span>
                           <i className="fas fa-sitemap mr-2"></i>
                         </span>
@@ -548,7 +548,7 @@ const EditPool = (props) => {
                         <input
                           type="checkbox"
                           name="join_ad"
-                          className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-not-allowed"
+                          className="w-4 h-4 text-[#1a365d] dark:text-blue-300 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#1a365d] cursor-not-allowed"
                           checked={hasJoinAD}
                           disabled
                         />
@@ -557,7 +557,7 @@ const EditPool = (props) => {
 
                     {hasJoinAD && (
                       <div className="mb-5 ml-[188px] mr-0 max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-1 shadow-sm">
-                        <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                        <p className="text-xs font-semibold text-[#1a365d] dark:text-blue-300/70 uppercase tracking-wide mb-3">
                           Active Directory Settings
                         </p>
                         <InputField
@@ -601,7 +601,7 @@ const EditPool = (props) => {
                     {isHyperV && (
                       <>
                         <div className="mb-4 flex items-center">
-                          <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                          <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                             <span>
                               <i className="fas fa-sitemap mr-2"></i>
                             </span>
@@ -611,7 +611,7 @@ const EditPool = (props) => {
                             <input
                               type="checkbox"
                               name="hyperv_is_cluster"
-                              className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-not-allowed"
+                              className="w-4 h-4 text-[#1a365d] dark:text-blue-300 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#1a365d] cursor-not-allowed"
                               checked={
                                 !!poolDetails.pool_template_vm_id?.is_cluster
                               }
@@ -771,7 +771,7 @@ const EditPool = (props) => {
 
                         {/* ── Enable Dynamic Memory checkbox ────────────────── */}
                         <div className="mb-4 flex items-center">
-                          <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                          <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                             <span>
                               <i className="fas fa-sliders mr-2"></i>
                             </span>
@@ -781,7 +781,7 @@ const EditPool = (props) => {
                             <input
                               type="checkbox"
                               name="hyperv_dynamic_memory"
-                              className="w-4 h-4 text-[#1a365d] bg-gray-100 border-gray-300 rounded focus:ring-[#1a365d] cursor-pointer"
+                              className="w-4 h-4 text-[#1a365d] dark:text-blue-300 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#1a365d] cursor-pointer"
                               checked={isDynamicMemory}
                               onChange={(e) => {
                                 const checked = e.target.checked;
@@ -806,7 +806,7 @@ const EditPool = (props) => {
                         {/* ── Dynamic Memory card ───────────────────────────── */}
                         {isDynamicMemory && (
                           <div className="mb-5 ml-[188px] mr-0 max-w-[40rem] rounded-lg border border-blue-100 bg-blue-50/40 px-5 pt-4 pb-1 shadow-sm">
-                            <p className="text-xs font-semibold text-[#1a365d]/70 uppercase tracking-wide mb-3">
+                            <p className="text-xs font-semibold text-[#1a365d] dark:text-blue-300/70 uppercase tracking-wide mb-3">
                               Dynamic Memory Settings
                             </p>
                             <InputField
@@ -1019,7 +1019,7 @@ What it is: The VM is part of the cluster, but the cluster will not automaticall
               </div>
             </div>
 
-            <div className="w-full rounded-md bg-white">
+            <div className="w-full rounded-md bg-white dark:bg-gray-800">
               <CustomTabs
                 tablist={["RDP", "SSH", "VNC"].filter(
                   (tab) => tab === poolDetails.pool_protocol,

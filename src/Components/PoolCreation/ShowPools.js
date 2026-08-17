@@ -9,6 +9,7 @@ import {
 } from "../../redux/features/Pools/PoolsSelectors";
 import "./css/ShowPools.css";
 import { useNavigate } from "react-router-dom";
+import { Pagination } from "../Common";
 import { fetchPools } from "../../redux/features/Pools/PoolsThunks";
 import {
   ArrowPathIcon,
@@ -119,15 +120,15 @@ const ShowPools = () => {
   );
 
   return (
-    <div className=" bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+    <div className="min-h-screen text-left items-start flex flex-col w-full relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-[#1a365d]">
+            <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300">
               Developer Desktop Pools
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Click on any pool row to manage its virtual machines.
             </p>
           </div>
@@ -142,7 +143,7 @@ const ShowPools = () => {
               Status
             </button>
             {showStatusDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded border border-gray-200 z-50">
+              <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 shadow-lg rounded border border-gray-200 dark:border-gray-700 z-50">
                 <button
                   onClick={() => selectedPools.length > 0 && handleStatusAction("enable")}
                   disabled={selectedPools.length === 0}
@@ -172,7 +173,7 @@ const ShowPools = () => {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing || poolsLoading}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
           >
             <ArrowPathIcon
               className={`h-4 w-4 ${isRefreshing || poolsLoading ? "animate-spin" : ""}`}
@@ -191,7 +192,7 @@ const ShowPools = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-transparent overflow-hidden w-full">
         <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left border-collapse min-w-[1100px]">
             <thead>
@@ -221,7 +222,7 @@ const ShowPools = () => {
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+            <tbody className="divide-y divide-gray-200 text-sm text-gray-700 dark:text-gray-300">
               {poolsLoading && pools.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-gray-400">
@@ -292,77 +293,19 @@ const ShowPools = () => {
 
         {/* Pagination Footer */}
         {total > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-gray-500">
-                Showing{" "}
-                <span className="font-semibold text-gray-700">
-                  {startItem}–{endItem}
-                </span>{" "}
-                of <span className="font-semibold text-gray-700">{total}</span>{" "}
-                pools
-              </span>
-              <div className="flex items-center gap-1.5">
-                <label className="text-xs text-gray-500 whitespace-nowrap">
-                  Rows per page:
-                </label>
-                <select
-                  value={pageSize}
-                  onChange={handlePageSizeChange}
-                  className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1a365d] focus:border-[#1a365d] cursor-pointer"
-                >
-                  {PAGE_SIZE_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!has_prev || poolsLoading}
-                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeftIcon className="h-4 w-4" />
-              </button>
-
-              {getPageNumbers().map((p, idx) =>
-                p === "..." ? (
-                  <span
-                    key={`ellipsis-${idx}`}
-                    className="px-1.5 text-gray-400 text-xs select-none"
-                  >
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => handlePageChange(p)}
-                    disabled={poolsLoading}
-                    className={`min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border transition-colors disabled:cursor-not-allowed
-                      ${
-                        currentPage === p
-                          ? "bg-[#1a365d] text-white border-[#1a365d] shadow-sm"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                      }`}
-                  >
-                    {p}
-                  </button>
-                ),
-              )}
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!has_next || poolsLoading}
-                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRightIcon className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={total_pages}
+            onPageChange={handlePageChange}
+            totalItems={total}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            pageSizeOptions={PAGE_SIZE_OPTIONS}
+            itemLabel="pools"
+            loading={poolsLoading}
+            hasPrev={has_prev}
+            hasNext={has_next}
+          />
         )}
       </div>
     </div>

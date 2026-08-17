@@ -10,10 +10,17 @@ import {
 // Fetch IPMI List
 export const fetchIpmiListThunk = createAsyncThunk(
   'ipmi/fetchIpmiList',
-  async (token, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    // Back-compat: accept either a plain token string (old call sites) or
+    // { token, page, pageSize } (new paginated call sites).
+    const { token, page = 1, pageSize = 10 } =
+      typeof arg === "string" ? { token: arg } : arg || {};
     try {
-      const data = await GetAllIpmiLists(token);
-      return data;
+      const data = await GetAllIpmiLists(token, page, pageSize);
+      return {
+        items: Array.isArray(data?.items) ? data.items : [],
+        pagination: data?.pagination || null,
+      };
     } catch (error) {
       const errorMessage = error.response?.data?.msg || error.message || 'Failed to fetch IPMI list';
       return rejectWithValue(errorMessage);

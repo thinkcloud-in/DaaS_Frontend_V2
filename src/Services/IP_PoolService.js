@@ -12,12 +12,15 @@ export const createIpPool = async (token, payload) => {
   return res.data;
 };
 
-export const fetchIpPools = async (token) => {
+export const fetchIpPools = async (token, page = 1, pageSize = 10) => {
   const res = await axiosInstance.get(
     `${backendUrl}/v1/ips/get_all_ips`,
-    { headers: { Authorization: `Bearer ${token}` } }
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { page, page_size: pageSize },
+    }
   );
-  return res.data?.data || [];
+  return res.data?.data || { items: [], pagination: null };
 };
 
 export const deleteIpPoolByName = async (token, poolName) => {

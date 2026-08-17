@@ -51,10 +51,10 @@ const GuacRecordingPlayer = ({ identifier, logUuid, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white rounded shadow-lg p-4 relative w-full max-w-4xl h-[80vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded shadow-lg p-4 relative w-full max-w-4xl h-[80vh] flex flex-col">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-black text-3xl"
+          className="absolute top-2 right-2 text-black dark:text-gray-100 text-3xl"
         >
           ×
         </button>

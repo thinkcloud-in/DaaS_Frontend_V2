@@ -74,6 +74,19 @@
     margin-bottom: 10px;
 }
 
+html.dark .report_divsion h2 {
+    color: #93c5fd; /* blue-300 -- matches the app's dark-mode accent text */
+}
+
+/* The table itself is a literal mockup of the printed PDF page -- always
+   white/black regardless of app theme, since that's what will actually
+   print. Give it a paper-like shadow so it reads clearly as a floating
+   page against the dark card in dark mode. */
+html.dark .report-table {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+}
+
 /* .pdf_template{
     width: 70%;
     margin-top: 30px;

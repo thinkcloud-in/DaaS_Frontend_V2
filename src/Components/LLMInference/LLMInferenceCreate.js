@@ -58,7 +58,7 @@ const DEFAULT_VLLM_PARAMS_TEXT =
 
 // Visual grouping only -- purely presentational, doesn't touch formData.
 const SectionHeader = ({ title }) => (
-  <h3 className="text-xs font-bold text-[#1a365d] uppercase tracking-wide mt-6 mb-3 pb-1.5 border-b border-gray-200 first:mt-0">
+  <h3 className="text-xs font-bold text-[#1a365d] dark:text-blue-300 uppercase tracking-wide mt-6 mb-3 pb-1.5 border-b border-gray-200 dark:border-gray-700 first:mt-0">
     {title}
   </h3>
 );
@@ -71,7 +71,7 @@ const SegmentedToggle = ({ options, value, onChange }) => {
     options.findIndex((o) => o.value === value),
   );
   return (
-    <div className="relative inline-flex w-full max-w-md rounded-full bg-gray-100 p-1 shadow-inner">
+    <div className="relative inline-flex w-full max-w-md rounded-full bg-gray-100 dark:bg-gray-700 p-1 shadow-inner">
       <div
         className="absolute top-1 bottom-1 rounded-full bg-[#1a365d] shadow-md transition-transform duration-300 ease-out"
         style={{
@@ -87,7 +87,7 @@ const SegmentedToggle = ({ options, value, onChange }) => {
             type="button"
             onClick={() => onChange(opt.value)}
             className={`relative z-10 flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${
-              isActive ? "text-white" : "text-gray-500 hover:text-gray-700"
+              isActive ? "text-white" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300"
             }`}
           >
             {opt.icon && <i className={`fas ${opt.icon} text-xs`} />}
@@ -101,7 +101,7 @@ const SegmentedToggle = ({ options, value, onChange }) => {
 
 const MultiSelectField = ({ label, iconClass, required, children }) => (
   <div className="mb-6 flex items-start">
-    <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px] pt-2.5 flex-shrink-0">
+    <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px] pt-2.5 flex-shrink-0">
       {iconClass && (
         <span>
           <i className={`fas ${iconClass} mr-2`} />
@@ -160,8 +160,8 @@ const MultiSelectDropdown = ({
     <div className="relative w-full" ref={ref}>
       <div
         onClick={() => !isDisabled && setIsOpen((o) => !o)}
-        className={`w-full min-h-[38px] border rounded-lg px-3 py-1.5 flex items-center justify-between bg-white text-sm transition-all
-          ${isDisabled ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-300" : "cursor-pointer border-gray-300 hover:border-gray-400"}
+        className={`w-full min-h-[38px] border rounded-lg px-3 py-1.5 flex items-center justify-between bg-white dark:bg-gray-800 text-sm transition-all
+          ${isDisabled ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed border-gray-300 dark:border-gray-600" : "cursor-pointer border-gray-300 dark:border-gray-600 hover:border-gray-400"}
           ${isOpen ? "border-[#1a365d] ring-2 ring-[#1a365d]/10" : ""}
         `}
       >
@@ -175,14 +175,14 @@ const MultiSelectDropdown = ({
               {placeholder || "Select items..."}
             </span>
           ) : compact && selectedValues.length > 1 ? (
-            <span className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] text-xs font-medium px-2 py-0.5 rounded">
+            <span className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] dark:text-blue-300 text-xs font-medium px-2 py-0.5 rounded">
               {selectedValues.length} selected
             </span>
           ) : (
             selectedValues.map((val) => (
               <span
                 key={val}
-                className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] text-xs font-medium px-2 py-0.5 rounded"
+                className="inline-flex items-center gap-1 bg-[#1a365d]/10 text-[#1a365d] dark:text-blue-300 text-xs font-medium px-2 py-0.5 rounded"
               >
                 {getLabelForValue(val)}
                 <X
@@ -202,7 +202,7 @@ const MultiSelectDropdown = ({
       </div>
 
       {isOpen && !isDisabled && (
-        <div className="absolute top-[calc(100%+2px)] left-0 w-full bg-white border border-gray-200 rounded-lg shadow-md z-50 max-h-48 overflow-y-auto">
+        <div className="absolute top-[calc(100%+2px)] left-0 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md z-50 max-h-48 overflow-y-auto">
           {options.length > 0 ? (
             options.map((opt) => {
               const val = optVal(opt);
@@ -212,14 +212,14 @@ const MultiSelectDropdown = ({
                 <label
                   key={val}
                   className={`flex items-center gap-2.5 px-3 py-2 text-sm
-                    ${isOptionDisabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer text-gray-800"}`}
+                    ${isOptionDisabled ? "opacity-40 cursor-not-allowed" : "hover:bg-gray-50 dark:bg-gray-900/60 cursor-pointer text-gray-800 dark:text-gray-100"}`}
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
                     disabled={isOptionDisabled}
                     onChange={() => !isOptionDisabled && toggle(val)}
-                    className="rounded border-gray-300 text-[#1a365d] h-4 w-4 disabled:cursor-not-allowed"
+                    className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 h-4 w-4 disabled:cursor-not-allowed"
                   />
                   {optLabel(opt)}
                 </label>
@@ -339,7 +339,7 @@ const LLMInferenceCreate = () => {
 
   useEffect(() => {
     if (token) {
-      dispatch(fetchClustersThunk(token));
+      dispatch(fetchClustersThunk({ token, page: 1, pageSize: 100 }));
       dispatch(fetchIpPoolNames(token));
     }
   }, [token, dispatch]);
@@ -523,7 +523,7 @@ const LLMInferenceCreate = () => {
   };
 
   return (
-    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
+    <div className="pool_creation w-[98%] h-[90vh] m-auto bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md flex flex-col overflow-hidden relative">
       <div className="flex justify-start mt-2 mb-1">
         <div
           onClick={() => navigate("/inference")}
@@ -547,11 +547,11 @@ const LLMInferenceCreate = () => {
       </div>
 
       <div
-        className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white ${isSubmitting ? "opacity-50 pointer-events-none select-none" : ""}`}
+        className={`pool-creation-form flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 ${isSubmitting ? "opacity-50 pointer-events-none select-none" : ""}`}
       >
         <div className="space-y-5 m-2">
-          <div className="w-full mx-auto p-3 rounded-md bg-white">
-            <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+          <div className="w-full mx-auto p-3 rounded-md bg-white dark:bg-gray-800">
+            <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
               Create New Pool
             </h2>
 
@@ -756,9 +756,9 @@ const LLMInferenceCreate = () => {
                                     type="checkbox"
                                     checked={isChecked}
                                     onChange={() => handleNodeToggle(nodeName)}
-                                    className="h-4 w-4 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] cursor-pointer"
+                                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d] cursor-pointer"
                                   />
-                                  <span className="text-sm text-gray-800 group-hover:text-[#1a365d] transition-colors">
+                                  <span className="text-sm text-gray-800 dark:text-gray-100 group-hover:text-[#1a365d] dark:text-blue-300 transition-colors">
                                     {nodeName}
                                   </span>
                                 </label>
@@ -887,7 +887,7 @@ const LLMInferenceCreate = () => {
                   iconClass="fa-sliders"
                 >
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       Pre-filled with our defaults — edit any value or add new
                       keys.
                     </span>
@@ -899,7 +899,7 @@ const LLMInferenceCreate = () => {
                       disabled={
                         formData.vllmExtraParams === DEFAULT_VLLM_PARAMS_TEXT
                       }
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a365d] bg-[#1a365d]/10 hover:bg-[#1a365d]/20 border border-[#1a365d]/20 rounded-full px-3 py-1 transition-colors disabled:text-gray-400 disabled:bg-gray-100 disabled:border-gray-200 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a365d] dark:text-blue-300 bg-[#1a365d]/10 hover:bg-[#1a365d]/20 border border-[#1a365d]/20 rounded-full px-3 py-1 transition-colors disabled:text-gray-400 disabled:bg-gray-100 dark:bg-gray-700 disabled:border-gray-200 dark:border-gray-700 disabled:cursor-not-allowed"
                     >
                       <i className="fas fa-rotate-left text-[10px]" />
                       Reset to defaults
@@ -915,7 +915,7 @@ const LLMInferenceCreate = () => {
                     autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="none"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-sm bg-white font-mono"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-sm bg-white dark:bg-gray-800 font-mono"
                   />
                 </MultiSelectField>
                 <InputField
@@ -933,7 +933,7 @@ const LLMInferenceCreate = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/inference")}
-                  className="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors"
                 >
                   Cancel
                 </button>

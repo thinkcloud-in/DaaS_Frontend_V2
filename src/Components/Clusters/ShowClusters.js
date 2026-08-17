@@ -9,12 +9,14 @@ import {
 } from "../../redux/features/Clusters/ClustersThunks";
 import {
   selectAllClusters,
+  selectClustersPagination,
   selectClustersLoading,
 } from "../../redux/features/Clusters/ClustersSelectors";
 import {
   selectAuthToken,
   selectAuthTokenParsed,
 } from "../../redux/features/Auth/AuthSelectors";
+import { Pagination } from "../Common";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -26,6 +28,8 @@ const columns = [
   { header: "IP", key: "ip", align: "left" },
   { header: "Port", key: "port", align: "left" },
 ];
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const SkeletonLoaderRow = () => (
   <tr>
@@ -46,15 +50,22 @@ const ShowClusters = () => {
   const userEmail = tokenParsed?.preferred_username;
 
   const clusters = useSelector(selectAllClusters);
+  const pagination = useSelector(selectClustersPagination);
   const isLoading = useSelector(selectClustersLoading);
-  const [hasFetched, setHasFetched] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const clusterList = clusters || [];
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
-    if (token && !hasFetched && !isLoading) {
-      dispatch(fetchClustersThunk(token));
-      setHasFetched(true);
+    if (token) {
+      dispatch(fetchClustersThunk({ token, page: currentPage, pageSize }));
     }
-  }, [dispatch, token, hasFetched, isLoading]);
+  }, [dispatch, token, currentPage, pageSize]);
 
   const [updating, setUpdating] = useState(false);
   const [deletingClusterId, setDeletingClusterId] = useState(null);
@@ -72,9 +83,9 @@ const ShowClusters = () => {
       await dispatch(
         deleteClusterThunk({ token, cluster_id, email: userEmail }),
       ).unwrap();
-      dispatch(fetchClustersThunk(token));
       toast.success("Cluster deleted", { transition: Slide });
-      await dispatch(fetchClustersThunk(token)).unwrap();
+      // Re-fetch current page so pagination totals stay accurate after a delete.
+      await dispatch(fetchClustersThunk({ token, page: currentPage, pageSize })).unwrap();
     } catch (err) {
       const errorMsg = err?.detail || err?.message || (typeof err === 'string' ? err : "Failed to delete cluster due to active connected pools.");
       toast.error(errorMsg, { transition: Slide });
@@ -86,7 +97,7 @@ const ShowClusters = () => {
   const handleUpdateProxmoxNodes = async () => {
     setUpdating(true);
     try {
-      const res = await dispatch(updateProxmoxNodesThunk(token)).unwrap();
+      const res = await dispatch(updateProxmoxNodesThunk({ token, page: currentPage, pageSize })).unwrap();
       toast.success("Node Updated Successfully", { transition: Slide });
       const warnings = res.update?.data;
 
@@ -103,25 +114,28 @@ const ShowClusters = () => {
   };
 
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 flex flex-col overflow-hidden">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full relative select-none">
       {/* Header */}
-      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
-        <h2 className="text-lg font-semibold text-gray-700">
-          Available Clusters
-        </h2>
-        <div className="flex gap-2 items-center flex-wrap">
+      <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-5 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">Available Clusters</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Proxmox and Hyper-V clusters connected to this environment.
+          </p>
+        </div>
+        <div className="flex gap-2 items-center flex-wrap self-start sm:self-auto">
           <button
             onClick={handleUpdateProxmoxNodes}
             disabled={updating}
             className={classNames(
-              "bg-[#1a365dcc] hover:bg-[#1a365d] hover:text-white text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium",
+              "inline-flex items-center gap-2 rounded-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 px-4 py-2 text-xs font-bold shadow-sm transition-all uppercase tracking-wider",
               updating ? "opacity-50 cursor-not-allowed" : "",
             )}
           >
             {updating ? (
-              <span>
+              <span className="inline-flex items-center gap-2">
                 <svg
-                  className="inline w-4 h-4 mr-2 animate-spin"
+                  className="inline w-4 h-4 animate-spin"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -147,17 +161,18 @@ const ShowClusters = () => {
           </button>
           <button
             onClick={() => navigate("/cluster/cluster-create-form")}
-            className="bg-[#1a365dcc] hover:bg-[#1a365d] hover:text-white text-[#f5f5f5] rounded-md px-3 py-2 text-sm font-medium"
+            className="inline-flex items-center gap-2 rounded-md bg-[#1a365d] hover:bg-[#122744] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all uppercase tracking-wider"
           >
             + New Cluster
           </button>
         </div>
       </div>
       {/* Table or Empty State */}
-      <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar border border-gray-100">
-        <table className="min-w-full bg-white text-sm border-collapse">
-          <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-            <tr>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full overflow-hidden">
+        <div className="overflow-x-auto">
+        <table className="min-w-full bg-white dark:bg-gray-800 text-sm border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-[#1a365d] text-white font-bold uppercase text-[0.8rem] leading-normal select-none">
               {columns.map((col) => (
                 <th
                   key={col.key}
@@ -175,10 +190,10 @@ const ShowClusters = () => {
             {isLoading ? (
               [...Array(5)].map((_, index) => <SkeletonLoaderRow key={index} />)
             ) : clusters && clusters.length > 0 ? (
-              clusters.map((item) => (
+              clusterList.map((item) => (
                 <tr
                   key={item.id}
-                  className="text-left border-b border-gray-200 hover:bg-[#F0F8FFCC] cursor-pointer"
+                  className="text-left border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50/40 dark:hover:bg-gray-700/60 cursor-pointer transition-colors"
                   onClick={() => handleClusterSelection(item)}
                 >
                   {columns.map((col) => (
@@ -243,7 +258,7 @@ const ShowClusters = () => {
               <tr>
                 <td
                   colSpan={columns.length + 1}
-                  className="text-center py-8 text-gray-500"
+                  className="text-center py-8 text-gray-500 dark:text-gray-400"
                 >
                   No Clusters Available. Click "+ New Cluster" to add one.
                 </td>
@@ -251,6 +266,22 @@ const ShowClusters = () => {
             )}
           </tbody>
         </table>
+        </div>
+        {clusterList.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={pagination?.total_pages}
+            onPageChange={setCurrentPage}
+            totalItems={pagination?.total}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            pageSizeOptions={PAGE_SIZE_OPTIONS}
+            itemLabel="clusters"
+            loading={isLoading}
+            hasPrev={pagination?.has_prev}
+            hasNext={pagination?.has_next}
+          />
+        )}
       </div>
     </div>
   );

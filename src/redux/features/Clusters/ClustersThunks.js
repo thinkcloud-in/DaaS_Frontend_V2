@@ -16,9 +16,17 @@ import {
 // Fetch all clusters
 export const fetchClustersThunk = createAsyncThunk(
   "clusters/fetchAll",
-  async (token, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    // Back-compat: accept either a plain token string (old call sites) or
+    // { token, page, pageSize } (new paginated call sites).
+    const { token, page = 1, pageSize = 10 } =
+      typeof arg === "string" ? { token: arg } : arg || {};
     try {
-      return await fetchClusters(token);
+      const data = await fetchClusters(token, page, pageSize);
+      return {
+        items: Array.isArray(data?.items) ? data.items : [],
+        pagination: data?.pagination || null,
+      };
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -153,17 +161,17 @@ export const migrateMonitoringDataThunk = createAsyncThunk(
 // Update Proxmox nodes action (refresh)
 export const updateProxmoxNodesThunk = createAsyncThunk(
   "clusters/updateProxmoxNodes",
-  async (token, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    const { token, page = 1, pageSize = 10 } =
+      typeof arg === "string" ? { token: arg } : arg || {};
     try {
-      // return await updateProxmoxNodes(token);
-      // Should probably refetch clusters after updating
-      // return await fetchClusters(token);
       const updateRes = await updateProxmoxNodes(token);
-      const clustersRes = await fetchClusters(token);
+      const clustersRes = await fetchClusters(token, page, pageSize);
 
       return {
         update: updateRes,
-        clusters: clustersRes,
+        items: Array.isArray(clustersRes?.items) ? clustersRes.items : [],
+        pagination: clustersRes?.pagination || null,
       };
     } catch (err) {
       return rejectWithValue(err.message);

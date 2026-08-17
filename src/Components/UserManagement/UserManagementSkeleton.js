@@ -1,10 +1,10 @@
 export function ComponentsSkeleton() {
   return (
-    <div className="w-full bg-white rounded-md p-0 animate-pulse">
+    <div className="w-full bg-white dark:bg-gray-800 rounded-md p-0 animate-pulse">
       <div className="flex flex-col divide-y divide-gray-200">
         {[...Array(9)].map((_, i) => (
           <div key={i} className="flex items-center h-10 px-4">
-            <span className="h-4 w-4 rounded border-2 border-gray-300 bg-gray-200 mr-4" />
+            <span className="h-4 w-4 rounded border-2 border-gray-300 dark:border-gray-600 bg-gray-200 mr-4" />
             <span className="h-4 w-32 bg-gray-200 rounded" />
           </div>
         ))}
@@ -28,12 +28,12 @@ export function UserRolesSkeleton() {
 
 export function RolesSkeleton() {
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-lg  p-6 animate-pulse">
+    <div className="w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg  p-6 animate-pulse">
     
 
         {[...Array(3)].map((_, i) => (
           <div key={i} className="flex items-center py-3 gap-2">
-            <span className="h-4 w-4 rounded-full border-2 border-gray-300 bg-gray-200 mr-3" />
+            <span className="h-4 w-4 rounded-full border-2 border-gray-300 dark:border-gray-600 bg-gray-200 mr-3" />
             <span className="h-4 w-32 bg-gray-200 rounded" />
             <span className="flex-1" />
             <span className="h-5 w-5 bg-gray-200 rounded" />
@@ -46,7 +46,7 @@ export function RolesSkeleton() {
 
 export function UsersSkeleton() {
   return (
-    <div className="w-full h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white animate-pulse">
+    <div className="w-full h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white dark:bg-gray-800 animate-pulse">
       <div className="flex flex-col divide-y divide-gray-200">
         {[...Array(12)].map((_, i) => (
           <div

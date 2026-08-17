@@ -4,10 +4,12 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { useTheme } from '../../../Context/ThemeContext';
 import { getEnv } from "utils/getEnv";
 
 const HVOverview = () => {
   const gc = useContext(GrafanaToolbarContext);
+  const { theme } = useTheme();
   const grafanaUrl = getEnv("GRAFANA_URL");
 
 
@@ -16,7 +18,7 @@ const HVOverview = () => {
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
-    `&theme=light` +
+    `&theme=${theme}` +
     `&kiosk`;
 
   return (

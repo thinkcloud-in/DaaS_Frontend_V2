@@ -14,10 +14,10 @@ const MachineRdp = ({ onChange, poolDetails }) => {
     <div className="p-3 w-full machine_rdp">
 
       <div className="divide-y divide-slate-500 my-6 mt-7 flex flex-col rounded-lg">
-  <h3 className="font-semibold text-[#1a365d] text-left mb-4">Network</h3>
+  <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">Network</h3>
         <div className="space-y-4 mb-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Port <span className="text-red-500 text-xl">*</span>
             </label>
             <input
@@ -25,7 +25,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="port"
               value={poolDetails.port}
               onChange={onChange}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
               placeholder="Pool Port"
               required
             />
@@ -34,12 +34,12 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className="divide-y divide-slate-500 my-6 mt-7 flex flex-col  rounded-lg ">
-  <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+  <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Authentication
         </h3>
         <div className="space-y-4 mb-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Username
             </label>
             <input
@@ -47,12 +47,12 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="username"
               value={poolDetails.username}
               onChange={onChange}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
               placeholder="Username"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Password
             </label>
             <input
@@ -60,19 +60,19 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="password"
               value={poolDetails.password}
               onChange={onChange}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
               placeholder="Password"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Security Mode
             </label>
             <select
               name="security"
               value={poolDetails.security}
               onChange={onChange}
-              className="block w-full cursor-pointer rounded-md border-2 border-gray-300 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300        sm:text-sm"
+              className="block w-full cursor-pointer rounded-md border-2 border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300        sm:text-sm"
             >
               <option value="" disabled>
                 Choose mode
@@ -85,7 +85,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
             </select>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Domain
             </label>
             <input
@@ -93,7 +93,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="domain"
               value={poolDetails.domain}
               onChange={onChange}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
               placeholder="Domain"
             />
           </div>
@@ -103,9 +103,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_auth"
               onChange={onChange}
               checked={poolDetails.disable_auth}
-              className="h-4 w-4  border-gray-300 rounded "
+              className="h-4 w-4  border-gray-300 dark:border-gray-600 rounded "
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
             Disable authentication
             </label>
           </div>
@@ -115,9 +115,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="ignore_cert"
               onChange={onChange}
               checked={poolDetails.ignore_cert}
-              className="h-4 w-4  border-gray-300 rounded "
+              className="h-4 w-4  border-gray-300 dark:border-gray-600 rounded "
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
             Ignore server certificate
             </label>
           </div>
@@ -126,12 +126,12 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className=" divide-y divide-slate-600 my-6 mt-7">
-  <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+  <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Concurrency Limits
         </h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Maximum number of connections
             </label>
             <input
@@ -139,11 +139,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="max_connections"
               value={poolDetails.max_connections}
               onChange={onChange}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Maximum connections per user
             </label>
             <input
@@ -151,19 +151,19 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="max_connections_per_user"
               value={poolDetails.max_connections_per_user}
               onChange={onChange}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
         </div>
       </div>
 
       <div className=" divide-y divide-slate-600  my-6 mt-7">
-  <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+  <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           GUACAMOLE PROXY PARAMETERS (GUACD)
         </h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Port
             </label>
             <input
@@ -172,18 +172,18 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="guacd_port"
               onChange={onChange}
               value={poolDetails.guacd_port}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Encryption
             </label>
             <select
               name="guacd_encryption"
               onChange={onChange}
               value={poolDetails.guacd_encryption}
-              className="block w-full cursor-pointer rounded-md border-2 border-gray-300 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300        sm:text-sm"
+              className="block w-full cursor-pointer rounded-md border-2 border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300        sm:text-sm"
             >
               <option value="" disabled>
                 Select encryption type
@@ -197,12 +197,12 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className="divide-y divide-slate-600 my-6 mt-7">
-  <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+  <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Remote Desktop Gateway
         </h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Port
             </label>
             <input
@@ -211,11 +211,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="gateway_port"
               onChange={onChange}
               value={poolDetails.gateway_port}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Username
             </label>
             <input
@@ -224,11 +224,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="gateway_username"
               onChange={onChange}
               value={poolDetails.gateway_username}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Password
             </label>
             <input
@@ -237,11 +237,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="gateway_password"
               onChange={onChange}
               value={poolDetails.gateway_password}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Domain
             </label>
             <input
@@ -250,18 +250,18 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="gateway_domain"
               onChange={onChange}
               value={poolDetails.gateway_domain}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
         </div>
       </div>
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Basic Settings
         </h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Initial program
             </label>
             <input
@@ -270,11 +270,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="initial_program"
               onChange={onChange}
               value={poolDetails.initial_program}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Client Name
             </label>
             <input
@@ -283,18 +283,18 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="client_name"
               onChange={onChange}
               value={poolDetails.client_name}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Time Zone
             </label>
             <select
               name="timezone"
               onChange={onChange}
               value={poolDetails.timezone}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             >
               <option value="Africa/Lagos">Nigeria (UTC+01:00)</option>
               <option value="America/Sao_Paulo">Brazil (UTC-03:00)</option>
@@ -327,9 +327,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="console"
               onChange={onChange}
               checked={poolDetails.console}
-              className="h-4 w-4      border-gray-300 rounded  "
+              className="h-4 w-4      border-gray-300 dark:border-gray-600 rounded  "
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Administrator console
             </label>
           </div>
@@ -337,10 +337,10 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">Display</h3>
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">Display</h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Width
             </label>
             <input
@@ -349,11 +349,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="width"
               onChange={onChange}
               value={poolDetails.width}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Height
             </label>
             <input
@@ -362,11 +362,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="height"
               onChange={onChange}
               value={poolDetails.height}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Resolution (DPI)
             </label>
             <input
@@ -375,18 +375,18 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="dpi"
               onChange={onChange}
               value={poolDetails.dpi}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Color Depth
             </label>
             <select
               name="color_depth"
               onChange={onChange}
               value={poolDetails.color_depth}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             >
               <option value="">Select Color Depth</option>
               <option value="8">8-bit</option>
@@ -396,14 +396,14 @@ const MachineRdp = ({ onChange, poolDetails }) => {
             </select>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Resize Method
             </label>
             <select
               name="resize_method"
               onChange={onChange}
               value={poolDetails.resize_method}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             >
               <option value="">Select Resize Method</option>
               <option value="display_update_virtual_channel">
@@ -418,28 +418,28 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="read_only"
               onChange={onChange}
               checked={poolDetails.read_only}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Read Only
             </label>
           </div>
         </div>
       </div>
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Clipboard
         </h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Encoding
             </label>
             <select
               name="clipboard_encoding"
               onChange={onChange}
               value={poolDetails.clipboard_encoding}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             >
               <option value="">Select Encoding</option>
               <option value="base64">base64</option>
@@ -455,9 +455,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_copy"
               onChange={onChange}
               checked={poolDetails.disable_copy}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Disable copying from remote desktop
             </label>
           </div>
@@ -467,9 +467,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_paste"
               onChange={onChange}
               checked={poolDetails.disable_paste}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Disable pasting from client
             </label>
           </div>
@@ -477,7 +477,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Device Redirection
         </h3>
         <div className="space-y-4">
@@ -487,9 +487,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="console_audio"
               onChange={onChange}
               checked={poolDetails.console_audio}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Support audio in console
             </label>
           </div>
@@ -499,9 +499,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_audio"
               onChange={onChange}
               checked={poolDetails.disable_audio}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Disable audio
             </label>
           </div>
@@ -511,9 +511,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_audio_input"
               onChange={onChange}
               checked={poolDetails.enable_audio_input}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable audio input (microphone)
             </label>
           </div>
@@ -523,14 +523,14 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_printing"
               onChange={onChange}
               checked={poolDetails.enable_printing}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable printing
             </label>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Redirected printer name
             </label>
             <input
@@ -539,7 +539,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="printer_name"
               onChange={onChange}
               value={poolDetails.printer_name}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -548,14 +548,14 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_drive"
               onChange={onChange}
               checked={poolDetails.enable_drive}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable drive
             </label>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Drive Name
             </label>
             <input
@@ -564,11 +564,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="drive_name"
               onChange={onChange}
               value={poolDetails.drive_name}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Drive Path
             </label>
             <input
@@ -577,13 +577,13 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="drive_path"
               onChange={onChange}
               value={poolDetails.drive_path}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
         </div>
       </div>
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Performance
         </h3>
         <div className="space-y-4">
@@ -593,9 +593,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_wallpaper"
               onChange={onChange}
               checked={poolDetails.enable_wallpaper}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable wallpaper
             </label>
           </div>
@@ -605,9 +605,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_theming"
               onChange={onChange}
               checked={poolDetails.enable_theming}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable theming
             </label>
           </div>
@@ -617,9 +617,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_font_smoothing"
               onChange={onChange}
               checked={poolDetails.enable_font_smoothing}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable font smoothing (ClearType)
             </label>
           </div>
@@ -629,9 +629,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_full_window_drag"
               onChange={onChange}
               checked={poolDetails.enable_full_window_drag}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable full-window drag
             </label>
           </div>
@@ -641,9 +641,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_desktop_composition"
               onChange={onChange}
               checked={poolDetails.enable_desktop_composition}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable desktop composition (Aero)
             </label>
           </div>
@@ -653,9 +653,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_menu_animations"
               onChange={onChange}
               checked={poolDetails.enable_menu_animations}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable menu animations
             </label>
           </div>
@@ -665,9 +665,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_bitmap_caching"
               onChange={onChange}
               checked={poolDetails.disable_bitmap_caching}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Disable bitmap caching
             </label>
           </div>
@@ -677,9 +677,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_offscreen_caching"
               onChange={onChange}
               checked={poolDetails.disable_offscreen_caching}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Disable off-screen caching
             </label>
           </div>
@@ -689,9 +689,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="disable_glyph_caching"
               onChange={onChange}
               checked={poolDetails.disable_glyph_caching}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Disable glyph caching
             </label>
           </div>
@@ -699,12 +699,12 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Load Balancing
         </h3>
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Load balance info/cookie:
             </label>
             <input
@@ -713,20 +713,20 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="load_balance_info"
               onChange={onChange}
               value={poolDetails.load_balance_info}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
         </div>
       </div>
 
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">
           Screen Recording
         </h3>
         <div className="space-y-4">
           {/* Recording Path */}
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Recording path
             </label>
             <input
@@ -735,13 +735,13 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="recording_path"
               onChange={onChange}
               value={poolDetails.recording_path}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
 
           {/* Recording Name */}
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Recording Name
             </label>
             <input
@@ -750,7 +750,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="recording_name"
               onChange={onChange}
               value={poolDetails.recording_name}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
 
@@ -761,9 +761,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="create_recording_path"
               onChange={onChange}
               checked={poolDetails.create_recording_path}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Automatically create recording path
             </label>
           </div>
@@ -775,9 +775,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="recording_exclude_mouse"
               onChange={onChange}
               checked={poolDetails.recording_exclude_mouse}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Exclude mouse
             </label>
           </div>
@@ -789,9 +789,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="recording_include_keys"
               onChange={onChange}
               checked={poolDetails.recording_include_keys}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Include key events
             </label>
           </div>
@@ -803,9 +803,9 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="exclude_touch_events"
               onChange={onChange}
               checked={poolDetails.exclude_touch_events}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Exclude touch events
             </label>
           </div>
@@ -813,7 +813,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
       </div>
 
       <div className="divide-y divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold text-[#1a365d] text-left mb-4">SFTP</h3>
+        <h3 className="font-semibold text-[#1a365d] dark:text-blue-300 text-left mb-4">SFTP</h3>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <input
@@ -821,14 +821,14 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="enable_sftp"
               onChange={onChange}
               checked={poolDetails.enable_sftp}
-              className="h-4 w-4 border-gray-300 rounded"
+              className="h-4 w-4 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label className="text-sm font-medium text-[#00000099]">
+            <label className="text-sm font-medium text-[#00000099] dark:text-gray-100">
               Enable SFTP
             </label>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               SFTP Port
             </label>
             <input
@@ -837,11 +837,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_port"
               onChange={onChange}
               value={poolDetails.sftp_port}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               SFTP Username
             </label>
             <input
@@ -850,11 +850,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_username"
               onChange={onChange}
               value={poolDetails.sftp_username}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               SFTP Password
             </label>
             <input
@@ -863,11 +863,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_password"
               onChange={onChange}
               value={poolDetails.sftp_password}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               SFTP Host Key
             </label>
             <input
@@ -876,23 +876,23 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_host_key"
               onChange={onChange}
               value={poolDetails.sftp_host_key}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               SFTP Private Key
             </label>
             <textarea
               name="sftp_private_key"
               onChange={onChange}
               value={poolDetails.sftp_private_key}
-              className="textarea block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="textarea block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
               rows="4"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               SFTP Passphrase
             </label>
             <input
@@ -901,11 +901,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_passphrase"
               onChange={onChange}
               value={poolDetails.sftp_passphrase}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               File Browser Root Directory
             </label>
             <input
@@ -914,11 +914,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_root_directory"
               onChange={onChange}
               value={poolDetails.sftp_root_directory}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">
               Default Upload Directory
             </label>
             <input
@@ -927,11 +927,11 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_directory"
               onChange={onChange}
               value={poolDetails.sftp_directory}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="block text-sm font-medium text-[#00000099]">   
+            <label className="block text-sm font-medium text-[#00000099] dark:text-gray-100">   
               SFTP Keepalive Interval
             </label>
             <input
@@ -940,7 +940,7 @@ const MachineRdp = ({ onChange, poolDetails }) => {
               name="sftp_server_alive_interval"
               onChange={onChange}
               value={poolDetails.sftp_server_alive_interval}
-              className="block w-full rounded-md bg-white py-2 px-3 text-gray-900  placeholder:text-gray-900 border-2 border-gray-300 shadow-sm focus:outline-none        sm:text-sm"
+              className="block w-full rounded-md bg-white dark:bg-gray-800 py-2 px-3 text-gray-900 dark:text-gray-100  placeholder:text-gray-900 dark:text-gray-100 border-2 border-gray-300 dark:border-gray-600 shadow-sm focus:outline-none        sm:text-sm"
             />
           </div>
         </div>

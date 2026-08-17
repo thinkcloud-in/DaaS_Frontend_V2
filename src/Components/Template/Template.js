@@ -102,7 +102,7 @@ const Template = ({ tokenParsed }) => {
   };
 
   return (
-    <div className="w-full md:w-[98%] m-auto p-2 md:p-4 h-auto md:h-[90vh] min-h-[80vh] rounded-md bg-white flex flex-col md:flex-row justify-between items-center md:items-stretch overflow-auto md:overflow-hidden gap-4">
+    <div className="w-full md:w-[98%] m-auto p-2 md:p-4 h-auto md:h-[90vh] min-h-[80vh] rounded-md bg-white dark:bg-gray-800 flex flex-col md:flex-row justify-between items-center md:items-stretch overflow-auto md:overflow-hidden gap-4">
       <div className="space-y-5 m-2 flex-1 template_class w-full md:w-2/3 md:ml-10 mt-6 md:mt-12">
         <Popup
           open={open}
@@ -111,7 +111,7 @@ const Template = ({ tokenParsed }) => {
           text="Are you sure you want to submit?"
           color="yellow"
         />
-        <div className="bg-white p-3 shadow-md text-[#1a365d] rounded-lg shadow-lg border flex-1 pdf_template w-full md:w-5/6 h-auto md:h-5/6 m-2 md:m-10 overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 p-3 shadow-md text-[#1a365d] dark:text-blue-300 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex-1 pdf_template w-full md:w-5/6 h-auto md:h-5/6 m-2 md:m-10 overflow-y-auto">
           <h2 className="font-bold leading-7">PDF Template</h2>
           <div className="text-left table-auto mt-5 space-y-4">
             {isLoading ? (
@@ -126,7 +126,7 @@ const Template = ({ tokenParsed }) => {
                   <div className="th w-1/3">
                     <label
                       htmlFor="report"
-                      className="block text-sm font-medium leading-6 text-gray-900"
+                      className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                     >
                       Report
                     </label>
@@ -136,7 +136,7 @@ const Template = ({ tokenParsed }) => {
                       name="report"
                       value={reportType}
                       onChange={handleOnChange}
-                      className="w-full cursor-pointer rounded-md py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-[#1a365d]/100 sm:text-sm sm:leading-6"
+                      className="w-full cursor-pointer rounded-md py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-[#1a365d]/100 sm:text-sm sm:leading-6"
                     >
                       <option value="">Select Report</option>
                       <option value="Session Reports">Session Reports</option>
@@ -151,20 +151,20 @@ const Template = ({ tokenParsed }) => {
                   <div className="th w-1/3">
                     <label
                       htmlFor="companyName"
-                      className="block text-sm font-medium leading-6 text-gray-900"
+                      className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                     >
                       Company Name
                     </label>
                   </div>
                   <div className="td w-2/3">
-                    <div className="flex rounded-md shadow-sm ring-1 ring-inset bg-white ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#1a365d]/100">
+                    <div className="flex rounded-md shadow-sm ring-1 ring-inset bg-white dark:bg-gray-800 ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#1a365d]/100">
                       <input
                         type="text"
                         name="companyName"
                         list="company-names"
                         value={companyName}
                         onChange={handleCompanySelection}
-                        className="block w-full bg-transparent py-1.5 pl-2 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 rounded-md"
+                        className="block w-full bg-transparent py-1.5 pl-2 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 rounded-md"
                       />
                     </div>
                   </div>
@@ -173,7 +173,7 @@ const Template = ({ tokenParsed }) => {
                   <div className="th w-1/3">
                     <label
                       htmlFor="photo"
-                      className="block text-sm font-medium leading-6 text-gray-900"
+                      className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100"
                     >
                       Company logo
                     </label>
@@ -181,7 +181,7 @@ const Template = ({ tokenParsed }) => {
                   <div className="td w-2/3">
                     {image ? (
                       <div className="space-y-2">
-                        <div className="img rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 border-2 background_image">
+                        <div className="img rounded-md bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/60 border-2 background_image">
                           <img
                             className="img max-h-32 object-contain"
                             src={
@@ -194,23 +194,23 @@ const Template = ({ tokenParsed }) => {
                         </div>
                         <button
                           type="button"
-                          className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 border-2"
+                          className="rounded-md bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/60 border-2"
                           onClick={() => dispatch(setImage(null))}
                         >
                           Remove
                         </button>
                       </div>
                     ) : (
-                      <div className="flex justify-center rounded-lg border-dashed border-gray-900/25 px-6 py-10 border-2 bg-white ">
+                      <div className="flex justify-center rounded-lg border-dashed border-gray-900/25 dark:border-gray-500 px-6 py-10 border-2 bg-white dark:bg-gray-800 ">
                         <div className="text-center flex flex-col justify-center items-center">
                           <PhotoIcon
                             className="mx-auto h-12 w-12 text-gray-300"
                             aria-hidden="true"
                           />
-                          <div className="flex text-sm leading-6 text-gray-600">
+                          <div className="flex text-sm leading-6 text-gray-600 dark:text-gray-400">
                             <label
                               htmlFor="file-upload"
-                              className="relative cursor-pointer rounded-md font-semibold text-[#1a365d] focus-within:outline-none focus-within:ring-2 focus-within:ring-[#1a365d] focus-within:ring-offset-2 hover:text-[#1a365d]"
+                              className="relative cursor-pointer rounded-md font-semibold text-[#1a365d] dark:text-blue-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#1a365d] focus-within:ring-offset-2 hover:text-[#1a365d] dark:text-blue-300"
                             >
                               <span>Upload a file</span>
                               <input
@@ -223,7 +223,7 @@ const Template = ({ tokenParsed }) => {
                               />
                             </label>
                           </div>
-                          <p className="text-xs leading-5 text-gray-600">
+                          <p className="text-xs leading-5 text-gray-600 dark:text-gray-400">
                             PNG, JPG, JPEG up to 2MB
                           </p>
                         </div>
@@ -257,7 +257,7 @@ const Template = ({ tokenParsed }) => {
           </button>
         </div>
       </div>
-      <div className="report_divsion report-preview bg-white p-4 md:p-6 rounded-lg shadow-lg border flex-1 w-full md:w-1/2 h-auto md:h-5/6 m-2 md:m-10 overflow-y-auto custom-scrollbar">
+      <div className="report_divsion report-preview bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 flex-1 w-full md:w-1/2 h-auto md:h-5/6 m-2 md:m-10 overflow-y-auto custom-scrollbar">
         <h2>PDF Template Preview</h2>
         <table className="report-table">
           <thead>
@@ -299,7 +299,7 @@ const Template = ({ tokenParsed }) => {
           <tbody>
             <tr className="data-row">
               <td colSpan={4}>
-                <i className="text-gray-700 ">Report data is displayed here</i>
+                <i className="text-gray-700">Report data is displayed here</i>
               </td>
             </tr>
             <tr>

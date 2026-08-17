@@ -3,10 +3,12 @@ import { useContext } from "react";
 import TimeRangeSelector from "../TimeRangeSelector";
 import AutoRefresh from "../AutoRefresh";
 import { GrafanaToolbarContext } from '../../../Context/GrafanaToolbarContext';
+import { useTheme } from '../../../Context/ThemeContext';
 import { getEnv } from "utils/getEnv";
  
 let ProxmoxStorage = () => {
   let gc = useContext(GrafanaToolbarContext);
+  const { theme } = useTheme();
  
   // These values are from your URL and can be made dynamic if required
   const dsProxmox = "c802160b-16ac-4d18-a08e-5440de62cc88";
@@ -24,7 +26,7 @@ let ProxmoxStorage = () => {
     `&var-server=${server}` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
-    `&theme=light` +
+    `&theme=${theme}` +
     `&disableLazyLoad=true` +
     `&kiosk`;
   return (

@@ -15,6 +15,7 @@ import {
 
 const initialState = {
   clusters: [],
+  pagination: { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false },
   clusterDetails: null,
   isLoading: false,
   error: null,
@@ -57,7 +58,10 @@ const clustersSlice = createSlice({
       })
       .addCase(fetchClustersThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.clusters = action.payload;
+        state.clusters = action.payload?.items || [];
+        if (action.payload?.pagination) {
+          state.pagination = action.payload.pagination;
+        }
       })
       .addCase(fetchClustersThunk.rejected, (state, action) => {
         state.isLoading = false;
@@ -199,7 +203,10 @@ const clustersSlice = createSlice({
       })
       .addCase(updateProxmoxNodesThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.clusters = action.payload.clusters;
+        state.clusters = action.payload.items || [];
+        if (action.payload.pagination) {
+          state.pagination = action.payload.pagination;
+        }
         state.lastUpdateResult = action.payload.update;
       })
       .addCase(updateProxmoxNodesThunk.rejected, (state, action) => {

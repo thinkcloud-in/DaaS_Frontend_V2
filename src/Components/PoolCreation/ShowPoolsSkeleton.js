@@ -6,7 +6,7 @@ const ShowPoolsSkeleton = () => {
   const skeletonRows = Array.from({ length: 5 });
 
   return (
-    <div className="w-[98%] flex-1 m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden animate-pulse">
+    <div className="w-[98%] flex-1 m-auto bg-white dark:bg-gray-800 rounded-lg p-4 flex flex-col overflow-hidden animate-pulse">
       {/* Top section skeleton: back button, header, and new pool button */}
       <div className="flex justify-between items-center mb-4">
         {/* Back button skeleton */}
@@ -25,10 +25,10 @@ const ShowPoolsSkeleton = () => {
         </div>
       </div>
       {/* Table skeleton */}
-      <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
-        <table className="min-w-full bg-white text-sm border-collapse">
-          <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-            <tr>
+      <div className="flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar">
+        <table className="min-w-full bg-white dark:bg-gray-800 text-sm border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-[#1a365d] text-white font-bold uppercase text-[0.8rem] leading-normal select-none">
               {["Name", "Type", "Cluster Name", "Entitled", "Machines"].map((header, index) => (
                 <th
                   key={index}
