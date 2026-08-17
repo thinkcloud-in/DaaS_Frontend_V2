@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import axios from "axios";
 import {
   selectAuthToken,
   selectAuthTokenParsed,
@@ -307,21 +308,143 @@ const LLMInferenceMachines = () => {
   const grafanaUrl = getEnv("GRAFANA_URL");
   const dashboardUid = getEnv("PRIVATELLM_MONITORING_DASHBOARD_UUID");
   const dashboardName = getEnv("PRIVATELLM_MONITORING_DASHBOARD_NAME");
-  // const dashboardSlug = (dashboardName || "")
-  //   .trim()
-  //   .toLowerCase()
-  //   .replace(/[^a-z0-9]+/g, "-")
-  //   .replace(/^-+|-+$/g, "");
+  // Grafana only actually routes on the UID -- the slug segment is
+  // cosmetic and gets auto-redirected to the canonical one regardless of
+  // what's here, but it still needs to be a valid URL path segment (no
+  // literal spaces), hence the slugify.
+  const dashboardSlug = (dashboardName || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  // Grafana dashboard "host"/"gpu" template variables -- values are fetched
+  // LIVE from Grafana itself (same pattern as Dashboard/Overview.js), not
+  // guessed from local app data. Guessing (machine.name / a positional
+  // index) already proved fragile once (the GPU dropdown briefly sent raw
+  // PCI addresses like "0000:01:0.0" instead of the plain index Grafana's
+  // variable actually expects) -- asking Grafana what values really exist
+  // for each variable can't drift out of sync the same way.
+  // Both variables are multi:true + includeAll:true in Grafana -- arrays,
+  // not single values. Empty array = no var-host/var-gpu param sent at all,
+  // which lets Grafana fall back to its own dashboard default ("All"),
+  // same convention Dashboard/Overview.js uses for its multi-select vars.
+  const [selectedHosts, setSelectedHosts] = useState([]);
+  const [selectedGpus, setSelectedGpus] = useState([]);
+  const [hostOptions, setHostOptions] = useState([]);
+  const [gpuOptions, setGpuOptions] = useState([]);
+  const [hostDropdownOpen, setHostDropdownOpen] = useState(false);
+  const [gpuDropdownOpen, setGpuDropdownOpen] = useState(false);
+  const hostDropdownRef = useRef(null);
+  const gpuDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (hostDropdownRef.current && !hostDropdownRef.current.contains(e.target))
+        setHostDropdownOpen(false);
+      if (gpuDropdownRef.current && !gpuDropdownRef.current.contains(e.target))
+        setGpuDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  const toggleSelection = (setFn, list, value) => {
+    setFn(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const backendUrl = getEnv("BACKEND_URL");
+
+    const extractValues = (responseData) => {
+      if (responseData?.results?.A?.frames) {
+        const frames = responseData.results.A.frames;
+        return frames[0]?.data?.values?.[0] || [];
+      }
+      return [];
+    };
+
+    // variable.datasource is {type, uid} (Flux/InfluxDB v2) -- NOT
+    // variable.datasourceId, which these variables don't have at all.
+    // extraBody carries per-query substitutions, e.g. the gpu variable's
+    // Flux query filters by "${host:json}", which needs the full host list.
+    const fetchVarValues = async (variable, extraBody = {}) => {
+      try {
+        const res = await axios.post(
+          `${backendUrl}/v1/grafana/v1/api/query`,
+          {
+            body: {
+              from: gc.timeStamp.startDate,
+              to: gc.timeStamp.endDate,
+              datasource: variable.datasource,
+              query: variable.query,
+              ...extraBody,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        return extractValues(res.data).map(String);
+      } catch (err) {
+        return [];
+      }
+    };
+
+    const loadVariables = async () => {
+      try {
+        const res = await axios.get(
+          `${backendUrl}/v1/grafana/api/dashboards/uid/${dashboardUid}`,
+        );
+        const templatingList = res.data?.dashboard?.templating?.list || [];
+        const hostVar = templatingList.find((v) => v.name === "host");
+        const gpuVar = templatingList.find((v) => v.name === "gpu");
+
+        const hostVals = hostVar ? await fetchVarValues(hostVar) : [];
+        // gpu's query depends on the resolved host list (${host:json}) --
+        // must run after hostVals is known, not in parallel with it.
+        const gpuVals = gpuVar
+          ? await fetchVarValues(gpuVar, { host: hostVals })
+          : [];
+
+        if (!cancelled) {
+          setHostOptions([...new Set(hostVals)]);
+          setGpuOptions([...new Set(gpuVals)]);
+        }
+      } catch (err) {
+        // Leave options empty -- dashboard still renders with its own
+        // default "All" filter, just without per-host/per-gpu drilldown.
+      }
+    };
+
+    loadVariables();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Grafana accepts a repeated var-X param per selected value for
+  // multi:true variables (?var-host=a&var-host=b). Omitting it entirely
+  // when nothing's selected lets Grafana fall back to the dashboard's own
+  // default ("All"), rather than us having to know/send that literal value.
+  const varParams = [
+    ...selectedHosts.map((v) => `&var-host=${encodeURIComponent(v)}`),
+    ...selectedGpus.map((v) => `&var-gpu=${encodeURIComponent(v)}`),
+  ].join("");
 
   const grafanaIframeSrc =
-    `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
+    `${grafanaUrl}/d/${dashboardUid}/${dashboardSlug}` +
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
     `&theme=light` +
     `&disableLazyLoad=true` +
-    `&kiosk`;
-  console.log("------------------------->", grafanaIframeSrc);
+    `&kiosk` +
+    varParams;
 
   const pool = poolDetail || passedPool || {};
   const totalMachinePages = Math.max(
@@ -761,7 +884,7 @@ const LLMInferenceMachines = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full mb-6 shrink-0">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
           <ChartBarIcon className="h-4 w-4 text-[#1a365d]" />
-          <h2 className="text-sm font-bold text-gray-800">LLM Metrics</h2>
+          <h2 className="text-sm font-bold text-gray-800">Metrics</h2>
         </div>
         <div
           style={{
@@ -776,6 +899,74 @@ const LLMInferenceMachines = () => {
         >
           <TimeRangeSelector />
           <AutoRefresh />
+
+          {/* Host multi-select */}
+          <div className="relative inline-flex items-center gap-1.5" ref={hostDropdownRef}>
+            <label className="text-xs font-medium text-gray-800">Host</label>
+            <button
+              type="button"
+              onClick={() => setHostDropdownOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#1a365d] min-w-[90px]"
+            >
+              {selectedHosts.length > 0 ? `Selected (${selectedHosts.length})` : "All"}
+              <ChevronDownIcon className="h-3.5 w-3.5 ml-auto text-gray-400" />
+            </button>
+            {hostDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 z-50 w-56 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                {hostOptions.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-gray-400">No hosts found</div>
+                ) : (
+                  hostOptions.map((opt) => (
+                    <label
+                      key={opt}
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedHosts.includes(opt)}
+                        onChange={() => toggleSelection(setSelectedHosts, selectedHosts, opt)}
+                      />
+                      {opt}
+                    </label>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* GPU multi-select */}
+          <div className="relative inline-flex items-center gap-1.5" ref={gpuDropdownRef}>
+            <label className="text-xs font-medium text-gray-800">GPU</label>
+            <button
+              type="button"
+              onClick={() => setGpuDropdownOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#1a365d] min-w-[90px]"
+            >
+              {selectedGpus.length > 0 ? `Selected (${selectedGpus.length})` : "All"}
+              <ChevronDownIcon className="h-3.5 w-3.5 ml-auto text-gray-400" />
+            </button>
+            {gpuDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 z-50 w-40 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                {gpuOptions.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-gray-400">No GPUs found</div>
+                ) : (
+                  gpuOptions.map((opt) => (
+                    <label
+                      key={opt}
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGpus.includes(opt)}
+                        onChange={() => toggleSelection(setSelectedGpus, selectedGpus, opt)}
+                      />
+                      {`GPU-${opt}`}
+                    </label>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <iframe
           title="LLM Metrics"
