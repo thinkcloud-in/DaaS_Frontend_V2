@@ -58,7 +58,11 @@ const ShowDomains = (props) => {
                       name={item.name}
                       providerId={item.providerId}
                       enabled={
-                        item.config && item.config.enabled === "true" ? "Enabled" : "Disabled"
+                        (Array.isArray(item.config?.enabled)
+                          ? item.config.enabled[0]
+                          : item.config?.enabled) === "true"
+                          ? "Enabled"
+                          : "Disabled"
                       }
                     />
                   ))

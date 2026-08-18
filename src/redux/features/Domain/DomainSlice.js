@@ -105,10 +105,10 @@ const domainSlice = createSlice({
 			})
 			.addCase(updateDomain.fulfilled, (state, action) => {
 				state.loader = false;
-				// update domains list if backend returned updated list
-				if (action.payload?.data?.ldaps) state.domains = action.payload.data.ldaps;
-				// optionally update domainDetails
-				if (action.payload?.data?.domain) state.domainDetails = action.payload.data.domain;
+				// Backend returns { code, msg, data } where `data` is the raw list
+				// of Keycloak LDAP components (see routes.py update_ldap_config_endpoint) --
+				// not an object with a nested `ldaps` key.
+				if (Array.isArray(action.payload?.data)) state.domains = action.payload.data;
 			})
 			.addCase(updateDomain.rejected, (state, action) => {
 				state.loader = false;

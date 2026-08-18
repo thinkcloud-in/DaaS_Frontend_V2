@@ -104,7 +104,7 @@ const EditDomain = () => {
           connectionTimeout: src?.connectionTimeout || "",
           authType: src?.authType || "simple",
           bindDn: src?.bindDn || "",
-          bindCredential: "",
+          bindCredential: src?.bindCredential || "",
           editMode: src?.editMode || "read_only",
           usersDn: src?.usersDn || "",
           usernameLDAPAttribute: src?.usernameLDAPAttribute || "",
@@ -335,7 +335,63 @@ const EditDomain = () => {
     setEditAD({ ...editAD, [e.target.name]: e.target.value });
   };
 
+  const persistEnabledToggle = async (nextEnabled) => {
+    if (!token || !domainID || !editAD) return;
+    const updatedAd = { ...editAD, enabled: nextEnabled };
+    setLoading((prev) => ({ ...prev, submit: true }));
+    try {
+      const res = await dispatch(
+        updateDomainThunk({ token, domain_id: domainID, ad: updatedAd }),
+      ).unwrap();
+      const code = res?.code ?? res?.data?.code;
+      const msg = res?.msg || res?.data?.msg || "Domain update completed";
+      if (code === 200) {
+        setEditAD(updatedAd);
+        toast.success(msg, {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
+        dispatch(fetchDomains({ token }));
+      } else {
+        toast.error(msg, {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
+      }
+    } catch (err) {
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.data?.msg || err?.message || "Failed to update domain";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, submit: false }));
+    }
+  };
+
   const handleChange = (e) => {
+    if (e.target.name === "enabled") {
+      const nextEnabled = e.target.checked;
+      if (!nextEnabled) {
+        const confirmed = window.confirm(
+          "Disable user federation provider?\n\nIf you disable this user federation provider, it will not be considered for queries and imported users will be disabled and read-only until the provider is enabled again."
+        );
+        if (!confirmed) {
+          // Revert the checkbox visually; editAD.enabled hasn't changed so the
+          // controlled input will re-render back to its previous value anyway.
+          e.target.checked = true;
+          return;
+        }
+      }
+      persistEnabledToggle(nextEnabled);
+      return;
+    }
     if (
       e.target.name === "fullSyncEnabled" ||
       e.target.name === "changedSyncEnabled"
@@ -489,11 +545,15 @@ const EditDomain = () => {
                     onChange={handleChange}
                     name="enabled"
                     checked={editAD.enabled}
+                    disabled={loading.submit}
                   />
                   <span className="slider round"></span>
                 </label>
               </div>
             </div>
+            {loading.submit && (
+              <Loader2 className="h-4 w-4 animate-spin text-gray-500 dark:text-gray-400" />
+            )}
           </div>
           <div className="">
             <Menu as="div" className="inherit">
