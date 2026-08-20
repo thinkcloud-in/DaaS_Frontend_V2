@@ -635,19 +635,9 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
                                             <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                        {updatingId === id && <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />}
-                                        <select
-                                            value={role}
-                                            onChange={(e) => handleRoleChange(u, e.target.value)}
-                                            disabled={updatingId === id}
-                                            className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-1 px-2 text-xs font-semibold text-gray-800 dark:text-gray-100 capitalize focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none disabled:opacity-50"
-                                        >
-                                            {ROLE_OPTIONS.map((r) => (
-                                                <option key={r} value={r} className="capitalize">{r}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold capitalize bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 flex-shrink-0">
+                                        {role}
+                                    </span>
                                 </div>
                             );
                         })}
