@@ -31,7 +31,8 @@ const TYPE_ICONS = {
     llm_template:    HardDrive,
 };
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 const DONE_STATUSES      = ["ready", "completed", "done", "success"];
 const FAIL_STATUSES      = ["failed", "error"];
@@ -62,12 +63,13 @@ const LibraryList = () => {
     const [activeTab,   setActiveTab]   = useState("");
     const [searchTerm,  setSearchTerm]  = useState("");
     const [page,        setPage]        = useState(1);
+    const [pageSize,    setPageSize]    = useState(DEFAULT_PAGE_SIZE);
     const [downloading,   setDownloading]   = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
 
     const loadList = useCallback(() => {
-        dispatch(fetchLibraryListThunk({ token, type: activeTab || undefined, page, pageSize: PAGE_SIZE }));
-    }, [dispatch, token, activeTab, page]);
+        dispatch(fetchLibraryListThunk({ token, type: activeTab || undefined, page, pageSize }));
+    }, [dispatch, token, activeTab, page, pageSize]);
 
     useEffect(() => {
         loadList();
@@ -85,6 +87,11 @@ const LibraryList = () => {
         setActiveTab(key);
         setPage(1);
         setSearchTerm("");
+    };
+
+    const handlePageSizeChange = (e) => {
+        setPageSize(Number(e.target.value));
+        setPage(1);
     };
 
     const handleDownload = async (item) => {
@@ -122,7 +129,7 @@ const LibraryList = () => {
           )
         : items;
 
-    const totalPages = pagination.totalPages || Math.ceil((pagination.total || 0) / PAGE_SIZE);
+    const totalPages = pagination.totalPages || Math.ceil((pagination.total || 0) / pageSize) || 1;
 
     const typeTabs = [
         { key: "", label: "All" },
@@ -341,55 +348,69 @@ const LibraryList = () => {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between bg-gray-50/60">
+                <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between bg-gray-50/60">
+                    <div className="flex items-center gap-3">
                         <p className="text-xs text-gray-500">
                             Page {page} of {totalPages} — {pagination.total} total
                         </p>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1 || listLoading}
-                                className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                        <div className="flex items-center gap-1.5">
+                            <label htmlFor="library-page-size" className="text-xs text-gray-500">Rows:</label>
+                            <select
+                                id="library-page-size"
+                                value={pageSize}
+                                onChange={handlePageSizeChange}
+                                disabled={listLoading}
+                                className="text-xs text-gray-700 bg-white border border-gray-200 rounded px-1.5 py-1 disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-[#1a365d]"
                             >
-                                <ChevronLeft className="h-4 w-4" />
-                            </button>
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                                .reduce((acc, p, idx, arr) => {
-                                    if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
-                                    acc.push(p);
-                                    return acc;
-                                }, [])
-                                .map((p, idx) =>
-                                    p === "..." ? (
-                                        <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-gray-400">…</span>
-                                    ) : (
-                                        <button
-                                            key={p}
-                                            onClick={() => setPage(p)}
-                                            disabled={listLoading}
-                                            className={`min-w-[28px] px-2 py-1 text-xs font-semibold rounded border transition-colors
-                                                ${p === page
-                                                    ? "bg-[#1a365d] text-white border-[#1a365d]"
-                                                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-[#1a365d]"
-                                                }`}
-                                        >
-                                            {p}
-                                        </button>
-                                    )
-                                )
-                            }
-                            <button
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages || listLoading}
-                                className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
+                                {PAGE_SIZE_OPTIONS.map((n) => (
+                                    <option key={n} value={n}>{n}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
-                )}
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page <= 1 || listLoading}
+                            className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                            .reduce((acc, p, idx, arr) => {
+                                if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                                acc.push(p);
+                                return acc;
+                            }, [])
+                            .map((p, idx) =>
+                                p === "..." ? (
+                                    <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-gray-400">…</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        disabled={listLoading}
+                                        className={`min-w-[28px] px-2 py-1 text-xs font-semibold rounded border transition-colors
+                                            ${p === page
+                                                ? "bg-[#1a365d] text-white border-[#1a365d]"
+                                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-[#1a365d]"
+                                            }`}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            )
+                        }
+                        <button
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={page >= totalPages || listLoading}
+                            className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Delete Confirmation Modal */}

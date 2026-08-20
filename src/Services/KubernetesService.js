@@ -80,11 +80,33 @@ export const normalizeCluster = (raw) => {
   };
 };
 
-// Lists all connected Kubernetes clusters.
+// Lists all connected Kubernetes clusters — used by simple dropdowns/lookups
+// elsewhere in the app that just want every cluster, so this requests a
+// large page size to keep pagination invisible to those callers. The
+// response now wraps the array as data.clusters alongside pagination info.
 export const fetchKubernetesClusters = async () => {
-  const res = await axiosInstance.get(`${backendUrl}/v1/kubernetes/clusters`);
-  const list = res.data?.data || res.data?.clusters || res.data || [];
-  return Array.isArray(list) ? list.map(normalizeCluster) : [];
+  const res = await axiosInstance.get(`${backendUrl}/v1/kubernetes/clusters`, { params: { page: 1, page_size: 100 } });
+  const body = res.data?.data ?? res.data ?? {};
+  const list = Array.isArray(body.clusters) ? body.clusters : (Array.isArray(body) ? body : []);
+  return list.map(normalizeCluster);
+};
+
+// Paginated fetch for the Kubernetes list page's own table + Prev/Next UI.
+export const fetchKubernetesClustersPage = async ({ page = 1, pageSize = 10 } = {}) => {
+  const res = await axiosInstance.get(`${backendUrl}/v1/kubernetes/clusters`, { params: { page, page_size: pageSize } });
+  const body = res.data?.data ?? res.data ?? {};
+  const items = Array.isArray(body.clusters) ? body.clusters.map(normalizeCluster) : [];
+  return {
+    items,
+    pagination: {
+      page:       body.page ?? page,
+      pageSize:   body.page_size ?? pageSize,
+      total:      body.total ?? items.length,
+      totalPages: body.total_pages ?? 1,
+      hasNext:    body.has_next ?? false,
+      hasPrev:    body.has_prev ?? false,
+    },
+  };
 };
 
 // Fetches a single cluster's details.

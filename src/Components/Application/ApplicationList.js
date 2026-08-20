@@ -10,7 +10,8 @@ import { APP_TYPES } from "./appTypes";
 import { fetchApplications, deleteApplication } from "../../Services/ApplicationService";
 import { fetchKubernetesClusters } from "../../Services/KubernetesService";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 const ACTIVE_STATUSES = ["deploying", "provisioning", "pending"];
 const isActive = (s) => ACTIVE_STATUSES.includes(s?.toLowerCase());
 
@@ -47,6 +48,7 @@ const ApplicationList = () => {
 
     const [applications, setApplications] = useState([]);
     const [page,         setPage]         = useState(1);
+    const [pageSize,     setPageSize]     = useState(DEFAULT_PAGE_SIZE);
     const [meta,         setMeta]         = useState({ total: 0, totalPages: 1 });
     const [loading,       setLoading]     = useState(false);
     const [clusterNames,  setClusterNames] = useState({});
@@ -56,7 +58,7 @@ const ApplicationList = () => {
     const loadApplications = useCallback(async () => {
         setLoading(true);
         try {
-            const { items, pagination } = await fetchApplications({ page, pageSize: PAGE_SIZE });
+            const { items, pagination } = await fetchApplications({ page, pageSize });
             setApplications(items);
             setMeta({ total: pagination.total, totalPages: pagination.totalPages });
         } catch {
@@ -64,7 +66,29 @@ const ApplicationList = () => {
         } finally {
             setLoading(false);
         }
-    }, [page]);
+    }, [page, pageSize]);
+
+    const handlePageSizeChange = (e) => {
+        setPageSize(Number(e.target.value));
+        setPage(1);
+    };
+
+    const startItem = meta.total === 0 ? 0 : (page - 1) * pageSize + 1;
+    const endItem = Math.min(page * pageSize, meta.total);
+
+    const getPageNumbers = () => {
+        if (meta.totalPages <= 7) return Array.from({ length: meta.totalPages }, (_, i) => i + 1);
+        const pages = [];
+        const delta = 2;
+        const left = Math.max(2, page - delta);
+        const right = Math.min(meta.totalPages - 1, page + delta);
+        pages.push(1);
+        if (left > 2) pages.push("...");
+        for (let i = left; i <= right; i++) pages.push(i);
+        if (right < meta.totalPages - 1) pages.push("...");
+        pages.push(meta.totalPages);
+        return pages;
+    };
 
     useEffect(() => { loadApplications(); }, [loadApplications]);
 
@@ -229,23 +253,60 @@ const ApplicationList = () => {
                     </table>
                 </div>
 
-                {meta.totalPages > 1 && (
-                    <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between bg-gray-50/60">
-                        <p className="text-xs text-gray-500">
-                            Page {page} of {meta.totalPages} — {meta.total} total
-                        </p>
+                {meta.total > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-gray-50">
+                        <div className="flex items-center gap-4">
+                            <span className="text-xs text-gray-500">
+                                Showing{" "}
+                                <span className="font-semibold text-gray-700">{startItem}–{endItem}</span>{" "}
+                                of <span className="font-semibold text-gray-700">{meta.total}</span> applications
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                                <label className="text-xs text-gray-500 whitespace-nowrap">Rows per page:</label>
+                                <select
+                                    value={pageSize}
+                                    onChange={handlePageSizeChange}
+                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1a365d] focus:border-[#1a365d] cursor-pointer"
+                                >
+                                    {PAGE_SIZE_OPTIONS.map((s) => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1 || loading}
-                                className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                disabled={page <= 1 || loading}
+                                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </button>
+
+                            {getPageNumbers().map((p, idx) =>
+                                p === "..." ? (
+                                    <span key={`ellipsis-${idx}`} className="px-1.5 text-gray-400 text-xs select-none">…</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        disabled={loading}
+                                        className={`min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border transition-colors disabled:cursor-not-allowed
+                                            ${p === page
+                                                ? "bg-[#1a365d] text-white border-[#1a365d] shadow-sm"
+                                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            )}
+
                             <button
                                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-                                disabled={page === meta.totalPages || loading}
-                                className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                disabled={page >= meta.totalPages || loading}
+                                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </button>

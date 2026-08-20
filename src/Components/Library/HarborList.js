@@ -47,7 +47,8 @@ export const formatValue = (val) => {
     return String(val);
 };
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 const ACTIVE_STATUSES = ["running", "provisioning", "deploying", "pending"];
 const isActive = (s) => ACTIVE_STATUSES.includes(s?.toLowerCase());
@@ -92,6 +93,7 @@ const HarborList = () => {
 
     const [deployments,       setDeployments]       = useState([]);
     const [page,              setPage]              = useState(1);
+    const [pageSize,          setPageSize]          = useState(DEFAULT_PAGE_SIZE);
     const [meta,              setMeta]              = useState({ total: 0, totalPages: 1 });
     const [loading,           setLoading]           = useState(false);
     const [deleteConfirm,     setDeleteConfirm]     = useState(null);
@@ -100,21 +102,26 @@ const HarborList = () => {
     const loadDeployments = useCallback(async () => {
         setLoading(true);
         try {
-            const res  = await fetchDeployments(token, { page, pageSize: PAGE_SIZE });
+            const res  = await fetchDeployments(token, { page, pageSize });
             const raw  = res?.data ?? res;
             const list = Array.isArray(raw) ? raw : (raw?.data ?? raw?.items ?? []);
             const pg   = res?.data?.pagination ?? res?.pagination ?? {};
             setDeployments(list);
             setMeta({
                 total:      pg.total ?? list.length,
-                totalPages: pg.total_pages ?? (Math.ceil(((pg.total ?? list.length) / PAGE_SIZE)) || 1),
+                totalPages: pg.total_pages ?? (Math.ceil(((pg.total ?? list.length) / pageSize)) || 1),
             });
         } catch {
             setDeployments([]);
         } finally {
             setLoading(false);
         }
-    }, [token, page]);
+    }, [token, page, pageSize]);
+
+    const handlePageSizeChange = (e) => {
+        setPageSize(Number(e.target.value));
+        setPage(1);
+    };
 
     useEffect(() => { loadDeployments(); }, [loadDeployments]);
 
@@ -302,29 +309,69 @@ const HarborList = () => {
                     </table>
                 </div>
 
-                {meta.totalPages > 1 && (
-                    <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between bg-gray-50/60">
+                <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between bg-gray-50/60">
+                    <div className="flex items-center gap-3">
                         <p className="text-xs text-gray-500">
                             Page {page} of {meta.totalPages} — {meta.total} total
                         </p>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1 || loading}
-                                className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                        <div className="flex items-center gap-1.5">
+                            <label htmlFor="harbor-page-size" className="text-xs text-gray-500">Rows:</label>
+                            <select
+                                id="harbor-page-size"
+                                value={pageSize}
+                                onChange={handlePageSizeChange}
+                                disabled={loading}
+                                className="text-xs text-gray-700 bg-white border border-gray-200 rounded px-1.5 py-1 disabled:opacity-40 focus:outline-none focus:ring-1 focus:ring-[#1a365d]"
                             >
-                                <ChevronLeft className="h-4 w-4" />
-                            </button>
-                            <button
-                                onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-                                disabled={page === meta.totalPages || loading}
-                                className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
+                                {PAGE_SIZE_OPTIONS.map((n) => (
+                                    <option key={n} value={n}>{n}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
-                )}
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page <= 1 || loading}
+                            className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
+                            .filter((p) => p === 1 || p === meta.totalPages || Math.abs(p - page) <= 1)
+                            .reduce((acc, p, idx, arr) => {
+                                if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                                acc.push(p);
+                                return acc;
+                            }, [])
+                            .map((p, idx) =>
+                                p === "..." ? (
+                                    <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-gray-400">…</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p)}
+                                        disabled={loading}
+                                        className={`min-w-[28px] px-2 py-1 text-xs font-semibold rounded border transition-colors
+                                            ${p === page
+                                                ? "bg-[#1a365d] text-white border-[#1a365d]"
+                                                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-[#1a365d]"
+                                            }`}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            )
+                        }
+                        <button
+                            onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                            disabled={page >= meta.totalPages || loading}
+                            className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Delete Confirmation Modal */}

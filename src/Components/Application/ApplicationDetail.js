@@ -565,7 +565,6 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
     const [search, setSearch]         = useState("");
     const [loading, setLoading]       = useState(true);
     const [error, setError]           = useState("");
-    const [updatingId, setUpdatingId] = useState(null);
     const searchMountedRef = useRef(false);
 
     const load = useCallback((pageNum, searchTerm) => {
@@ -593,22 +592,6 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
         return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
-
-    const handleRoleChange = async (user, newRole) => {
-        const id = kcUserId(user);
-        if (updatingId || newRole === role) return;
-        setUpdatingId(id);
-        try {
-            await assignOpenWebUiRoles(application.id, [{ userId: id, role: newRole }]);
-            toast.success(`${kcUserLabel(user)} is now ${newRole}.`);
-            load(page, search);
-        } catch (err) {
-            const msg = err?.response?.data?.msg || err?.response?.data?.detail || err?.message || "Unable to update role right now.";
-            toast.error(msg);
-        } finally {
-            setUpdatingId(null);
-        }
-    };
 
     return (
         <>
@@ -652,19 +635,9 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
                                             <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                                        {updatingId === id && <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />}
-                                        <select
-                                            value={role}
-                                            onChange={(e) => handleRoleChange(u, e.target.value)}
-                                            disabled={updatingId === id}
-                                            className="rounded border border-gray-300 bg-white py-1 px-2 text-xs font-semibold text-gray-800 capitalize focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none disabled:opacity-50"
-                                        >
-                                            {ROLE_OPTIONS.map((r) => (
-                                                <option key={r} value={r} className="capitalize">{r}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold capitalize bg-gray-100 text-gray-600 flex-shrink-0">
+                                        {role}
+                                    </span>
                                 </div>
                             );
                         })}
@@ -792,7 +765,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
 
                 <div className="p-5 overflow-y-auto flex-1 min-h-0">
                     <div className="flex items-center gap-1 mb-4">
-                        {[{ key: "users", label: "Users" }, { key: "admins", label: "Admins" }, { key: "keycloak", label: "All Keycloak Users" }].map((tab) => (
+                        {[{ key: "users", label: "Users" }, { key: "admins", label: "Admins" }, { key: "keycloak", label: "Assign Role" }].map((tab) => (
                             <button
                                 key={tab.key}
                                 type="button"
