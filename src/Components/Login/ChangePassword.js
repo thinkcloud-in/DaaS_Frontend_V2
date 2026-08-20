@@ -31,13 +31,13 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-5 rounded-md shadow-sm">
+    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 p-5 rounded-md shadow-sm">
       <h2 className="text-2xl font-bold mb-5">Change Password</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label
             htmlFor="newPassword"
-            className="block text-sm font-medium text-gray-600"
+            className="block text-sm font-medium text-gray-600 dark:text-gray-400"
           >
             New Password
           </label>
@@ -51,7 +51,7 @@ const ChangePassword = () => {
               formData.confirmPassword &&
               formData.newPassword !== formData.confirmPassword
                 ? "border-red-500"
-                : "border-gray-300"
+                : "border-gray-300 dark:border-gray-600"
             }`}
           />
         </div>
@@ -59,7 +59,7 @@ const ChangePassword = () => {
         <div className="mb-4">
           <label
             htmlFor="confirmPassword"
-            className="block text-sm font-medium text-gray-600"
+            className="block text-sm font-medium text-gray-600 dark:text-gray-400"
           >
             Confirm Password
           </label>
@@ -73,7 +73,7 @@ const ChangePassword = () => {
               formData.newPassword &&
               formData.newPassword !== formData.confirmPassword
                 ? "border-red-500"
-                : "border-gray-300"
+                : "border-gray-300 dark:border-gray-600"
             }`}
           />
           {formData.newPassword &&

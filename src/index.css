@@ -10,6 +10,20 @@ body {
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f9fafb; /* gray-50, matches page wrappers */
+  color: #111827; /* gray-900, matches default text color across pages */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark {
+  /* Lets native form controls (checkboxes, date pickers, scrollbars in
+     some browsers) render with dark-appropriate chrome automatically. */
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #111827; /* gray-900 */
+  color: #e5e7eb; /* gray-200 -- readable default for any text with no explicit dark: class */
 }
 
 code {
@@ -68,6 +82,11 @@ code {
   backdrop-filter: blur(12px) saturate(180%);
   -webkit-backdrop-filter: blur(12px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+html.dark .glass-panel {
+  background: rgba(31, 41, 55, 0.75); /* gray-800 */
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dark-glass-panel {

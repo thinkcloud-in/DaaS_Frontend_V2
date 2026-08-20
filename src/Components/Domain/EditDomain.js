@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Slide, toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { Menu, Transition } from "@headlessui/react";
@@ -26,7 +26,7 @@ import {
 } from "../../redux/features/Domain/DomainSelectors";
 function EditDomainSkeleton() {
   return (
-    <div className="animate-pulse space-y-5 mt-4 w-[98%] m-auto mb-5 h-[90vh] rounded-md bg-white edit_domain flex flex-col justify-between">
+    <div className="animate-pulse space-y-5 mt-4 w-[98%] m-auto mb-5 h-[90vh] rounded-md bg-white dark:bg-gray-800 edit_domain flex flex-col justify-between">
       <div className="flex justify-between items-center mx-5 p-3 pb-0 mt-3">
         <div className="h-10 w-10 bg-gray-200 rounded-md" />
         <div className="flex items-center gap-10">
@@ -34,7 +34,7 @@ function EditDomainSkeleton() {
           <div className="h-10 w-32 bg-gray-200 rounded" />
         </div>
       </div>
-      <div className="bg-gray-100 mx-10 p-3 pb-0 rounded">
+      <div className="bg-gray-100 dark:bg-gray-700 mx-10 p-3 pb-0 rounded">
         <div className="h-8 w-1/3 bg-gray-200 rounded mb-4" />
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -42,7 +42,7 @@ function EditDomainSkeleton() {
           ))}
         </div>
       </div>
-      <div className="bg-gray-100 mx-10 p-3 pb-0 rounded">
+      <div className="bg-gray-100 dark:bg-gray-700 mx-10 p-3 pb-0 rounded">
         <div className="h-8 w-1/3 bg-gray-200 rounded mb-4" />
         <div className="space-y-4">
           {[...Array(4)].map((_, i) => (
@@ -104,7 +104,7 @@ const EditDomain = () => {
           connectionTimeout: src?.connectionTimeout || "",
           authType: src?.authType || "simple",
           bindDn: src?.bindDn || "",
-          bindCredential: "",
+          bindCredential: src?.bindCredential || "",
           editMode: src?.editMode || "read_only",
           usersDn: src?.usersDn || "",
           usernameLDAPAttribute: src?.usernameLDAPAttribute || "",
@@ -335,7 +335,63 @@ const EditDomain = () => {
     setEditAD({ ...editAD, [e.target.name]: e.target.value });
   };
 
+  const persistEnabledToggle = async (nextEnabled) => {
+    if (!token || !domainID || !editAD) return;
+    const updatedAd = { ...editAD, enabled: nextEnabled };
+    setLoading((prev) => ({ ...prev, submit: true }));
+    try {
+      const res = await dispatch(
+        updateDomainThunk({ token, domain_id: domainID, ad: updatedAd }),
+      ).unwrap();
+      const code = res?.code ?? res?.data?.code;
+      const msg = res?.msg || res?.data?.msg || "Domain update completed";
+      if (code === 200) {
+        setEditAD(updatedAd);
+        toast.success(msg, {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
+        dispatch(fetchDomains({ token }));
+      } else {
+        toast.error(msg, {
+          position: "top-right",
+          autoClose: 3000,
+          transition: Slide,
+        });
+      }
+    } catch (err) {
+      const msg =
+        typeof err === "string"
+          ? err
+          : err?.msg || err?.data?.msg || err?.message || "Failed to update domain";
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 3000,
+        transition: Slide,
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, submit: false }));
+    }
+  };
+
   const handleChange = (e) => {
+    if (e.target.name === "enabled") {
+      const nextEnabled = e.target.checked;
+      if (!nextEnabled) {
+        const confirmed = window.confirm(
+          "Disable user federation provider?\n\nIf you disable this user federation provider, it will not be considered for queries and imported users will be disabled and read-only until the provider is enabled again."
+        );
+        if (!confirmed) {
+          // Revert the checkbox visually; editAD.enabled hasn't changed so the
+          // controlled input will re-render back to its previous value anyway.
+          e.target.checked = true;
+          return;
+        }
+      }
+      persistEnabledToggle(nextEnabled);
+      return;
+    }
     if (
       e.target.name === "fullSyncEnabled" ||
       e.target.name === "changedSyncEnabled"
@@ -460,37 +516,25 @@ const EditDomain = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-5 m-2 w-[95%] m-auto mb-5 min-h-[90vh] rounded-md bg-white edit_domain">
+      <div className="space-y-5 m-2 w-[95%] m-auto mb-5 min-h-[90vh] rounded-md bg-white dark:bg-gray-800 edit_domain">
         <EditDomainSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="domain_creation_wrapper domain_create flex flex-col h-[90vh] w-[98%] m-auto bg-white mt-4 rounded-md overflow-hidden shadow-md">
+    <div className="domain_creation_wrapper domain_create flex flex-col h-[90vh] w-[98%] m-auto bg-white dark:bg-gray-800 mt-4 rounded-md overflow-hidden shadow-md">
       <div className="flex justify-between items-center mx-5 p-3 pb-0 mt-3">
-        <div
+        <button
+          type="button"
           onClick={Goback}
-          className="ml-4 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d]/50 focus:ring-opacity-10"
+          className="ml-4 p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors text-gray-700 dark:text-gray-300"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </div>
+          <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
+        </button>
         <div className="flex items-center justify-center gap-10">
           <div className="flex justify-center items-center gap-2">
-            <label className="block text-lg font-medium leading-6 text-gray-900 border-0">
+            <label className="block text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
               Enabled
             </label>
             <div className="">
@@ -501,15 +545,19 @@ const EditDomain = () => {
                     onChange={handleChange}
                     name="enabled"
                     checked={editAD.enabled}
+                    disabled={loading.submit}
                   />
                   <span className="slider round"></span>
                 </label>
               </div>
             </div>
+            {loading.submit && (
+              <Loader2 className="h-4 w-4 animate-spin text-gray-500 dark:text-gray-400" />
+            )}
           </div>
           <div className="">
             <Menu as="div" className="inherit">
-              <Menu.Button className="text-sm rounder-lg w-40 bg-white p-1 border-2 border-gray-900/10 hover:border-b-2 hover:border-b-blue-600 active:border-b-2 active:border-b-blue-600 focus:outline-none focus:boder-b-2 focus:border-b-blue-400 focus:boder-offset-2 focus:border-offset-gray-800">
+              <Menu.Button className="text-sm rounder-lg w-40 bg-white dark:bg-gray-800 p-1 border-2 border-gray-900/10 hover:border-b-2 hover:border-b-blue-600 active:border-b-2 active:border-b-blue-600 focus:outline-none focus:boder-b-2 focus:border-b-blue-400 focus:boder-offset-2 focus:border-offset-gray-800">
                 <div className="flex justify-center items-center gap-10 text-lg border-2 border-[#1a365d] p-1 rounded-lg ">
                   Action
                   <ChevronDownIcon className="w-5 h-5" />
@@ -525,12 +573,12 @@ const EditDomain = () => {
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
               >
-                <Menu.Items className="absolute right-0 w-40 origin-top-left rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 ">
+                <Menu.Items className="absolute right-0 w-40 origin-top-left rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 ">
                   <Menu.Item>
                     {({ active }) => (
                       <div
                         onClick={() => handleOnClick("syncChanged", domainID)}
-                        className="block py-2 text-md text-left text-gray-700 hover:bg-gray-100 cursor-pointer px-2"
+                        className="block py-2 text-md text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 cursor-pointer px-2"
                       >
                         Sync changed users
                       </div>
@@ -540,7 +588,7 @@ const EditDomain = () => {
                     {({ active }) => (
                       <div
                         onClick={() => handleOnClick("sync", domainID)}
-                        className="block py-2 text-md text-gray-700 text-left hover:bg-gray-100 cursor-pointer px-2"
+                        className="block py-2 text-md text-gray-700 dark:text-gray-300 text-left hover:bg-gray-100 dark:bg-gray-700 cursor-pointer px-2"
                       >
                         Sync all users
                       </div>
@@ -550,7 +598,7 @@ const EditDomain = () => {
                     {({ active }) => (
                       <div
                         onClick={() => handleOnClick("unlink", domainID)}
-                        className="block py-2 text-md text-gray-700 text-left hover:bg-gray-100 cursor-pointer px-2"
+                        className="block py-2 text-md text-gray-700 dark:text-gray-300 text-left hover:bg-gray-100 dark:bg-gray-700 cursor-pointer px-2"
                       >
                         Unlink users
                       </div>
@@ -560,7 +608,7 @@ const EditDomain = () => {
                     {({ active }) => (
                       <div
                         onClick={() => handleOnClick("remove", domainID)}
-                        className="block py-2 text-md text-gray-700 text-left hover:bg-gray-100 cursor-pointer px-2"
+                        className="block py-2 text-md text-gray-700 dark:text-gray-300 text-left hover:bg-gray-100 dark:bg-gray-700 cursor-pointer px-2"
                       >
                         Remove imported
                       </div>
@@ -570,7 +618,7 @@ const EditDomain = () => {
                     {({ active }) => (
                       <div
                         onClick={() => handleOnClick("delete", domainID)}
-                        className="block py-2 text-sm text-gray-700 text-left hover:bg-gray-100 cursor-pointer px-2"
+                        className="block py-2 text-sm text-gray-700 dark:text-gray-300 text-left hover:bg-gray-100 dark:bg-gray-700 cursor-pointer px-2"
                       >
                         Delete
                       </div>
@@ -587,16 +635,16 @@ const EditDomain = () => {
       ) : (
         <>
           {editAD && (
-            <div className="space-y-5  w-full  bg-white custom-scrollbar">
-              <div className="bg-white mx-10 p-3 pb-0">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+            <div className="space-y-5  w-full  bg-white dark:bg-gray-800 custom-scrollbar">
+              <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   General options
                 </h2>
 
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         UI display name
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -609,7 +657,7 @@ const EditDomain = () => {
                             name="name"
                             value={editAD.name}
                             onChange={handleOnChange}
-                            className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:leading-6"
+                            className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-black dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:leading-6"
                             required
                           />
                         </div>
@@ -619,7 +667,7 @@ const EditDomain = () => {
 
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Vendor
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -630,7 +678,7 @@ const EditDomain = () => {
                           name="vendor"
                           value={editAD.vendor}
                           onChange={handleOnChange}
-                          className="block cursor-pointer rounded-md border-2 py-1.5 text-black  shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-300 sm:text-sm sm:leading-6 "
+                          className="block cursor-pointer rounded-md border-2 py-1.5 text-black dark:text-gray-100  shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-300 sm:text-sm sm:leading-6 "
                         >
                           <option value="ad">Active Directory</option>
                           <option value="rhds">Red Hat Directory Server</option>
@@ -643,15 +691,15 @@ const EditDomain = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-white mx-10 p-3 pb-0">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+              <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   Connection and authentication settings
                 </h2>
 
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Connection URL
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -664,7 +712,7 @@ const EditDomain = () => {
                             name="connectionUrl"
                             value={editAD.connectionUrl}
                             onChange={handleOnChange}
-                            className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-black dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                             required
                           />
                         </div>
@@ -693,7 +741,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Use Truststore SPI
                       </label>
                     </div>
@@ -703,7 +751,7 @@ const EditDomain = () => {
                           name="useTruststoreSpi"
                           value={editAD.useTruststoreSpi}
                           onChange={handleOnChange}
-                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         >
                           <option value="always">Always</option>
                           <option value="never">Never</option>
@@ -713,7 +761,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Connection pooling
                       </label>
                     </div>
@@ -733,19 +781,19 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Connection timeout
                       </label>
                     </div>
                     <div className=" domain-td">
                       <div className="mt-2 border-0">
-                        <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                        <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                           <input
                             type="number"
                             name="connectionTimeout"
                             onChange={handleOnChange}
                             value={editAD.connectionTimeout}
-                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -759,7 +807,7 @@ const EditDomain = () => {
                   >
                     {loading.testConnection ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-[#1a365d] text-[#1a365d] border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-[#1a365d] text-[#1a365d] dark:text-blue-300 border-t-transparent rounded-full animate-spin"></div>
                         Testing...
                       </>
                     ) : (
@@ -768,7 +816,7 @@ const EditDomain = () => {
                   </button>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Bind Type
                       </label>
                     </div>
@@ -778,7 +826,7 @@ const EditDomain = () => {
                           name="authType"
                           value={editAD.authType}
                           onChange={handleOnChange}
-                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         >
                           <option value="simple">Simple</option>
                           <option value="none">None</option>
@@ -788,20 +836,20 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Bind DN
                       </label>
                       <span className="text-lg text-red-700">*</span>
                     </div>
                     <div className=" domain-td">
                       <div className="mt-2 border-0">
-                        <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                        <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                           <input
                             type="text"
                             name="bindDn"
                             onChange={handleOnChange}
                             value={editAD.bindDn}
-                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -809,20 +857,20 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Bind Credentials
                       </label>
                       <span className="text-lg text-red-700">*</span>
                     </div>
                     <div className=" domain-td">
                       <div className="mt-2 border-0">
-                        <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600  relative">
+                        <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600  relative">
                           <input
                             type={showPassword ? "text" : "password"}
                             name="bindCredential"
                             onChange={handleOnChange}
                             value={editAD.bindCredential}
-                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                             id="passwordInput"
                           />
                           <span
@@ -847,7 +895,7 @@ const EditDomain = () => {
                   >
                     {loading.testAuth ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-[#1a365d] text-[#1a365d] border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-[#1a365d] text-[#1a365d] dark:text-blue-300 border-t-transparent rounded-full animate-spin"></div>
                         Testing...
                       </>
                     ) : (
@@ -856,15 +904,15 @@ const EditDomain = () => {
                   </button>
                 </div>
               </div>
-              <div className="bg-white p-3 mx-10 ">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+              <div className="bg-white dark:bg-gray-800 p-3 mx-10 ">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   LDAP searching and updating
                 </h2>
 
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Edit mode
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -875,7 +923,7 @@ const EditDomain = () => {
                           name="editMode"
                           onChange={handleOnChange}
                           value={editAD.editMode}
-                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         >
                           <option selected value={""} disabled>
                             --
@@ -889,7 +937,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Users DN
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -902,7 +950,7 @@ const EditDomain = () => {
                             name="usersDn"
                             onChange={handleOnChange}
                             value={editAD.usersDn}
-                            className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -910,7 +958,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Username LDAP Attribute
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -923,7 +971,7 @@ const EditDomain = () => {
                             name="usernameLDAPAttribute"
                             onChange={handleOnChange}
                             value={editAD.usernameLDAPAttribute}
-                            className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -931,7 +979,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         RDN LDAP Attribute
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -944,7 +992,7 @@ const EditDomain = () => {
                             name="rdnLDAPAttribute"
                             onChange={handleOnChange}
                             value={editAD.rdnLDAPAttribute}
-                            className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -952,7 +1000,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         UUID LDAP attribute
                       </label>
                       <span className="text-lg text-red-700">*</span>
@@ -965,7 +1013,7 @@ const EditDomain = () => {
                             name="uuidLDAPAttribute"
                             onChange={handleOnChange}
                             value={editAD.uuidLDAPAttribute}
-                            className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -973,20 +1021,20 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td flex gap-1">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                         User object classes
                       </label>
                       <span className="text-lg text-red-700">*</span>
                     </div>
                     <div className=" domain-td">
                       <div className="mt-2 border-0">
-                        <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
+                        <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
                           <input
                             type="text"
                             name="userObjectClasses"
                             onChange={handleOnChange}
                             value={editAD.userObjectClasses}
-                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -994,19 +1042,19 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                         User LDAP filter
                       </label>
                     </div>
                     <div className=" domain-td">
                       <div className="mt-2 border-0">
-                        <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                        <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                           <input
                             type="text"
                             name="customUserSearchFilter"
                             onChange={handleOnChange}
                             value={editAD.customUserSearchFilter}
-                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -1014,7 +1062,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Search scope
                       </label>
                     </div>
@@ -1024,7 +1072,7 @@ const EditDomain = () => {
                           name="searchScope"
                           value={editAD.searchScope}
                           onChange={handleOnChange}
-                          className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                          className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                         >
                           <option value="One Level">One Level</option>
                           <option value="Sub tree">Sub tree</option>
@@ -1034,7 +1082,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Read timeout
                       </label>
                     </div>
@@ -1046,7 +1094,7 @@ const EditDomain = () => {
                             name="readTimeout"
                             value={editAD.readTimeout}
                             onChange={handleOnChange}
-                            className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           />
                         </div>
                       </div>
@@ -1054,7 +1102,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Pagination
                       </label>
                     </div>
@@ -1074,7 +1122,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Referral
                       </label>
                     </div>
@@ -1084,7 +1132,7 @@ const EditDomain = () => {
                           name="referral"
                           value={editAD.referral}
                           onChange={handleOnChange}
-                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         >
                           <option value="ignore">ignore</option>
                           <option value="follow">follow</option>
@@ -1094,15 +1142,15 @@ const EditDomain = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-white mx-10 p-3 pb-0 ">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+              <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0 ">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   Synchronization settings
                 </h2>
 
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Import users
                       </label>
                     </div>
@@ -1122,7 +1170,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Sync Registrations
                       </label>
                     </div>
@@ -1142,7 +1190,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Batch size
                       </label>
                     </div>
@@ -1154,7 +1202,7 @@ const EditDomain = () => {
                             name="batchSizeForSync"
                             value={editAD.batchSizeForSync}
                             onChange={handleOnChange}
-                            className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                            className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                             required
                           />
                         </div>
@@ -1163,7 +1211,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Periodic full sync
                       </label>
                     </div>
@@ -1184,7 +1232,7 @@ const EditDomain = () => {
                   {syncSettingsEnable.fullSyncEnabled && (
                     <div className=" domain-tr">
                       <div className=" domain-td">
-                        <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                        <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                           Full sync period
                         </label>
                       </div>
@@ -1196,7 +1244,7 @@ const EditDomain = () => {
                               name="fullSyncPeriod"
                               value={editAD.fullSyncPeriod}
                               onChange={handleOnChange}
-                              className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                              className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                               required
                             />
                           </div>
@@ -1206,7 +1254,7 @@ const EditDomain = () => {
                   )}
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Periodic changed users sync
                       </label>
                     </div>
@@ -1227,7 +1275,7 @@ const EditDomain = () => {
                   {syncSettingsEnable.changedSyncEnabled && (
                     <div className=" domain-tr">
                       <div className=" domain-td">
-                        <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                        <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                           Changed users sync period
                         </label>
                       </div>
@@ -1239,7 +1287,7 @@ const EditDomain = () => {
                               name="changedSyncPeriod"
                               value={editAD.changedSyncPeriod}
                               onChange={handleOnChange}
-                              className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                              className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                               required
                             />
                           </div>
@@ -1249,14 +1297,14 @@ const EditDomain = () => {
                   )}
                 </div>
               </div>
-              <div className="bg-white mx-10 p-3 pb-0">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+              <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   Kerberos integration
                 </h2>
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Allow Kerberos authentication
                       </label>
                     </div>
@@ -1278,7 +1326,7 @@ const EditDomain = () => {
                     <>
                       <div className=" domain-tr">
                         <div className=" domain-td flex gap-1">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                             Kerberos realm
                           </label>
                           <span className="text-lg text-red-700">*</span>
@@ -1291,7 +1339,7 @@ const EditDomain = () => {
                                 name="kerberosRealm"
                                 value={editAD.kerberosRealm}
                                 onChange={handleOnChange}
-                                className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                                className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                                 required
                               />
                             </div>
@@ -1300,7 +1348,7 @@ const EditDomain = () => {
                       </div>
                       <div className=" domain-tr">
                         <div className=" domain-t flex gap-1">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                             Server principal
                           </label>
                           <span className="text-lg text-red-700">*</span>
@@ -1313,7 +1361,7 @@ const EditDomain = () => {
                                 name="serverPrincipal"
                                 value={editAD.serverPrincipal}
                                 onChange={handleOnChange}
-                                className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                                className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                                 required
                               />
                             </div>
@@ -1322,7 +1370,7 @@ const EditDomain = () => {
                       </div>
                       <div className=" domain-tr">
                         <div className=" domain-td flex gap-1">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                             Key tab
                           </label>
                           <span className="text-lg text-red-700">*</span>
@@ -1335,7 +1383,7 @@ const EditDomain = () => {
                                 name="keyTab"
                                 value={editAD.keyTab}
                                 onChange={handleOnChange}
-                                className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                                className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                                 required
                               />
                             </div>
@@ -1344,7 +1392,7 @@ const EditDomain = () => {
                       </div>
                       <div className=" domain-tr">
                         <div className=" domain-td flex gap-1">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                             Kerberos principal attribute
                           </label>
                           <span className="text-lg text-red-700">*</span>
@@ -1357,7 +1405,7 @@ const EditDomain = () => {
                                 name="krbPrincipalAttribute"
                                 value={editAD.krbPrincipalAttribute}
                                 onChange={handleOnChange}
-                                className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                                className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                                 required
                               />
                             </div>
@@ -1366,7 +1414,7 @@ const EditDomain = () => {
                       </div>
                       <div className=" domain-tr">
                         <div className=" domain-td">
-                          <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                          <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                             Debug
                           </label>
                         </div>
@@ -1388,7 +1436,7 @@ const EditDomain = () => {
                   )}
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Use Kerberos for password authentication
                       </label>
                     </div>
@@ -1410,15 +1458,15 @@ const EditDomain = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-white mx-10 p-3 pb-0 ">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+              <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0 ">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   Cache settings
                 </h2>
 
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Cache policy
                       </label>
                     </div>
@@ -1428,7 +1476,7 @@ const EditDomain = () => {
                           name="cachePolicy"
                           value={editAD.cachePolicy}
                           onChange={handleOnChange}
-                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          className="block  cursor-pointer rounded-md border-2 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         >
                           {[
                             "DEFAULT",
@@ -1445,15 +1493,15 @@ const EditDomain = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-white mx-10 p-3 pb-0">
-                <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+              <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0">
+                <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
                   Advanced settings
                 </h2>
 
                 <div className="text-left table-auto p-3">
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Enable the LDAPv3 password modify extended operation
                       </label>
                     </div>
@@ -1473,7 +1521,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Validate password policy
                       </label>
                     </div>
@@ -1493,7 +1541,7 @@ const EditDomain = () => {
                   </div>
                   <div className=" domain-tr">
                     <div className=" domain-td">
-                      <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                      <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                         Trust Email
                       </label>
                     </div>

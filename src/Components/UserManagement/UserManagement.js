@@ -410,18 +410,18 @@ const UserManagement = () => {
       return (
         <>
           {showSelectAll && (
-            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
+            <div className="flex items-center gap-5 p-2 bg-gray-50 dark:bg-gray-900/60/50 sticky top-0 z-10 border-b mb-1">
               <input
                 type="checkbox"
                 id="select-all-components"
                 checked={areAllVisibleSelected}
                 onChange={handleToggleAll}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
+                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100"
                 disabled={!role}
               />
               <label
                 htmlFor="select-all-components"
-                className="font-semibold text-[#1a365d] cursor-pointer"
+                className="font-semibold text-[#1a365d] dark:text-blue-300 cursor-pointer"
               >
                 Select All ({visible.length})
               </label>
@@ -430,14 +430,14 @@ const UserManagement = () => {
           {visible.map((component, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+              className="flex items-center gap-5 hover:bg-gray-50 dark:bg-gray-900/60 p-2 transition-colors duration-150 border-b last:border-none"
             >
               <input
                 type="checkbox"
                 id={`component-${idx}`}
                 checked={components.includes(component)}
                 onChange={() => handleComponentChange(component)}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100 mt-1"
                 disabled={!role}
               />
               <label
@@ -466,7 +466,7 @@ const UserManagement = () => {
                   onClick={() => handleSubCategorySelect(subcat)}
                   className={`px-3 py-1 rounded-md text-sm transition-all duration-200 ${selectedSubCategory === subcat
                     ? "bg-[#1a365d] text-white shadow-md shadow-[#1a365d]/20"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
                     }`}
                 >
                   {subcat}
@@ -480,18 +480,18 @@ const UserManagement = () => {
       return (
         <>
           {showSelectAll && (
-            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
+            <div className="flex items-center gap-5 p-2 bg-gray-50 dark:bg-gray-900/60/50 sticky top-0 z-10 border-b mb-1">
               <input
                 type="checkbox"
                 id="select-all-subcomponents"
                 checked={areAllVisibleSelected}
                 onChange={handleToggleAll}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
+                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100"
                 disabled={!role}
               />
               <label
                 htmlFor="select-all-subcomponents"
-                className="font-semibold text-[#1a365d] cursor-pointer"
+                className="font-semibold text-[#1a365d] dark:text-blue-300 cursor-pointer"
               >
                 Select All in {selectedSubCategory} ({visible.length})
               </label>
@@ -500,14 +500,14 @@ const UserManagement = () => {
           {visible.map((component, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+              className="flex items-center gap-5 hover:bg-gray-50 dark:bg-gray-900/60 p-2 transition-colors duration-150 border-b last:border-none"
             >
               <input
                 type="checkbox"
                 id={`component-${selectedSubCategory}-${idx}`}
                 checked={components.includes(component)}
                 onChange={() => handleComponentChange(component)}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100 mt-1"
                 disabled={!role}
               />
               <label
@@ -526,18 +526,18 @@ const UserManagement = () => {
       return (
         <>
           {showSelectAll && (
-            <div className="flex items-center gap-5 p-2 bg-gray-50/50 sticky top-0 z-10 border-b mb-1">
+            <div className="flex items-center gap-5 p-2 bg-gray-50 dark:bg-gray-900/60/50 sticky top-0 z-10 border-b mb-1">
               <input
                 type="checkbox"
                 id="select-all-catcomponents"
                 checked={areAllVisibleSelected}
                 onChange={handleToggleAll}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100"
+                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100"
                 disabled={!role}
               />
               <label
                 htmlFor="select-all-catcomponents"
-                className="font-semibold text-[#1a365d] cursor-pointer"
+                className="font-semibold text-[#1a365d] dark:text-blue-300 cursor-pointer"
               >
                 Select All in {selectedCategory} ({visible.length})
               </label>
@@ -546,14 +546,14 @@ const UserManagement = () => {
           {visible.map((component, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-5 hover:bg-gray-50 p-2 transition-colors duration-150 border-b last:border-none"
+              className="flex items-center gap-5 hover:bg-gray-50 dark:bg-gray-900/60 p-2 transition-colors duration-150 border-b last:border-none"
             >
               <input
                 type="checkbox"
                 id={`component-${selectedCategory}-${idx}`}
                 checked={components.includes(component)}
                 onChange={() => handleComponentChange(component)}
-                className="rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d]/100 mt-1"
+                className="rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100 mt-1"
                 disabled={!role}
               />
               <label
@@ -571,15 +571,15 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] mt-4 m-auto p-2 md:p-3 bg-white rounded-lg shadow-lg flex flex-col overflow-auto md:overflow-hidden">
-      <div className="bg-white flex-1 p-4  overflow-y-auto rounded-md custom-scrollbar">
+    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] mt-4 m-auto p-2 md:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg flex flex-col overflow-auto md:overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 flex-1 p-4  overflow-y-auto rounded-md custom-scrollbar">
         <div className="flex justify-between items-center mb-6 w-full ">
           <div className="relative border-b mb-6 w-full">
             <div className="flex gap-6">
               <button
                 className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${activeTab === "roles"
-                  ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
-                  : "text-gray-600 hover:text-[#1a365d]"
+                  ? "text-[#1a365d] dark:text-blue-300 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
+                  : "text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300"
                   }`}
                 onClick={() => setActiveTab("roles")}
               >
@@ -587,8 +587,8 @@ const UserManagement = () => {
               </button>
               <button
                 className={`pb-3 px-6 font-semibold text-sm relative transition-all duration-300 ${activeTab === "users"
-                  ? "text-[#1a365d] after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
-                  : "text-gray-600 hover:text-[#1a365d]"
+                  ? "text-[#1a365d] dark:text-blue-300 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-1 after:bg-[#1a365d] after:rounded after:transition-transform after:duration-500"
+                  : "text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300"
                   }`}
                 onClick={() => setActiveTab("users")}
               >
@@ -625,9 +625,9 @@ const UserManagement = () => {
             </div>
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex flex-col gap-4 flex-1">
-                <div className="overflow-hidden border rounded-md p-4 shadow-inner bg-white w-full md:w-4/6">
+                <div className="overflow-hidden border rounded-md p-4 shadow-inner bg-white dark:bg-gray-800 w-full md:w-4/6">
                   <div className="mb-2">
-                    <label className="block font-medium text-gray-700">
+                    <label className="block font-medium text-gray-700 dark:text-gray-300">
                       Roles
                     </label>
                     <div className="line mt-1"></div>
@@ -639,7 +639,7 @@ const UserManagement = () => {
                       (roles || []).map((roleItem, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-2 hover:bg-gray-50 transition-colors duration-150 border-b last:border-none"
+                          className="flex items-center justify-between p-2 hover:bg-gray-50 dark:bg-gray-900/60 transition-colors duration-150 border-b last:border-none"
                         >
                           <div key={index} className="flex items-center gap-4">
                             <input
@@ -648,7 +648,7 @@ const UserManagement = () => {
                               name="roleSelection"
                               onChange={() => handleRoleSelect(roleItem)}
                               checked={role === roleItem}
-                              className="text-[#1a365d] focus:ring-[#1a365d]/100"
+                              className="text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d]/100"
                             />
                             <label
                               htmlFor={`role-${index}`}
@@ -676,9 +676,9 @@ const UserManagement = () => {
                 </div>
               </div>
               <div className="flex-1">
-                <div className="border rounded-md p-4 space-y-2 shadow-inner bg-white w-full md:w-5/6">
+                <div className="border rounded-md p-4 space-y-2 shadow-inner bg-white dark:bg-gray-800 w-full md:w-5/6">
                   <div className="mb-2">
-                    <label className="block font-medium text-gray-700">
+                    <label className="block font-medium text-gray-700 dark:text-gray-300">
                       Components
                     </label>
                     <div className="line mt-1"></div>
@@ -690,7 +690,7 @@ const UserManagement = () => {
                         onClick={() => handleCategorySelect(category)}
                         className={`px-3 py-1 rounded-md text-sm ${selectedCategory === category
                           ? "bg-[#1a365d]/80 text-[#f5f5f5]"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
                           }`}
                       >
                         {category}
@@ -758,20 +758,20 @@ const UserManagement = () => {
                       type="button"
                       onClick={handleSearchClick}
                       disabled={loading}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 hover:text-[#1a365d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       title="Search"
                     >
                       <Search size={20} />
                     </button>
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-600">Pages</label>
+                    <label className="text-sm text-gray-600 dark:text-gray-400">Pages</label>
                     <select
                       value={itemsPerPage}
                       onChange={(e) => handlePageSizeChange(e.target.value)}
-                      className="w-28 p-2 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200 bg-white"
+                      className="w-28 p-2 border rounded-md focus:ring-2 focus:ring-[#1a365d]/100 focus:border-[#1a365d]/100 outline-none transition-all duration-200 bg-white dark:bg-gray-800"
                     >
                       <option value={10}>10</option>
                       <option value={20}>20</option>
@@ -790,7 +790,7 @@ const UserManagement = () => {
                       type="button"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1 || loading}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
@@ -798,25 +798,25 @@ const UserManagement = () => {
                       type="button"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={filteredUsers.length < itemsPerPage || loading}
-                      className="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
                   </div>
                 </div>
               </div>
-              <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white custom-scrollbar">
+              <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white dark:bg-gray-800 custom-scrollbar">
                 {loading ? (
                   <UsersSkeleton />
                 ) : (
                   filteredUsers.map((user, index) => (
                     <div
                       key={index}
-                      className={`p-3 cursor-pointer border-b-2 border-gray-200 transition-all duration-150
+                      className={`p-3 cursor-pointer border-b-2 border-gray-200 dark:border-gray-700 transition-all duration-150
                         hover:bg-[#1a365db3] hover:text-[#f5f5f5] hover:border-b-0 hover:border-l-4 hover:border-[#1a365d]
                         ${selectedUser === user
                           ? "bg-[#1a365dcc] text-[#f5f5f5]"
-                          : "bg-white text-[#00000099]"
+                          : "bg-white dark:bg-gray-800 text-[#00000099] dark:text-gray-100"
                         }
                       `}
                       onClick={() => handleUserClick(user)}
@@ -850,7 +850,7 @@ const UserManagement = () => {
                   )}
                 </div>
               </div>
-              <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white p-4 custom-scrollbar">
+              <div className="h-[60vh] overflow-y-auto border rounded-md shadow-inner bg-white dark:bg-gray-800 p-4 custom-scrollbar">
                 {selectedUser ? (
                   <>
                     {userRolesLoading ? (
@@ -859,9 +859,9 @@ const UserManagement = () => {
                       userRoles.map((userRole, index) => (
                         <div
                           key={index}
-                          className="p-3 bg-gray-50 rounded-md flex justify-between items-center mb-2"
+                          className="p-3 bg-gray-50 dark:bg-gray-900/60 rounded-md flex justify-between items-center mb-2"
                         >
-                          <li className="text-gray-500">{userRole}</li>
+                          <li className="text-gray-500 dark:text-gray-400">{userRole}</li>
                           <button
                             onClick={() =>
                               removeRoleFromUser(selectedUser, userRole)
@@ -878,13 +878,13 @@ const UserManagement = () => {
                         </div>
                       ))
                     ) : (
-                      <p className="text-gray-500 text-center mt-4">
+                      <p className="text-gray-500 dark:text-gray-400 text-center mt-4">
                         No roles found
                       </p>
                     )}
                   </>
                 ) : (
-                  <p className="text-gray-500 text-center mt-4">
+                  <p className="text-gray-500 dark:text-gray-400 text-center mt-4">
                     Select a user to view and manage roles
                   </p>
                 )}

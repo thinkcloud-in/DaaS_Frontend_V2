@@ -177,11 +177,11 @@ const Reports = (tokenParsed) => {
   
   // schedule navigation removed (was unused)
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full relative">
       {/* Header */}
-      <div className="pb-6 border-b border-gray-200 mb-6 w-full">
-        <h1 className="text-2xl font-bold text-[#1a365d]">Horizon Reports</h1>
-        <p className="text-xs text-gray-500 mt-1">
+      <div className="pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
+        <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300">Horizon Reports</h1>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Generate and export session, daily, and consolidated usage reports.
         </p>
       </div>
@@ -191,10 +191,10 @@ const Reports = (tokenParsed) => {
           className="w-full flex flex-col"
           onSubmit={handleSubmit}
         >
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5 mb-6 w-full">
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                <label className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   Date Range:
                 </label>
                 <RangePicker
@@ -212,7 +212,7 @@ const Reports = (tokenParsed) => {
               <div className="flex items-center gap-3">
                 <label
                   htmlFor="user"
-                  className="text-sm font-medium text-gray-500 whitespace-nowrap"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap"
                 >
                   Select User:
                 </label>
@@ -220,7 +220,7 @@ const Reports = (tokenParsed) => {
                   id="user"
                   value={user}
                   onChange={(e) => dispatch(setUser(e.target.value))}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d]"
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d]"
                 >
                   <option value="All Users">All Users</option>
                   {userOptions.map((userName, index) => (
@@ -250,8 +250,8 @@ const Reports = (tokenParsed) => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full overflow-hidden">
-            <div className="flex items-center justify-between px-5 pt-4 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full overflow-hidden">
+            <div className="flex items-center justify-between px-5 pt-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex gap-6">
                 {[
                   { key: "session", label: "Session Reports", onClick: fetchSessionReportsLocal },
@@ -262,8 +262,8 @@ const Reports = (tokenParsed) => {
                     key={tab.key}
                     className={`pb-3 text-sm relative transition-all duration-300 ${
                       activeTab === tab.key
-                        ? "text-[#1a365d] font-semibold after:content-[''] after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
-                        : "text-gray-600 hover:text-[#1a365d]"
+                        ? "text-[#1a365d] dark:text-blue-300 font-semibold after:content-[''] after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[3px] after:bg-[#1a365d]"
+                        : "text-gray-600 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300"
                     }`}
                     type="button"
                     onClick={() => {

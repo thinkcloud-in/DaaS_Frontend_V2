@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import axios from "axios";
 import {
   selectAuthToken,
   selectAuthTokenParsed,
@@ -16,6 +17,7 @@ import { fetchFooterTasksThunk } from "../../redux/features/Footer/FooterThunks"
 import { fetchTotpStatusThunk } from "../../redux/features/TOTP/TotpThunks";
 import { selectTotpAdminEnabled } from "../../redux/features/TOTP/TotpSelectors";
 import { GrafanaToolbarContext } from "../../Context/GrafanaToolbarContext";
+import { useTheme } from "../../Context/ThemeContext";
 import TotpVerifyModal from "./TotpVerifyModal";
 import TimeRangeSelector from "../Dashboard/TimeRangeSelector";
 import AutoRefresh from "../Dashboard/AutoRefresh";
@@ -71,7 +73,7 @@ const getMachineStatus = (status) =>
   MACHINE_STATUS_CONFIG[status?.toLowerCase()] || {
     label: status || "Unknown",
     dot: "bg-gray-400",
-    badge: "bg-gray-100 text-gray-600",
+    badge: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
   };
 
 const ROLE_BADGE = {
@@ -94,7 +96,7 @@ const POOL_STATUS_CONFIG = {
   },
   stopped: {
     label: "Stopped",
-    cls: "bg-gray-100 text-gray-600 border-gray-200",
+    cls: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700",
   },
   starting: {
     label: "Starting",
@@ -133,7 +135,7 @@ const POOL_STATUS_CONFIG = {
 const getPoolStatus = (status) =>
   POOL_STATUS_CONFIG[status] || {
     label: status || "Unknown",
-    cls: "bg-gray-100 text-gray-600 border-gray-200",
+    cls: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700",
   };
 
 const LLMInferenceMachines = () => {
@@ -149,6 +151,7 @@ const LLMInferenceMachines = () => {
   const detailLoading = useSelector(selectPrivateLLMDetailLoading);
   const totpAdminEnabled = useSelector(selectTotpAdminEnabled);
   const gc = useContext(GrafanaToolbarContext);
+  const { theme } = useTheme();
 
   const passedPool = location.state?.poolData;
   const poolId = paramId || passedPool?.id;
@@ -307,21 +310,137 @@ const LLMInferenceMachines = () => {
   const grafanaUrl = getEnv("GRAFANA_URL");
   const dashboardUid = getEnv("PRIVATELLM_MONITORING_DASHBOARD_UUID");
   const dashboardName = getEnv("PRIVATELLM_MONITORING_DASHBOARD_NAME");
-  // const dashboardSlug = (dashboardName || "")
-  //   .trim()
-  //   .toLowerCase()
-  //   .replace(/[^a-z0-9]+/g, "-")
-  //   .replace(/^-+|-+$/g, "");
+  // Grafana only actually routes on the UID -- the slug segment is
+  // cosmetic and gets auto-redirected to the canonical one regardless of
+  // what's here, but it still needs to be a valid URL path segment (no
+  // literal spaces), hence the slugify.
+  const dashboardSlug = (dashboardName || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  const [selectedHosts, setSelectedHosts] = useState([]);
+  const [selectedGpus, setSelectedGpus] = useState([]);
+  const [hostOptions, setHostOptions] = useState([]);
+  const [gpuOptions, setGpuOptions] = useState([]);
+  const [hostDropdownOpen, setHostDropdownOpen] = useState(false);
+  const [gpuDropdownOpen, setGpuDropdownOpen] = useState(false);
+  const hostDropdownRef = useRef(null);
+  const gpuDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (hostDropdownRef.current && !hostDropdownRef.current.contains(e.target))
+        setHostDropdownOpen(false);
+      if (gpuDropdownRef.current && !gpuDropdownRef.current.contains(e.target))
+        setGpuDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  const toggleSelection = (setFn, list, value) => {
+    setFn(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const backendUrl = getEnv("BACKEND_URL");
+
+    const extractValues = (responseData) => {
+      if (responseData?.results?.A?.frames) {
+        const frames = responseData.results.A.frames;
+        return frames[0]?.data?.values?.[0] || [];
+      }
+      return [];
+    };
+
+    // variable.datasource is {type, uid} (Flux/InfluxDB v2) -- NOT
+    // variable.datasourceId, which these variables don't have at all.
+    // extraBody carries per-query substitutions, e.g. the gpu variable's
+    // Flux query filters by "${host:json}", which needs the full host list.
+    const fetchVarValues = async (variable, extraBody = {}) => {
+      try {
+        const res = await axios.post(
+          `${backendUrl}/v1/grafana/v1/api/query`,
+          {
+            body: {
+              from: gc.timeStamp.startDate,
+              to: gc.timeStamp.endDate,
+              datasource: variable.datasource,
+              query: variable.query,
+              ...extraBody,
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        return extractValues(res.data).map(String);
+      } catch (err) {
+        return [];
+      }
+    };
+
+    const loadVariables = async () => {
+      try {
+        const res = await axios.get(
+          `${backendUrl}/v1/grafana/api/dashboards/uid/${dashboardUid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const templatingList = res.data?.dashboard?.templating?.list || [];
+        const hostVar = templatingList.find((v) => v.name === "host");
+        const gpuVar = templatingList.find((v) => v.name === "gpu");
+
+        const hostVals = hostVar ? await fetchVarValues(hostVar) : [];
+        // gpu's query depends on the resolved host list (${host:json}) --
+        // must run after hostVals is known, not in parallel with it.
+        const gpuVals = gpuVar
+          ? await fetchVarValues(gpuVar, { host: hostVals })
+          : [];
+
+        if (!cancelled) {
+          setHostOptions([...new Set(hostVals)]);
+          setGpuOptions([...new Set(gpuVals)]);
+        }
+      } catch (err) {
+        // Leave options empty -- dashboard still renders with its own
+        // default "All" filter, just without per-host/per-gpu drilldown.
+      }
+    };
+
+    loadVariables();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Grafana accepts a repeated var-X param per selected value for
+  // multi:true variables (?var-host=a&var-host=b). Omitting it entirely
+  // when nothing's selected lets Grafana fall back to the dashboard's own
+  // default ("All"), rather than us having to know/send that literal value.
+  const varParams = [
+    ...selectedHosts.map((v) => `&var-host=${encodeURIComponent(v)}`),
+    ...selectedGpus.map((v) => `&var-gpu=${encodeURIComponent(v)}`),
+  ].join("");
 
   const grafanaIframeSrc =
-    `${grafanaUrl}/d/${dashboardUid}/${dashboardName}` +
+    `${grafanaUrl}/d/${dashboardUid}/${dashboardSlug}` +
     `?orgId=1` +
     `&from=${gc.timeStamp.startDate}` +
     `&to=${gc.timeStamp.endDate}` +
-    `&theme=light` +
+    `&theme=${theme}` +
     `&disableLazyLoad=true` +
-    `&kiosk`;
-  console.log("------------------------->", grafanaIframeSrc);
+    `&kiosk` +
+    varParams;
 
   const pool = poolDetail || passedPool || {};
   const totalMachinePages = Math.max(
@@ -334,20 +453,20 @@ const LLMInferenceMachines = () => {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative select-none">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full relative select-none">
       {/* TOP ACTIONS BAR */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 w-full flex flex-col sm:flex-row items-center justify-between shadow-sm mb-6 gap-4 shrink-0">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 w-full flex flex-col sm:flex-row items-center justify-between shadow-sm mb-6 gap-4 shrink-0">
         <div className="flex items-center gap-4 w-full sm:w-auto">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors text-gray-700"
+            className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 rounded-md transition-colors text-gray-700 dark:text-gray-300"
           >
             <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
           </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 font-medium">Pool:</span>
-              <span className="text-gray-900 font-bold">
+              <span className="text-gray-500 dark:text-gray-400 font-medium">Pool:</span>
+              <span className="text-gray-900 dark:text-gray-100 font-bold">
                 {pool.name || "—"}
               </span>
               {pool.status && (
@@ -383,7 +502,7 @@ const LLMInferenceMachines = () => {
               </button>
 
               {showConnectionInfo && (
-                <div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                   <div className="bg-gradient-to-r from-[#1a365d] to-[#274a7a] px-4 py-3 flex items-center gap-2">
                     <CommandLineIcon className="h-4 w-4 text-white/80" />
                     <h3 className="text-xs font-bold text-white uppercase tracking-wider">
@@ -498,7 +617,7 @@ const LLMInferenceMachines = () => {
             </button>
 
             {showActionDropdown && (
-              <div className="absolute right-0 mt-1.5 w-44 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+              <div className="absolute right-0 mt-1.5 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                 <div className="py-1">
                   {[
                     {
@@ -511,7 +630,7 @@ const LLMInferenceMachines = () => {
                       action: "stop",
                       label: "Stop",
                       Icon: StopIcon,
-                      cls: "text-gray-700 hover:bg-gray-50",
+                      cls: "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60",
                     },
                     {
                       action: "shutdown",
@@ -568,7 +687,7 @@ const LLMInferenceMachines = () => {
           <button
             onClick={handleRefresh}
             disabled={detailLoading}
-            className="p-2 border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 shadow-sm transition-all disabled:opacity-60"
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-900/60 shadow-sm transition-all disabled:opacity-60"
             title="Refresh"
           >
             <ArrowPathIcon
@@ -579,12 +698,12 @@ const LLMInferenceMachines = () => {
       </div>
 
       {/* MACHINES TABLE */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full mb-6 shrink-0">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full mb-6 shrink-0">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <ServerIcon className="h-4 w-4 text-[#1a365d]" />
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <ServerIcon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
             Virtual Machines
-            <span className="ml-1 bg-blue-50 border border-blue-200 text-[#1a365d] text-xs font-bold px-2 py-0.5 rounded">
+            <span className="ml-1 bg-blue-50 border border-blue-200 text-[#1a365d] dark:text-blue-300 text-xs font-bold px-2 py-0.5 rounded">
               {machines.length}
             </span>
           </h2>
@@ -604,7 +723,7 @@ const LLMInferenceMachines = () => {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+            <tbody className="divide-y divide-gray-100 text-sm text-gray-700 dark:text-gray-300">
               {detailLoading ? (
                 <tr>
                   <td colSpan="7" className="py-12 text-center text-gray-400">
@@ -629,7 +748,7 @@ const LLMInferenceMachines = () => {
                   const sc = getMachineStatus(machine.status);
                   const roleCls =
                     ROLE_BADGE[machine.role?.toLowerCase()] ||
-                    "bg-gray-100 text-gray-600 border-gray-200";
+                    "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700";
                   return (
                     <tr
                       key={machine.vm_id ?? machine.id ?? idx}
@@ -640,19 +759,19 @@ const LLMInferenceMachines = () => {
                           : ""
                       }`}
                     >
-                      <td className="py-3.5 px-5 text-gray-900 font-mono font-semibold">
+                      <td className="py-3.5 px-5 text-gray-900 dark:text-gray-100 font-mono font-semibold">
                         #{machine.vm_id ?? machine.id ?? idx + 1}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-900 font-semibold">
+                      <td className="py-3.5 px-4 text-gray-900 dark:text-gray-100 font-semibold">
                         {machine.name || "-"}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-gray-700">
+                      <td className="py-3.5 px-4 font-mono text-xs text-gray-700 dark:text-gray-300">
                         {machine.ip_address ||
                           machine.hostname ||
                           machine.ip ||
                           "-"}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600">
+                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">
                         {machine.node || "-"}
                       </td>
                       <td className="py-3.5 px-4">
@@ -706,15 +825,15 @@ const LLMInferenceMachines = () => {
 
         {/* Machine Pagination */}
         {machines.length > MACHINE_PAGE_SIZE && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <span className="text-xs text-gray-500">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               Showing{" "}
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
                 {(machinePage - 1) * MACHINE_PAGE_SIZE + 1}–
                 {Math.min(machinePage * MACHINE_PAGE_SIZE, machines.length)}
               </span>{" "}
               of{" "}
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
                 {machines.length}
               </span>{" "}
               machines
@@ -723,7 +842,7 @@ const LLMInferenceMachines = () => {
               <button
                 onClick={() => setMachinePage((p) => Math.max(1, p - 1))}
                 disabled={machinePage === 1}
-                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeftIcon className="h-4 w-4" />
               </button>
@@ -736,7 +855,7 @@ const LLMInferenceMachines = () => {
                                         ${
                                           machinePage === p
                                             ? "bg-[#1a365d] text-white border-[#1a365d] shadow-sm"
-                                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-700"
                                         }`}
                   >
                     {p}
@@ -748,7 +867,7 @@ const LLMInferenceMachines = () => {
                   setMachinePage((p) => Math.min(totalMachinePages, p + 1))
                 }
                 disabled={machinePage === totalMachinePages}
-                className="p-1.5 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRightIcon className="h-4 w-4" />
               </button>
@@ -758,10 +877,10 @@ const LLMInferenceMachines = () => {
       </div>
 
       {/* GRAFANA DASHBOARD */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full mb-6 shrink-0">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full mb-6 shrink-0">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-          <ChartBarIcon className="h-4 w-4 text-[#1a365d]" />
-          <h2 className="text-sm font-bold text-gray-800">LLM Metrics</h2>
+          <ChartBarIcon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">Metrics</h2>
         </div>
         <div
           style={{
@@ -776,6 +895,74 @@ const LLMInferenceMachines = () => {
         >
           <TimeRangeSelector />
           <AutoRefresh />
+
+          {/* Host multi-select */}
+          <div className="relative inline-flex items-center gap-1.5" ref={hostDropdownRef}>
+            <label className="text-xs font-medium text-gray-800 dark:text-gray-100">Host</label>
+            <button
+              type="button"
+              onClick={() => setHostDropdownOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 focus:outline-none focus:ring-1 focus:ring-[#1a365d] min-w-[90px]"
+            >
+              {selectedHosts.length > 0 ? `Selected (${selectedHosts.length})` : "All"}
+              <ChevronDownIcon className="h-3.5 w-3.5 ml-auto text-gray-400" />
+            </button>
+            {hostDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 z-50 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                {hostOptions.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-gray-400">No hosts found</div>
+                ) : (
+                  hostOptions.map((opt) => (
+                    <label
+                      key={opt}
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedHosts.includes(opt)}
+                        onChange={() => toggleSelection(setSelectedHosts, selectedHosts, opt)}
+                      />
+                      {opt}
+                    </label>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* GPU multi-select */}
+          <div className="relative inline-flex items-center gap-1.5" ref={gpuDropdownRef}>
+            <label className="text-xs font-medium text-gray-800 dark:text-gray-100">GPU</label>
+            <button
+              type="button"
+              onClick={() => setGpuDropdownOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 focus:outline-none focus:ring-1 focus:ring-[#1a365d] min-w-[90px]"
+            >
+              {selectedGpus.length > 0 ? `Selected (${selectedGpus.length})` : "All"}
+              <ChevronDownIcon className="h-3.5 w-3.5 ml-auto text-gray-400" />
+            </button>
+            {gpuDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 z-50 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                {gpuOptions.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-gray-400">No GPUs found</div>
+                ) : (
+                  gpuOptions.map((opt) => (
+                    <label
+                      key={opt}
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGpus.includes(opt)}
+                        onChange={() => toggleSelection(setSelectedGpus, selectedGpus, opt)}
+                      />
+                      {`GPU-${opt}`}
+                    </label>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <iframe
           title="LLM Metrics"
@@ -794,19 +981,19 @@ const LLMInferenceMachines = () => {
             onClick={() => setShowDeleteConfirm(false)}
           />
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-gray-700">
               <div className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
                     <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-gray-900">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                       Delete Pool
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Are you sure you want to delete pool{" "}
-                      <span className="font-semibold text-gray-800">
+                      <span className="font-semibold text-gray-800 dark:text-gray-100">
                         "{pool.name}"
                       </span>
                       ? This action cannot be undone and all associated VMs will
@@ -818,7 +1005,7 @@ const LLMInferenceMachines = () => {
               <div className="px-6 pb-6 flex justify-end gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors"
                 >
                   Cancel
                 </button>
@@ -853,34 +1040,34 @@ const LLMInferenceMachines = () => {
             onClick={() => setSelectedMachineForDrawer(null)}
           />
 
-          <div className="fixed top-0 bottom-0 right-0 max-w-md w-full bg-white shadow-2xl z-[100] flex flex-col justify-between border-l border-gray-200 h-full">
+          <div className="fixed top-0 bottom-0 right-0 max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl z-[100] flex flex-col justify-between border-l border-gray-200 dark:border-gray-700 h-full">
             <div className="overflow-y-auto flex-1 p-6 text-left">
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-5">
+              <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-5">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a365d] bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a365d] dark:text-blue-300 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
                     Machine Details
                   </span>
-                  <h2 className="text-lg font-bold text-gray-900 mt-1.5 flex items-center gap-1.5">
-                    <ComputerDesktopIcon className="h-5 w-5 text-[#1a365d]" />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-1.5 flex items-center gap-1.5">
+                    <ComputerDesktopIcon className="h-5 w-5 text-[#1a365d] dark:text-blue-300" />
                     VM #{selectedMachineForDrawer.vm_id}
                   </h2>
                 </div>
                 <button
                   onClick={() => setSelectedMachineForDrawer(null)}
-                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 transition-colors"
                 >
                   <XMarkIcon className="h-5 w-5 stroke-[2.5]" />
                 </button>
               </div>
 
               {/* Core Info */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
+              <div className="bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-5 grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
                 <div>
                   <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                     VM ID
                   </span>
-                  <span className="text-gray-900 font-mono font-bold text-sm block mt-0.5">
+                  <span className="text-gray-900 dark:text-gray-100 font-mono font-bold text-sm block mt-0.5">
                     #{selectedMachineForDrawer.vm_id}
                   </span>
                 </div>
@@ -889,37 +1076,37 @@ const LLMInferenceMachines = () => {
                     Role
                   </span>
                   <span
-                    className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize mt-0.5 ${ROLE_BADGE[selectedMachineForDrawer.role?.toLowerCase()] || "bg-gray-100 text-gray-600 border-gray-200"}`}
+                    className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize mt-0.5 ${ROLE_BADGE[selectedMachineForDrawer.role?.toLowerCase()] || "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700"}`}
                   >
                     {selectedMachineForDrawer.role || "-"}
                   </span>
                 </div>
-                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                <div className="border-t border-gray-200 dark:border-gray-700/60 pt-2 col-span-2" />
                 <div className="col-span-2">
                   <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                     Machine Name
                   </span>
-                  <span className="text-gray-900 font-semibold block mt-0.5">
+                  <span className="text-gray-900 dark:text-gray-100 font-semibold block mt-0.5">
                     {selectedMachineForDrawer.name || "-"}
                   </span>
                 </div>
-                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                <div className="border-t border-gray-200 dark:border-gray-700/60 pt-2 col-span-2" />
                 <div className="col-span-2">
                   <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                     IP Address
                   </span>
-                  <span className="text-gray-900 font-mono font-bold block mt-0.5 tracking-tight">
+                  <span className="text-gray-900 dark:text-gray-100 font-mono font-bold block mt-0.5 tracking-tight">
                     {selectedMachineForDrawer.ip_address ||
                       selectedMachineForDrawer.hostname ||
                       "-"}
                   </span>
                 </div>
-                <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                <div className="border-t border-gray-200 dark:border-gray-700/60 pt-2 col-span-2" />
                 <div>
                   <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                     Node
                   </span>
-                  <span className="text-gray-900 font-medium block mt-0.5">
+                  <span className="text-gray-900 dark:text-gray-100 font-medium block mt-0.5">
                     {selectedMachineForDrawer.node || "-"}
                   </span>
                 </div>
@@ -927,18 +1114,18 @@ const LLMInferenceMachines = () => {
                   <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                     Status
                   </span>
-                  <span className="text-gray-500 block mt-0.5">
+                  <span className="text-gray-500 dark:text-gray-400 block mt-0.5">
                     {selectedMachineForDrawer.status || "—"}
                   </span>
                 </div>
                 {selectedMachineForDrawer.username && (
                   <>
-                    <div className="border-t border-gray-200/60 pt-2 col-span-2" />
+                    <div className="border-t border-gray-200 dark:border-gray-700/60 pt-2 col-span-2" />
                     <div>
                       <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                         Username
                       </span>
-                      <span className="text-gray-900 font-mono block mt-0.5">
+                      <span className="text-gray-900 dark:text-gray-100 font-mono block mt-0.5">
                         {selectedMachineForDrawer.username}
                       </span>
                     </div>
@@ -957,8 +1144,8 @@ const LLMInferenceMachines = () => {
                     : [];
                 return drawerGpuList.length > 0 ? (
                   <div className="mb-5">
-                    <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <CpuChipIcon className="h-4 w-4 text-[#1a365d]" />
+                    <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <CpuChipIcon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                       GPUs ({drawerGpuList.length})
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -976,10 +1163,10 @@ const LLMInferenceMachines = () => {
               })()}
             </div>
 
-            <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-2">
+            <div className="p-4 bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 flex gap-2">
               <button
                 onClick={() => setSelectedMachineForDrawer(null)}
-                className="flex-1 py-2 border border-gray-300 rounded bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-colors shadow-sm"
+                className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 hover:bg-gray-50 dark:bg-gray-900/60 text-xs font-bold text-gray-700 dark:text-gray-300 transition-colors shadow-sm"
               >
                 Close
               </button>

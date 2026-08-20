@@ -19,6 +19,11 @@ export const selectIpPoolsError = createSelector(
   (ipPoolsState) => ipPoolsState.error
 );
 
+export const selectIpPoolsPagination = createSelector(
+  [selectIpPoolsState],
+  (ipPoolsState) => ipPoolsState.pagination
+);
+
 export const selectCreateLoading = createSelector(
   [selectIpPoolsState],
   (ipPoolsState) => ipPoolsState.createLoading

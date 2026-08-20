@@ -2,6 +2,7 @@ import "./SmtpConfig.css";
 import React, { useState, useEffect } from "react";
 import { TextField, InputAdornment } from "@mui/material";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useLocation } from "react-router-dom";
 import {
   Checkbox,
@@ -37,22 +38,22 @@ import {
 import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 
 const SkeletonLoader = () => (
-  <div className="w-full max-w-lg mx-auto p-5 rounded-xl border border-gray-100 shadow-sm bg-white">
+  <div className="w-full max-w-lg mx-auto p-5 rounded-xl border border-gray-100 shadow-sm bg-white dark:bg-gray-800">
     <div className="mb-6">
-      <div className="h-6 w-32 bg-gray-100 rounded animate-pulse" />
+      <div className="h-6 w-32 bg-gray-100 dark:bg-gray-700 rounded animate-pulse" />
     </div>
     <div className="space-y-6">
-      <div className="h-14 bg-gray-50 rounded animate-pulse" />
-      <div className="h-14 bg-gray-50 rounded animate-pulse" />
-      <div className="h-14 bg-gray-50 rounded animate-pulse" />
-      <div className="h-6 w-40 bg-gray-50 rounded animate-pulse" />
+      <div className="h-14 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
+      <div className="h-14 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
+      <div className="h-14 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
+      <div className="h-6 w-40 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
       <div className="space-y-4">
-        <div className="h-6 w-24 bg-gray-50 rounded animate-pulse" />
-        <div className="h-6 w-24 bg-gray-50 rounded animate-pulse" />
+        <div className="h-6 w-24 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
+        <div className="h-6 w-24 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
       </div>
       <div className="flex justify-between mt-8">
-        <div className="h-10 w-28 bg-gray-50 rounded animate-pulse" />
-        <div className="h-10 w-28 bg-gray-50 rounded animate-pulse" />
+        <div className="h-10 w-28 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
+        <div className="h-10 w-28 bg-gray-50 dark:bg-gray-900/60 rounded animate-pulse" />
       </div>
     </div>
   </div>
@@ -217,17 +218,9 @@ export default function SMTP() {
 
   return (
     <div className="p-2 md:p-4 h-full flex flex-col overflow-hidden">
-      <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] flex-1 mx-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden mt-4">
+      <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] flex-1 mx-auto bg-white dark:bg-gray-800 rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden mt-4">
         <div className="flex items-center gap-4 mb-6 border-b pb-4 px-2">
-          <div
-            onClick={Goback}
-            className="bg-[#1a365dcc] text-[#f5f5f5] hover:bg-[#1a365d] hover:text-white px-2 py-2 rounded-md focus:outline-none transition-colors cursor-pointer"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-[#1a365d]">SMTP Config</h2>
+          <h2 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">SMTP Config</h2>
         </div>
 
         <div className="px-2 mb-4">
@@ -242,7 +235,7 @@ export default function SMTP() {
                   color="primary"
                 />
               }
-              label={<span className="font-medium text-gray-700">{isEnabled ? "Disable Form" : "Enable SMTP"}</span>}
+              label={<span className="font-medium text-gray-700 dark:text-gray-300">{isEnabled ? "Disable Form" : "Enable SMTP"}</span>}
             />
           </FormGroup>
         </div>
@@ -305,12 +298,12 @@ export default function SMTP() {
                         color="primary"
                       />
                     }
-                    label={<span className="text-sm text-gray-700">User Authentication</span>}
+                    label={<span className="text-sm text-gray-700 dark:text-gray-300">User Authentication</span>}
                   />
                 </FormGroup>
 
                 {data.userAuthentication === "true" && (
-                  <div className="bg-gray-50 p-4 rounded-lg mt-2 mb-4 space-y-2">
+                  <div className="bg-gray-50 dark:bg-gray-900/60 p-4 rounded-lg mt-2 mb-4 space-y-2">
                     <TextField
                       label="User Name"
                       variant="outlined"
@@ -356,7 +349,7 @@ export default function SMTP() {
                 )}
 
                 <div className="mt-4">
-                  <span className="text-sm font-medium text-gray-700 block mb-2">Connection Encryption</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Connection Encryption</span>
                   <RadioGroup
                     row
                     name="connOption"
@@ -396,7 +389,7 @@ export default function SMTP() {
                   onClick={handleTestEmail}
                   disabled={!isEnabled}
                   variant="outlined"
-                  style={{ borderColor: "#1a365d", color: "#1a365d" }}
+                  style={{ borderColor: "#1a365d", color: "#a7c4ecff" }}
                   className="py-2.5 normal-case font-bold"
                 >
                   Test Email
@@ -408,7 +401,7 @@ export default function SMTP() {
       </div>
 
       <Dialog open={openDialog} onClose={closeDialog} maxWidth="xs" fullWidth>
-        <DialogTitle className="font-bold text-[#1a365d]">Send Test Email</DialogTitle>
+        <DialogTitle className="font-bold text-[#1a365d] dark:text-blue-300">Send Test Email</DialogTitle>
         <DialogContent>
           <TextField
             label="Receiver Email Address"
@@ -425,7 +418,7 @@ export default function SMTP() {
           />
         </DialogContent>
         <DialogActions className="px-6 pb-6 pt-2">
-          <Button onClick={closeDialog} className="text-gray-500 font-bold normal-case">
+          <Button onClick={closeDialog} className="text-gray-500 dark:text-gray-400 font-bold normal-case">
             Cancel
           </Button>
           <Button

@@ -11,7 +11,7 @@ import { APP_TYPES, getAppType } from "./appTypes";
 
 const Field = ({ label, required, children, hint }) => (
     <div className="flex flex-col gap-1.5">
-        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         {children}
@@ -20,9 +20,9 @@ const Field = ({ label, required, children, hint }) => (
 );
 
 const inputCls = (disabled) =>
-    `w-full rounded-lg border border-gray-300 bg-white py-2.5 px-3 text-sm text-gray-900
+    `w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2.5 px-3 text-sm text-gray-900 dark:text-gray-100
     focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all
-    ${disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : ""}`;
+    ${disabled ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed" : ""}`;
 
 // ── Main Component ────────────────────────────────────────────────────────────
 // A single "Deploy" button on the list page lands here — the application type
@@ -178,32 +178,32 @@ const ApplicationDeploy = () => {
     const HeaderIcon = activeApp?.Icon || LayoutGrid;
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen w-full text-left">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen w-full text-left">
 
             {/* Header */}
-            <div className="mb-6 pb-4 border-b border-gray-200 flex items-center gap-3">
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3">
                 <button
                     onClick={() => navigate("/application")}
                     disabled={submitting}
-                    className="p-1.5 text-gray-500 hover:text-[#1a365d] hover:bg-gray-100 rounded transition-colors disabled:opacity-40"
+                    className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 hover:bg-gray-100 dark:bg-gray-700 rounded transition-colors disabled:opacity-40"
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <div className="h-9 w-9 rounded-lg bg-[#1a365d]/10 flex items-center justify-center flex-shrink-0">
-                    <HeaderIcon className="h-4 w-4 text-[#1a365d]" />
+                    <HeaderIcon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-[#1a365d]">
+                    <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">
                         {activeApp ? `Deploy ${activeApp.label}` : "Deploy Application"}
                     </h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         {activeApp?.desc || "Choose an application to deploy to a connected Kubernetes cluster."}
                     </p>
                 </div>
             </div>
 
             {/* Form card */}
-            <div className="max-w-xl mx-auto bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="max-w-xl mx-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                 <form onSubmit={handleSubmit}>
                     <div className="p-6 space-y-5">
 
@@ -372,7 +372,7 @@ const ApplicationDeploy = () => {
                                             className={inputCls(submitting)}
                                         />
                                         {namespaceDropdownOpen && filteredNamespaceOptions.length > 0 && (
-                                            <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg">
+                                            <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                                                 {filteredNamespaceOptions.map((ns) => (
                                                     <button
                                                         key={ns}
@@ -382,7 +382,7 @@ const ApplicationDeploy = () => {
                                                             setNamespace(ns);
                                                             setNamespaceDropdownOpen(false);
                                                         }}
-                                                        className="w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-blue-50 transition-colors"
+                                                        className="w-full px-3 py-2 text-left text-sm text-gray-800 dark:text-gray-100 hover:bg-blue-50 transition-colors"
                                                     >
                                                         {ns}
                                                     </button>
@@ -396,12 +396,12 @@ const ApplicationDeploy = () => {
                     </div>
 
                     {/* Footer buttons */}
-                    <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+                    <div className="bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-end gap-3">
                         <button
                             type="button"
                             onClick={() => navigate("/application")}
                             disabled={submitting}
-                            className="px-5 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
+                            className="px-5 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:bg-gray-900/60 transition-colors uppercase tracking-wider disabled:opacity-50"
                         >
                             Cancel
                         </button>

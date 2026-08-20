@@ -13,6 +13,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loading from "./images/loading.png";
 import GrafanaToolbarContextProvider from "./Context/GrafanaToolbarContext";
+import { ThemeProvider } from "./Context/ThemeContext";
+import MuiThemeBridge from "./Context/MuiThemeBridge";
 import PoolContextProvider from "./Context/PoolContext";
 import Sidebar from "./Components/Navbar/Sidebar";
 import "./App.css";
@@ -240,6 +242,8 @@ function App() {
     <div className="App">
       {/* remove true and replace it with "token" and uncomment useEffect for keycloak initialization */}
       {token ? (
+        <ThemeProvider>
+        <MuiThemeBridge>
         <GrafanaToolbarContextProvider>
           {/* <PoolContextProvider token={refreshToken} tokenParsed={tokenParsed}> */}
           {/* <RBACProvider tokenParsed={tokenParsed} token={refreshToken}> */}
@@ -691,7 +695,7 @@ function App() {
                     path="/clusters"
                     element={
                       <ProtectedRoute
-                        component={Clusters}
+                        component={ShowClusters}
                         componentKey="Cluster"
                       />
                     }
@@ -815,6 +819,8 @@ function App() {
           {/* </RBACProvider> */}
           {/* </PoolContextProvider> */}
         </GrafanaToolbarContextProvider>
+        </MuiThemeBridge>
+        </ThemeProvider>
       ) : (
         LoadingSpinner()
       )}

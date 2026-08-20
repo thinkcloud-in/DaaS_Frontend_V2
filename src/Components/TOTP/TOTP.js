@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import "./TOTP.css";
 import { Slide, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { Pagination } from "../Common";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchTotpStatusThunk,
@@ -158,27 +160,19 @@ const TOTP = () => {
   };
 
   return (
-    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] mt-4 m-auto p-2 md:p-3 bg-white rounded-lg shadow-lg flex flex-col overflow-auto md:overflow-hidden">
-      <div className="bg-white flex-1 p-4 overflow-y-auto rounded-md custom-scrollbar flex flex-col">
+    <div className="w-full md:w-[98%] h-auto md:h-[90vh] min-h-[75vh] mt-4 m-auto p-2 md:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg flex flex-col overflow-auto md:overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 flex-1 p-4 overflow-y-auto rounded-md custom-scrollbar flex flex-col">
         
-        {/* Back Button & Top switches section */}
+        {/* Top switches section */}
         <div className="flex justify-start items-center w-full mb-4">
-          <div
-            onClick={Goback}
-            className="cursor-pointer bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 mr-4"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-600">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-600 dark:text-gray-400">
             OTP Verification
           </h1>
         </div>
 
-        <div className="p-4 sm:p-6 mb-6 rounded-lg flex flex-col items-start bg-gray-50 border border-gray-100 w-full md:w-3/5">
+        <div className="p-4 sm:p-6 mb-6 rounded-lg flex flex-col items-start bg-gray-50 dark:bg-gray-900/60 border border-gray-100 w-full md:w-3/5">
           <div className="flex items-center mb-4">
-            <label htmlFor="admin-totp" className="mr-4 text-sm font-medium text-gray-900 min-w-[170px]">
+            <label htmlFor="admin-totp" className="mr-4 text-sm font-medium text-gray-900 dark:text-gray-100 min-w-[170px]">
               Enable TOTP for Admin
             </label>
             <div className="relative">
@@ -198,7 +192,7 @@ const TOTP = () => {
             </div>
           </div>
           <div className="flex items-center">
-            <label htmlFor="client-totp" className="mr-4 text-sm font-medium text-[#1a365d] min-w-[170px]">
+            <label htmlFor="client-totp" className="mr-4 text-sm font-medium text-[#1a365d] dark:text-blue-300 min-w-[170px]">
               Enable TOTP for Client
             </label>
             <div className="relative">
@@ -220,92 +214,85 @@ const TOTP = () => {
         </div>
 
         {/* User List for TOTP Reset */}
-        <div className="totp-users-section flex-1 flex flex-col">
-          <div className="totp-users-header">
-            <h2 className="totp-users-title">Reset User TOTP</h2>
-            <div className="totp-search-container">
-              <div className="totp-search-wrapper">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full flex-1 flex flex-col mt-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">Reset User TOTP</h2>
+            <div className="flex items-center gap-2">
+              <div className="relative">
                 <input
                   type="text"
-                  className="totp-search-input"
                   placeholder="Search users..."
                   value={searchTerm}
                   onChange={handleSearchChange}
                   onKeyDown={handleSearchKeyDown}
+                  className="text-xs border border-gray-300 dark:border-gray-600 rounded-md pl-3 pr-7 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-[#1a365d] w-48"
                 />
                 {searchTerm && (
                   <button
-                    className="totp-search-clear"
                     onClick={handleClearSearch}
                     title="Clear search"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                   >
                     ×
                   </button>
                 )}
               </div>
               <button
-                className="totp-search-btn"
                 onClick={handleSearchClick}
+                className="px-4 py-2 rounded-md bg-[#1a365d] text-white hover:bg-[#153056] text-xs font-semibold shadow-sm transition-all"
               >
                 Search
               </button>
             </div>
           </div>
 
-          <div className="totp-table-container flex-1 overflow-y-auto">
-            <table className="totp-users-table">
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
-                <tr>
-                  <th>S.No</th>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>Action</th>
+                <tr className="bg-[#1a365d] text-white text-xs font-semibold uppercase tracking-wider select-none">
+                  <th className="py-3 px-4">S.No</th>
+                  <th className="py-3 px-4">Username</th>
+                  <th className="py-3 px-4">Email</th>
+                  <th className="py-3 px-4 text-center">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm text-gray-700 dark:text-gray-300">
                 {usersLoading ? (
                   <tr>
-                    <td colSpan="4" className="totp-table-loading">
-                      <div className="totp-spinner"></div>
-                      <span>Loading users...</span>
+                    <td colSpan="4" className="py-10 text-center text-gray-400">
+                      Loading users...
                     </td>
                   </tr>
                 ) : safeUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="totp-table-empty">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="totp-empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <span>No users found</span>
+                    <td colSpan="4" className="py-10 text-center text-gray-400">
+                      No users found
                     </td>
                   </tr>
                 ) : (
                   safeUsers.map((user, index) => (
-                    <tr key={user.userid || index}>
-                      <td>{currentPage * itemsPerPage + index + 1}</td>
-                      <td>
-                        <div className="totp-user-info">
-                          <div className="totp-user-avatar">
+                    <tr key={user.userid || index} className="hover:bg-blue-50/40 dark:hover:bg-gray-700/60 transition-colors">
+                      <td className="py-3 px-4 text-gray-500 dark:text-gray-400">{currentPage * itemsPerPage + index + 1}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-full bg-[#1a365d]/10 dark:bg-blue-300/10 text-[#1a365d] dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
                             {(user.username || "U").charAt(0).toUpperCase()}
                           </div>
                           <span>{user.username || "N/A"}</span>
                         </div>
                       </td>
-                      <td>{user.email || "N/A"}</td>
-                      <td>
+                      <td className="py-3 px-4">{user.email || "N/A"}</td>
+                      <td className="py-3 px-4 text-center">
                         <button
-                          className="totp-reset-btn"
                           onClick={() => handleResetTotp(user)}
                           disabled={!enableClientOTP || resetLoading === user.userid}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {resetLoading === user.userid ? (
-                            <>
-                              <div className="totp-btn-spinner"></div>
-                              Resetting...
-                            </>
+                            "Resetting..."
                           ) : (
                             <>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="totp-reset-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
                               Reset TOTP
@@ -321,55 +308,17 @@ const TOTP = () => {
           </div>
 
           {/* Pagination */}
-          <div className="totp-pagination">
-            <div className="totp-pagination-info">
-              {safeUsers.length > 0 && (
-                <div className="flex items-center gap-3">
-                  <span>
-                    Showing {currentPage * itemsPerPage + 1} - {currentPage * itemsPerPage + safeUsers.length}
-                  </span>
-                  <span className="text-gray-300">|</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Show:</span>
-                    <select
-                      value={itemsPerPage}
-                      onChange={handlePageSizeChange}
-                      className="totp-limit-select"
-                    >
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                      <option value={200}>200</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="totp-pagination-controls">
-              <button
-                className="totp-page-btn"
-                onClick={handlePrevPage}
-                disabled={currentPage === 0}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
-              </button>
-              <span className="totp-page-number">Page {currentPage + 1}</span>
-              <button
-                className="totp-page-btn"
-                onClick={handleNextPage}
-                disabled={safeUsers.length < itemsPerPage}
-              >
-                Next
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
+          {safeUsers.length > 0 && (
+            <Pagination
+              currentPage={currentPage + 1}
+              onPageChange={(p) => (p < currentPage + 1 ? handlePrevPage() : handleNextPage())}
+              hasPrev={currentPage > 0}
+              hasNext={safeUsers.length === itemsPerPage}
+              pageSize={itemsPerPage}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[10, 20, 50, 100, 200]}
+            />
+          )}
         </div>
 
       </div>

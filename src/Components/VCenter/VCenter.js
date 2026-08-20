@@ -61,7 +61,7 @@ export default function VCenter() {
 
   return (
     <div className="p-2 md:p-4 h-full flex flex-col overflow-hidden">
-      <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] flex-1 mx-auto bg-white rounded-lg p-4 md:p-8 shadow-md flex flex-col overflow-auto custom-scrollbar mt-4">
+      <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] flex-1 mx-auto bg-white dark:bg-gray-800 rounded-lg p-4 md:p-8 shadow-md flex flex-col overflow-auto custom-scrollbar mt-4">
         {/*Logic for popup*/}
         <Popup
           open={open}
@@ -80,7 +80,7 @@ export default function VCenter() {
           <div className="space-y-4">
             <div className="tr">
               <div className="th">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   IP address / FQDN
                 </label>
               </div>
@@ -90,7 +90,7 @@ export default function VCenter() {
                   name="ip"
                   value={vcenter.ip}
                   onChange={handleOnChange}
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] outline-none transition-all shadow-sm"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] outline-none transition-all shadow-sm"
                   placeholder="e.g. 192.168.1.10"
                 />
               </div>
@@ -98,7 +98,7 @@ export default function VCenter() {
 
             <div className="tr">
               <div className="th">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Username
                 </label>
               </div>
@@ -108,7 +108,7 @@ export default function VCenter() {
                   name="username"
                   value={vcenter.username}
                   onChange={handleOnChange}
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] outline-none transition-all shadow-sm"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] outline-none transition-all shadow-sm"
                   placeholder="e.g. administrator@vsphere.local"
                 />
               </div>
@@ -116,7 +116,7 @@ export default function VCenter() {
 
             <div className="tr">
               <div className="th">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Password
                 </label>
               </div>
@@ -126,14 +126,14 @@ export default function VCenter() {
                   name="password"
                   value={vcenter.password}
                   onChange={handleOnChange}
-                  className="w-full rounded-md border border-gray-300 py-2 px-3 text-gray-900 focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] outline-none transition-all shadow-sm"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#1a365d]/20 focus:border-[#1a365d] outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
 
             <div className="tr">
               <div className="th">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   TLS
                 </label>
               </div>
@@ -155,7 +155,7 @@ export default function VCenter() {
           <div className="mt-12 flex items-center justify-end gap-4 border-t pt-6">
             <button
               type="reset"
-              className="px-6 py-2.5 rounded-md bg-gray-100 text-gray-700 font-semibold shadow-sm hover:bg-gray-200 transition-colors"
+              className="px-6 py-2.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold shadow-sm hover:bg-gray-200 transition-colors"
               onClick={reset}
             >
               Reset

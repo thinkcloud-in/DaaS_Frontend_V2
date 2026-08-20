@@ -3,6 +3,7 @@ import "./ReportList.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CircularProgress } from "@mui/material";
+import { Pagination } from "../Common";
 import { useDispatch, useSelector } from "react-redux";
 import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
 import {
@@ -100,7 +101,7 @@ const ReportList = () => {
     const sc = STATUS_CONFIG[s] || {
       label: s || "Pending",
       icon: "fa-circle-question",
-      badge: "bg-gray-100 text-gray-600",
+      badge: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
       dot: "bg-gray-400",
     };
     return (
@@ -117,21 +118,21 @@ const ReportList = () => {
     <tr key={i}>
       {[...Array(7)].map((_, j) => (
         <td key={j} className="py-3.5 px-4">
-          <div className="h-5 w-24 bg-gray-100 rounded animate-pulse"></div>
+          <div className="h-5 w-24 bg-gray-100 dark:bg-gray-700 rounded animate-pulse"></div>
         </td>
       ))}
     </tr>
   ));
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full relative">
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full relative">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 mb-6 w-full">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a365d]">
+          <h1 className="text-2xl font-bold text-[#1a365d] dark:text-blue-300">
             Scheduled Reports
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Recurring reports emailed automatically on a schedule.
           </p>
         </div>
@@ -139,7 +140,7 @@ const ReportList = () => {
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-900/60 text-sm font-medium shadow-sm transition-all disabled:opacity-60"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -168,7 +169,7 @@ const ReportList = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full">
         <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
@@ -183,7 +184,7 @@ const ReportList = () => {
                 <th className="py-3 px-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+            <tbody className="divide-y divide-gray-100 text-sm text-gray-700 dark:text-gray-300">
               {isLoading ? (
                 skeletonRows
               ) : !reports || reports.length === 0 ? (
@@ -203,26 +204,26 @@ const ReportList = () => {
                           : ""
                       }`}
                     >
-                      <td className="py-3.5 px-4 text-gray-500">
+                      <td className="py-3.5 px-4 text-gray-500 dark:text-gray-400">
                         {index + 1 + (currentPage - 1) * itemsPerPage}
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-[#1a365d]/10 text-[#1a365d] text-xs font-bold flex items-center justify-center flex-shrink-0">
+                          <div className="h-7 w-7 rounded-full bg-[#1a365d]/10 text-[#1a365d] dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
                             {report.userEmail?.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-xs text-gray-600 truncate max-w-[160px]">
+                          <span className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[160px]">
                             {report.userEmail || "N/A"}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-gray-900">
+                      <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-gray-100">
                         {report.reportName}
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-gray-600 font-mono">
+                      <td className="py-3.5 px-4 text-xs text-gray-600 dark:text-gray-400 font-mono">
                         {report.time}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600 capitalize">
+                      <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400 capitalize">
                         {report.schedule_type}
                       </td>
                       <td className="py-3.5 px-4">
@@ -258,19 +259,19 @@ const ReportList = () => {
                       </td>
                     </tr>
                     {selectedReport && selectedReport.id === report.id && (
-                      <tr className="bg-gray-50">
-                        <td colSpan={8} className="px-4 py-3 text-xs text-gray-600">
-                          <span className="font-semibold text-gray-800">
+                      <tr className="bg-gray-50 dark:bg-gray-900/60">
+                        <td colSpan={8} className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">
                             Created On:
                           </span>{" "}
                           {report.schedule_date}
                           <span className="mx-2 text-gray-300">|</span>
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">
                             Delivered On:
                           </span>{" "}
                           {report.time_duration}
                           <span className="mx-2 text-gray-300">|</span>
-                          <span className="font-semibold text-gray-800">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100">
                             Receiver Email:
                           </span>{" "}
                           {report.receiverEmail}
@@ -286,35 +287,14 @@ const ReportList = () => {
 
         {/* Pagination Footer */}
         {!isLoading && reports && reports.length > 0 && (
-          <div className="flex items-center justify-end gap-1 px-4 py-3 border-t border-gray-200 bg-gray-50">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index + 1}
-                onClick={() => paginate(index + 1)}
-                className={`min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border transition-colors ${
-                  currentPage === index + 1
-                    ? "bg-[#1a365d] text-white border-[#1a365d] shadow-sm"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="min-w-[32px] h-8 px-2 rounded-md text-xs font-medium border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={paginate}
+            totalItems={totalCount}
+            pageSize={itemsPerPage}
+            itemLabel="reports"
+          />
         )}
       </div>
     </div>

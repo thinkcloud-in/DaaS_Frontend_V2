@@ -3,17 +3,17 @@ import "./css/RDPsettings.css";
 const SSHsettings = ({onChange,poolDetails}) => {
   return (
     <div className=" p-3 pool_creation rounded-b-md">
-      {/* <h2 className="font-semibold leading-7 text-gray-900 mb-3">
+      {/* <h2 className="font-semibold leading-7 text-gray-900 dark:text-gray-100 mb-3">
         SSH Settings
       </h2> */}
         <div className="divide-slate-500 my-6 mt-7">
-  <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+  <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Network
         </h3>
         <div className="text-left table-auto ml-3">
           {/* <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Hostname
               </label>
             </div>
@@ -29,8 +29,8 @@ const SSHsettings = ({onChange,poolDetails}) => {
                      onChange={onChange}
                     className={`block flex-1 rounded-md py-1.5 pl-1 border-2 sm:text-sm sm:leading-6 focus:ring-0
           ${poolDetails.pool_type?.toLowerCase() === 'automated'
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            : 'bg-white text-gray-900'}
+            ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'}
            placeholder:text-gray-400 bg-transparent`}
                   />
                 </div>
@@ -39,7 +39,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
             </div> */}
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Port 
               </label>
             </div>
@@ -54,13 +54,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
             </div>
           </div></div></div>
       <div className="divide-slate-500 my-6 mt-7">
-  <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+  <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Concurrency Limits
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Maximum number of connections
               </label>
             </div>
@@ -76,7 +76,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Maximum connections per user
               </label>
             </div>
@@ -93,13 +93,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-    <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+    <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Load Balancing
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Load balance info/cookie:
               </label>
             </div>
@@ -116,13 +116,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-  <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+  <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           GUACAMOLE PROXY PARAMETERS (GUACD)
         </h3>
         <div className="text-left table-auto ml-3">
           {/* <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Hostname
               </label>
             </div>
@@ -133,7 +133,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="text"
                     placeholder="Hostname"
                     name=""
-                    className="block flex-1 rounded-md bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1 rounded-md bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -141,7 +141,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div> */}
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Port
               </label>
             </div>
@@ -157,7 +157,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Encryption
               </label>
             </div>
@@ -179,13 +179,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-500 my-6 mt-7">
-    <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+    <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Authentication
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Username
               </label>
             </div>
@@ -204,7 +204,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Password
               </label>
             </div>
@@ -223,7 +223,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Private Key
               </label>
             </div>
@@ -233,7 +233,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                   <textarea
                     name="pool_private_key"  onChange={onChange}
                     value={poolDetails.pool_private_key}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                     rows="4"
                   />
                 </div>
@@ -242,7 +242,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Passphrase
               </label>
             </div>
@@ -254,7 +254,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder="Passphrase"
                     name="pool_passphrase" onChange={onChange}
                     value={poolDetails.pool_passphrase}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -263,11 +263,11 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Display</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">Display</h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Color Scheme
               </label>
             </div>
@@ -277,7 +277,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                   <select
                     name="pool_color_scheme"  onChange={onChange}
                     value={poolDetails.pool_color_scheme}
-                    className="block flex-1 bg-white py-1.5 pl-1 text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1 bg-white dark:bg-gray-800 py-1.5 pl-1 text-gray-900 dark:text-gray-100 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   >
                     <option value=""></option>
                     <option value="Black on White">Black on White</option>
@@ -293,7 +293,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
 
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Font Name
               </label>
             </div>
@@ -305,7 +305,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder=""
                     name="pool_font_name" onChange={onChange}
                     value={poolDetails.pool_font_name}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -313,7 +313,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Maximum scrollback size
               </label>
             </div>
@@ -325,7 +325,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder=""
                     name="pool_scrollback" onChange={onChange}
                     value={poolDetails.pool_scrollback}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -333,7 +333,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Font Size
               </label>
             </div>
@@ -343,7 +343,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                 <select
                   name="pool_font_size" onChange={onChange}
                   value={poolDetails.pool_font_size}
-                  className="block flex-1  bg-white py-1.5 pl-1 text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                  className="block flex-1  bg-white dark:bg-gray-800 py-1.5 pl-1 text-gray-900 dark:text-gray-100 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                 >
                   <option value=""></option>
                   <option value="8">8</option>
@@ -368,7 +368,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Read Only
               </label>
             </div>
@@ -379,7 +379,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_read_only"  onChange={onChange}
                     checked={poolDetails.pool_read_only}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded"
                   />
                 </div>
               </div>
@@ -388,11 +388,11 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-        <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">Clipboard</h3>
+        <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">Clipboard</h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Disable copying from terminal
               </label>
             </div>
@@ -403,7 +403,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_disable_copy"  onChange={onChange}
                     checked={poolDetails.pool_disable_copy}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded "
                   />
                 </div>
               </div>
@@ -411,7 +411,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Disable pasting from client
               </label>
             </div>
@@ -422,7 +422,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_disable_paste"  onChange={onChange}
                     checked={poolDetails.pool_disable_paste}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -431,13 +431,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-    <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+    <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Terminal Behavior
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Backspace key sends
               </label>
             </div>
@@ -447,7 +447,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                 <select
                   name="pool_backspace"  onChange={onChange}
                   value={poolDetails.pool_backspace}
-                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                  className="block flex-1 bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                 >
                   <option value=""></option>
                   <option value="Delete(ctrl+?)">Delete(ctrl+?)</option>
@@ -460,7 +460,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
 
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Terminal Type
               </label>
             </div>
@@ -470,7 +470,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                 <select
                   name="pool_terminal_type"  onChange={onChange}
                   value={poolDetails.pool_terminal_type}
-                  className="block flex-1 bg-white bg-transparent py-1.5 pl-1 text-gray-900 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                  className="block flex-1 bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                 >
                   <option value="">Select Terminal Type</option>
                   <option value="ansi">ansi</option>
@@ -487,13 +487,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-    <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+    <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Typescript (Text Session Recording)
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Typescript path
               </label>
             </div>
@@ -505,7 +505,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder="Typescript Path"
                     name="pool_typescript_path"  onChange={onChange}
                     value={poolDetails.pool_typescript_path}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -513,7 +513,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Typescript Name
               </label>
             </div>
@@ -525,7 +525,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder="Typescript Name"
                     name="pool_typescript_name" onChange={onChange}
                     value={poolDetails.pool_typescript_name}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -533,7 +533,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Automatically create typescript path
               </label>
             </div>
@@ -544,7 +544,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_create_typescript_path"  onChange={onChange}
                     checked={poolDetails.pool_create_typescript_path}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -553,13 +553,13 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 my-6 mt-7">
-    <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">
+    <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">
           Screen Recording
         </h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Recording path
               </label>
             </div>
@@ -571,7 +571,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder="Recording Path"
                     name="pool_recording_path"  onChange={onChange}
                     value={poolDetails.pool_recording_path}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -579,7 +579,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 Recording Name
               </label>
             </div>
@@ -591,7 +591,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder="Recording Name"
                     name="pool_recording_name" onChange={onChange}
                     value={poolDetails.pool_recording_name}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>
@@ -599,7 +599,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Automatically create recording path
               </label>
             </div>
@@ -610,7 +610,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_create_recording_path" onChange={onChange}
                     checked={poolDetails.pool_create_recording_path}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -618,7 +618,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Exclude mouse
               </label>
             </div>
@@ -629,7 +629,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_recording_exclude_mouse" onChange={onChange}
                     checked={poolDetails.pool_recording_exclude_mouse}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -637,7 +637,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Include key events
               </label>
             </div>
@@ -648,7 +648,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_recording_include_keys" onChange={onChange}
                     checked={poolDetails.pool_recording_include_keys}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -656,7 +656,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Exclude touch events
               </label>
             </div>
@@ -667,7 +667,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_exclude_touch_events" onChange={onChange}
                     checked={poolDetails.pool_exclude_touch_events}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -676,11 +676,11 @@ const SSHsettings = ({onChange,poolDetails}) => {
         </div>
       </div>
       <div className="divide-slate-600 mt-7">
-    <h3 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border border-[#F0F8FFCC] p-1">SFTP</h3>
+    <h3 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border border-[#F0F8FFCC] dark:border-blue-900/40 p-1">SFTP</h3>
         <div className="text-left table-auto ml-3">
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                 Enable SFTP
               </label>
             </div>
@@ -691,7 +691,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     type="checkbox"
                     name="pool_enable_sftp" onChange={onChange}
                     checked={poolDetails.pool_enable_sftp}
-                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded  "
+                    className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded  "
                   />
                 </div>
               </div>
@@ -699,7 +699,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
           </div>
           <div className="tr">
             <div className="th">
-              <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+              <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                 File browser root directory
               </label>
             </div>
@@ -711,7 +711,7 @@ const SSHsettings = ({onChange,poolDetails}) => {
                     placeholder=""
                     name="pool_sftp_root_directory" onChange={onChange}
                     value={poolDetails.pool_sftp_root_directory}
-                    className="block flex-1  bg-white bg-transparent py-1.5 pl-1 text-gray-900  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
+                    className="block flex-1  bg-white dark:bg-gray-800 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 border-2"
                   />
                 </div>
               </div>

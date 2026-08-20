@@ -88,7 +88,7 @@ const IpPoolsCreate = () => {
   };
 
   return (
-    <div className="pool_creation w-[98%] h-[90vh] m-auto min-h-[75vh] mt-4 bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="pool_creation w-[98%] h-[90vh] m-auto min-h-[75vh] mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="flex justify-start mt-5">
         <div
           onClick={Goback}
@@ -101,9 +101,9 @@ const IpPoolsCreate = () => {
             </svg>
         </div>
       </div>
-      <div className={`flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar ${loading ? "opacity-50 pointer-events-none select-none" : ""}`}>
-         <div className=" space-y-5 m-2 w-full mx-auto p-3 rounded-md  bg-white">
-            <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-3">
+      <div className={`flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar ${loading ? "opacity-50 pointer-events-none select-none" : ""}`}>
+         <div className=" space-y-5 m-2 w-full mx-auto p-3 rounded-md  bg-white dark:bg-gray-800">
+            <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-3">
               Create New IP-Pool
             </h2>
           </div>

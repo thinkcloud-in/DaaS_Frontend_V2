@@ -147,13 +147,13 @@ const LibraryList = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen text-left flex flex-col w-full relative select-none">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full relative select-none">
 
             {/* Header */}
-            <div className="pb-4 border-b border-gray-200 mb-5 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-5 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-[#1a365d]">Library Repository</h1>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">Library Repository</h1>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         Manage Base OS, Devraq Agent, and Open Web UI packages in the centralized repository.
                     </p>
                 </div>
@@ -161,7 +161,7 @@ const LibraryList = () => {
                     <button
                         onClick={loadList}
                         disabled={listLoading}
-                        className="p-2 text-gray-500 hover:text-[#1a365d] bg-white hover:bg-gray-100 rounded border border-gray-200 shadow-xs transition-colors"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 shadow-xs transition-colors"
                         title="Refresh"
                     >
                         <RefreshCw className={`h-3.5 w-3.5 ${listLoading ? "animate-spin" : ""}`} />
@@ -185,7 +185,7 @@ const LibraryList = () => {
                         className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors
                             ${activeTab === tab.key
                                 ? "bg-[#1a365d] text-white shadow-sm"
-                                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#1a365d]"
+                                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-900/60 hover:text-[#1a365d] dark:text-blue-300"
                             }`}
                     >
                         {tab.label}
@@ -210,28 +210,28 @@ const LibraryList = () => {
                     type="text" value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search by name, file, version..."
-                    className="w-full rounded border border-gray-300 bg-white py-2 pl-8 pr-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-xs text-gray-900 shadow-xs transition-all"
+                    className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-8 pr-3 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none text-xs text-gray-900 dark:text-gray-100 shadow-xs transition-all"
                 />
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[700px] text-left border-collapse">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[30%]">Name</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">Type</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[30%]">File</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[15%]">Uploaded</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[10%] text-right">Actions</th>
+                        <thead>
+                            <tr className="bg-[#1a365d] text-white text-[11px] font-bold uppercase tracking-wide select-none">
+                                <th className="p-4 w-[30%]">Name</th>
+                                <th className="p-4 w-[15%]">Type</th>
+                                <th className="p-4 w-[30%]">File</th>
+                                <th className="p-4 w-[15%]">Uploaded</th>
+                                <th className="p-4 w-[10%] text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {listLoading && filteredItems.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="p-10 text-center">
-                                        <Loader2 className="h-5 w-5 text-[#1a365d] animate-spin mx-auto mb-2" />
+                                        <Loader2 className="h-5 w-5 text-[#1a365d] dark:text-blue-300 animate-spin mx-auto mb-2" />
                                         <p className="text-xs text-gray-400">Loading library...</p>
                                     </td>
                                 </tr>
@@ -239,7 +239,7 @@ const LibraryList = () => {
                                 <tr>
                                     <td colSpan="5" className="p-10 text-center">
                                         <FileText className="h-7 w-7 text-gray-300 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-gray-500">No library items found</p>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No library items found</p>
                                         <p className="text-xs text-gray-400 mt-0.5">Upload a new package to get started.</p>
                                     </td>
                                 </tr>
@@ -258,9 +258,9 @@ const LibraryList = () => {
                                     const bytesDone     = item.bytes_done;
                                     const bytesTotal    = item.bytes_total || item.file_size;
                                     return (
-                                        <tr key={item.id} className={`transition-colors ${itemUploading ? "bg-yellow-50/20" : "hover:bg-gray-50/40"}`}>
+                                        <tr key={item.id} className={`transition-colors ${itemUploading ? "bg-yellow-50/20" : "hover:bg-gray-50 dark:bg-gray-900/60/40"}`}>
                                             <td className="p-4">
-                                                <p className="text-sm font-semibold text-gray-900 truncate max-w-[200px]" title={item.name}>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[200px]" title={item.name}>
                                                     {item.name || "—"}
                                                 </p>
                                                 {itemUploading && (
@@ -295,18 +295,18 @@ const LibraryList = () => {
                                                 )}
                                             </td>
                                             <td className="p-4">
-                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-                                                    <meta.Icon className="h-3.5 w-3.5 text-[#1a365d]" />
+                                                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                                    <meta.Icon className="h-3.5 w-3.5 text-[#1a365d] dark:text-blue-300" />
                                                     {meta.label}
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 max-w-[220px] truncate" title={item.file_name}>
+                                                <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 max-w-[220px] truncate" title={item.file_name}>
                                                     <FileText className="h-3 w-3 text-gray-300 flex-shrink-0" />
                                                     <span className="truncate">{item.file_name || "—"}</span>
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-xs text-gray-600 font-medium whitespace-nowrap">
+                                            <td className="p-4 text-xs text-gray-600 dark:text-gray-400 font-medium whitespace-nowrap">
                                                 {formatDate(item.created_at)}
                                             </td>
                                             <td className="p-4 text-right">
@@ -315,10 +315,10 @@ const LibraryList = () => {
                                                         onClick={() => handleDownload(item)}
                                                         disabled={!itemReady || isDownloading}
                                                         title={itemReady ? "Download file" : "Available when ready"}
-                                                        className={`p-1.5 rounded border border-gray-200 transition-colors shadow-2xs
+                                                        className={`p-1.5 rounded border border-gray-200 dark:border-gray-700 transition-colors shadow-2xs
                                                             ${itemReady && !isDownloading
-                                                                ? "text-gray-500 hover:text-[#1a365d] bg-white hover:bg-gray-100"
-                                                                : "text-gray-300 bg-gray-50 cursor-not-allowed"
+                                                                ? "text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700"
+                                                                : "text-gray-300 bg-gray-50 dark:bg-gray-900/60 cursor-not-allowed"
                                                             }`}
                                                     >
                                                         {isDownloading
@@ -330,7 +330,7 @@ const LibraryList = () => {
                                                         onClick={() => setDeleteConfirm({ id: item.id, name: item.name })}
                                                         disabled={isDeleting}
                                                         title="Delete"
-                                                        className="p-1.5 text-gray-400 hover:text-red-600 bg-white hover:bg-red-50 rounded border border-gray-200 transition-colors shadow-2xs disabled:opacity-40"
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 bg-white dark:bg-gray-800 hover:bg-red-50 rounded border border-gray-200 dark:border-gray-700 transition-colors shadow-2xs disabled:opacity-40"
                                                     >
                                                         {isDeleting
                                                             ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -416,22 +416,22 @@ const LibraryList = () => {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm mx-4 overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-sm mx-4 overflow-hidden">
                         <div className="p-5 flex items-start gap-3">
                             <div className="flex-shrink-0 h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
                                 <Trash2 className="h-4 w-4 text-red-600" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900">Delete Library Item</h3>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Are you sure you want to delete <span className="font-semibold text-gray-700">"{deleteConfirm.name}"</span>? This action cannot be undone.
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Delete Library Item</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Are you sure you want to delete <span className="font-semibold text-gray-700 dark:text-gray-300">"{deleteConfirm.name}"</span>? This action cannot be undone.
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-gray-50 border-t border-gray-200 px-5 py-3 flex justify-end gap-2">
+                        <div className="bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 px-5 py-3 flex justify-end gap-2">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
-                                className="px-4 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors uppercase tracking-wider"
+                                className="px-4 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:bg-gray-900/60 transition-colors uppercase tracking-wider"
                             >
                                 Cancel
                             </button>

@@ -18,7 +18,7 @@ const SelectField = ({
 }) => {
   return (
     <div className="mb-6 flex items-center">
-      <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+      <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
         {iconClass && (
           <span>
             <i className={`fas ${iconClass} mr-2`}></i>
@@ -27,7 +27,7 @@ const SelectField = ({
         {label} {required && <span className="text-red-500">*</span>}
         {tooltip && (
           <div className="relative flex items-center group">
-            <FaInfoCircle className="text-gray-400 hover:text-gray-600 cursor-help text-xs ml-1" />
+            <FaInfoCircle className="text-gray-400 hover:text-gray-600 dark:text-gray-400 cursor-help text-xs ml-1" />
             <span
               className={`invisible group-hover:visible absolute left-full ml-1 px-2 py-0.5 bg-gray-800 text-white text-[10px] rounded shadow-sm z-50 whitespace-pre-line ${tooltipClass || "whitespace-nowrap"}`}
             >
@@ -43,9 +43,9 @@ const SelectField = ({
           onChange={onChange}
           disabled={disabled}
           required={required}
-          className={`w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white ${
+          className={`w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
             error ? "border-red-400" : ""
-          } ${disabled ? "bg-gray-100 text-gray-500" : ""}`}
+          } ${disabled ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400" : ""}`}
         >
           <option value="" disabled>
             {placeholder}

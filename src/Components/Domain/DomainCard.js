@@ -153,7 +153,7 @@ const DomainCard = (props) => {
     }
   };
   return (
-    <div className="rounded-md hover:shadow-md border-2 border-gray-900/10 text-left w-[250px] relative border-1 border-gray-50 bg-white">
+    <div className="rounded-md hover:shadow-md dark:hover:shadow-black/40 border-2 border-gray-200 dark:border-gray-600 text-left w-[250px] relative bg-white dark:bg-gray-700 transition-colors">
       <Menu as="div" className="absolute top-3 right-3" >
         <Menu.Button
           ref={menuButtonRef}
@@ -173,7 +173,7 @@ const DomainCard = (props) => {
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <Menu.Item>
               {({ active }) => (
                 <div
@@ -181,7 +181,7 @@ const DomainCard = (props) => {
                     setMenuOpen(false);
                     handleOnClick("sync", props.id);
                   }}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 cursor-pointer"
                 >
                   Sync all users
                 </div>
@@ -198,7 +198,7 @@ const DomainCard = (props) => {
                     }
                   }}
                   className={classNames(
-                    "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2",
+                    "block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 flex items-center gap-2",
                     isLoading ? "opacity-60 pointer-events-none" : ""
                   )}
                   aria-disabled={isLoading}
@@ -215,12 +215,12 @@ const DomainCard = (props) => {
 
       <div className="px-6 py-4 border-1 ">
         <div
-          className="font-bold text-xl mb-2 cursor-pointer hover:text-[#1a365d] hover:underline"
+          className="font-bold text-xl mb-2 cursor-pointer hover:text-[#1a365d] dark:text-blue-300 hover:underline"
           onClick={() => handleOnClick("edit", props.id)}
         >
           {props.name}
         </div>
-        <p className="text-gray-700 text-base">{props.name}</p>
+        <p className="text-gray-700 dark:text-gray-300 text-base">{props.name}</p>
       </div>
       <div className="px-6 pt-4 pb-2 border-1 shadow-md">
         <span className="inline-block bg-[#1a365d]/80 rounded-md px-2 py-1 text-sm font-semibold text-[#f5f5f5] hover:text-white mr-2">

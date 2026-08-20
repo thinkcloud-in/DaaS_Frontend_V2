@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import "./css/ClusterCreationForm.css";
 import { InputField, PasswordField, SelectField } from "../Common";
 import { Slide, toast } from "react-toastify";
@@ -29,7 +30,7 @@ function classNames(...classes) {
 // ─── Shared step icon ─────────────────────────────────────────────────────────
 const StepIcon = ({ status }) => {
   if (status === "idle")
-    return <div className="w-4 h-4 rounded-full border-2 border-gray-300" />;
+    return <div className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />;
   if (status === "loading")
     return <CircularProgress size={16} style={{ color: "#1a365d" }} />;
   if (status === "success")
@@ -102,7 +103,7 @@ const stepTextClass = (status) =>
   ({
     success: "text-green-600 font-semibold",
     error: "text-red-500 font-semibold",
-    loading: "text-[#1a365d] font-medium",
+    loading: "text-[#1a365d] dark:text-blue-300 font-medium",
     idle: "text-gray-400",
   })[status] ?? "text-gray-400";
 
@@ -712,37 +713,25 @@ const ClusterCreationForm = () => {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="w-full md:w-[98%] mt-4 min-h-[75vh] h-[85vh] md:h-[90vh] m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
-      <div className="cluster-creation-form flex-1 overflow-auto rounded-md bg-white custom-scrollbar p-2 md:p-4">
+    <div className="w-full md:w-[98%] mt-4 min-h-[75vh] h-[85vh] md:h-[90vh] m-auto bg-white dark:bg-gray-800 rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
+      <div className="cluster-creation-form flex-1 overflow-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar p-2 md:p-4">
         {/* Back */}
         <div className="flex justify-start mb-6">
-          <div
+          <button
+            type="button"
             onClick={Goback}
-            className="bg-[#1a365dcc] text-[#f5f5f5] hover:bg-[#1a365d] hover:text-white px-2 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a365d] focus:ring-opacity-10 cursor-pointer"
+            className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors text-gray-700 dark:text-gray-300"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </div>
+            <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
+          </button>
         </div>
 
         <div className="cluster-creation-form w-full">
           <div
             className={`space-y-5 m-2 ${isLoading || monitoringLoading ? "opacity-50 pointer-events-none select-none" : ""}`}
           >
-            <div className="bg-white p-3 w-full max-w-4xl mx-auto">
-              <h2 className="font-bold leading-7 text-[#1a365d]">
+            <div className="bg-white dark:bg-gray-800 p-3 w-full max-w-4xl mx-auto">
+              <h2 className="font-bold leading-7 text-[#1a365d] dark:text-blue-300">
                 Create Cluster
               </h2>
               <div className="text-left w-full">
@@ -860,7 +849,7 @@ const ClusterCreationForm = () => {
 
                 {clusterDetails.type === "Hyper-V" && (
                   <div className="mb-6 flex items-center">
-                    <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                    <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                       <span>
                         <i className="fas fa-sitemap mr-2"></i>
                       </span>{" "}
@@ -895,7 +884,7 @@ const ClusterCreationForm = () => {
 
                 {clusterDetails.type.toLowerCase() !== "hyper-v" && (
                   <div className="mb-6 flex items-center">
-                    <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                    <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                       <span>
                         <i className="fas fa-shield-halved mr-2"></i>
                       </span>{" "}
@@ -945,9 +934,9 @@ const ClusterCreationForm = () => {
             clusterDetails.type === "Hyper-V" &&
             hyperVNodeType.standalone && (
               <div className="mt-4 pl-5">
-                <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-sm">
-                  <h4 className="text-sm font-bold text-[#1a365d] mb-4 flex items-center gap-2">
-                    <i className="fas fa-shield-halved text-[#1a365d]" />
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-5 max-w-sm">
+                  <h4 className="text-sm font-bold text-[#1a365d] dark:text-blue-300 mb-4 flex items-center gap-2">
+                    <i className="fas fa-shield-halved text-[#1a365d] dark:text-blue-300" />
                     Verification Status
                   </h4>
                   <div className="space-y-3">
@@ -973,16 +962,16 @@ const ClusterCreationForm = () => {
             clusterDetails.type === "Hyper-V" &&
             hyperVNodeType.cluster && (
               <div className="mt-6 pl-5">
-                <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-3xl">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-5 max-w-3xl">
                   {/* Header + summary */}
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-bold text-[#1a365d] flex items-center gap-2">
-                      <i className="fas fa-network-wired text-[#1a365d]" />
+                    <h4 className="text-sm font-bold text-[#1a365d] dark:text-blue-300 flex items-center gap-2">
+                      <i className="fas fa-network-wired text-[#1a365d] dark:text-blue-300" />
                       Cluster Node Verification
                     </h4>
                     {multiNodeSummary && !fetchingNodes && (
                       <div className="flex items-center gap-2 text-xs">
-                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
+                        <span className="px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium">
                           {multiNodeSummary.total} nodes
                         </span>
                         {multiNodeSummary.success > 0 && (
@@ -1015,7 +1004,7 @@ const ClusterCreationForm = () => {
                         size={20}
                         style={{ color: "#1a365d" }}
                       />
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                         Fetching cluster nodes…
                       </span>
                     </div>
@@ -1032,7 +1021,7 @@ const ClusterCreationForm = () => {
                               ? "border-red-400"
                               : node.overallStatus === "verifying"
                                 ? "border-blue-400"
-                                : "border-gray-200";
+                                : "border-gray-200 dark:border-gray-700";
                         const headerBg =
                           node.overallStatus === "success"
                             ? "bg-green-50"
@@ -1040,7 +1029,7 @@ const ClusterCreationForm = () => {
                               ? "bg-red-50"
                               : node.overallStatus === "verifying"
                                 ? "bg-blue-50"
-                                : "bg-gray-50";
+                                : "bg-gray-50 dark:bg-gray-900/60";
                         return (
                           <div
                             key={nodeIdx}
@@ -1051,8 +1040,8 @@ const ClusterCreationForm = () => {
                               className={`${headerBg} px-4 py-2.5 flex items-center justify-between`}
                             >
                               <div className="flex items-center gap-2">
-                                <i className="fas fa-server text-[#1a365d] text-xs" />
-                                <span className="text-sm font-bold text-[#1a365d]">
+                                <i className="fas fa-server text-[#1a365d] dark:text-blue-300 text-xs" />
+                                <span className="text-sm font-bold text-[#1a365d] dark:text-blue-300">
                                   {node.Node_name}
                                 </span>
                               </div>
@@ -1060,12 +1049,12 @@ const ClusterCreationForm = () => {
                             </div>
 
                             {/* Node meta: IP + VM count + agent/hyperv badges */}
-                            <div className="px-4 py-2 bg-white flex items-center flex-wrap gap-3 border-b border-gray-100">
-                              <span className="text-xs text-gray-500 flex items-center gap-1">
+                            <div className="px-4 py-2 bg-white dark:bg-gray-800 flex items-center flex-wrap gap-3 border-b border-gray-100">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                 <i className="fas fa-network-wired text-gray-400 text-[10px]" />
                                 {node.IP}
                               </span>
-                              <span className="text-xs text-gray-500 flex items-center gap-1">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                 <i className="fas fa-desktop text-gray-400 text-[10px]" />
                                 {node.VMCount} VM{node.VMCount !== 1 ? "s" : ""}
                               </span>
@@ -1078,7 +1067,7 @@ const ClusterCreationForm = () => {
                             </div>
 
                             {/* Verification steps */}
-                            <div className="px-4 py-3 space-y-2.5 bg-white">
+                            <div className="px-4 py-3 space-y-2.5 bg-white dark:bg-gray-800">
                               {node.steps.map((step) => (
                                 <div
                                   key={step.id}
@@ -1127,7 +1116,7 @@ const ClusterCreationForm = () => {
 
         {/* ── Monitoring section (Proxmox only) ──────────────────────────── */}
         {createdClusterId && clusterDetails.type === "Proxmox" && (
-          <div className="monitoring-section mt-4 p-3 relative bg-gray-50 rounded-lg">
+          <div className="monitoring-section mt-4 p-3 relative bg-gray-50 dark:bg-gray-900/60 rounded-lg">
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -1137,7 +1126,7 @@ const ClusterCreationForm = () => {
                   monitoringLoading || clusterDetails.type !== "Proxmox"
                 }
               />
-              <span className="font-medium text-gray-800">Monitoring</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">Monitoring</span>
               {monitoringLoading && (
                 <CircularProgress size={16} color="inherit" />
               )}
@@ -1150,7 +1139,7 @@ const ClusterCreationForm = () => {
             )}
 
             {monitoringEnabled && monitoringData && (
-              <div className="p-8 rounded-md shadow-sm bg-white mt-0">
+              <div className="p-8 rounded-md shadow-sm bg-white dark:bg-gray-800 mt-0">
                 <h3 className="text-lg font-semibold text-indigo-800 mb-1 pb-1">
                   InfluxDB Metric Server
                 </h3>
@@ -1163,7 +1152,7 @@ const ClusterCreationForm = () => {
                   ].map(({ label, key }) => (
                     <div key={key} className="tr flex items-center mb-2">
                       <div className="th w-40 flex-shrink-0">
-                        <label className="block mt-2 text-sm font-medium text-gray-900">
+                        <label className="block mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                           {label}
                         </label>
                       </div>
@@ -1175,8 +1164,8 @@ const ClusterCreationForm = () => {
                           className={classNames(
                             isDisabled
                               ? "bg-gray-200 border-slate-300"
-                              : "bg-white bg-transparent",
-                            "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2",
+                              : "bg-white dark:bg-gray-800 bg-transparent",
+                            "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 border-2",
                           )}
                         />
                       </div>
@@ -1184,7 +1173,7 @@ const ClusterCreationForm = () => {
                   ))}
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
-                      <label className="block mt-2 text-sm font-medium text-gray-900">
+                      <label className="block mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                         Protocol
                       </label>
                     </div>
@@ -1200,15 +1189,15 @@ const ClusterCreationForm = () => {
                         className={classNames(
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
-                            : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2",
+                            : "bg-white dark:bg-gray-800 bg-transparent",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 border-2",
                         )}
                       />
                     </div>
                   </div>
                   <div className="tr flex items-center mb-2">
                     <div className="th w-40 flex-shrink-0">
-                      <label className="block mt-2 text-sm font-medium text-gray-900">
+                      <label className="block mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                         Token
                       </label>
                     </div>
@@ -1220,8 +1209,8 @@ const ClusterCreationForm = () => {
                         className={classNames(
                           isDisabled
                             ? "bg-gray-200 border-slate-300"
-                            : "bg-white bg-transparent",
-                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 placeholder:text-gray-400 border-2",
+                            : "bg-white dark:bg-gray-800 bg-transparent",
+                          "w-72 rounded-md py-1 px-2 text-base text-gray-900 dark:text-gray-100 placeholder:text-gray-400 border-2",
                         )}
                       />
                     </div>
@@ -1258,13 +1247,13 @@ const ClusterCreationForm = () => {
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                   <i className="fas fa-exclamation-triangle text-red-600 text-xl"></i>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
                   Verification Failures
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   The following nodes failed verification:
                 </p>
-                <div className="w-full bg-gray-50 rounded p-2 mb-6 max-h-32 overflow-y-auto">
+                <div className="w-full bg-gray-50 dark:bg-gray-900/60 rounded p-2 mb-6 max-h-32 overflow-y-auto">
                   {failedNodes.map((fn, idx) => (
                     <div
                       key={idx}
@@ -1274,7 +1263,7 @@ const ClusterCreationForm = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm font-semibold text-gray-800 mb-6">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-6">
                   Do you still want to add this cluster?
                 </p>
                 <div className="flex gap-4 w-full">
@@ -1285,7 +1274,7 @@ const ClusterCreationForm = () => {
                     Yes, Add Anyway
                   </button>
                   <button
-                    className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 transition-colors"
+                    className="flex-1 px-4 py-2 rounded-md bg-gray-200 text-gray-800 dark:text-gray-100 font-semibold hover:bg-gray-300 transition-colors"
                     onClick={() => handleFailureConfirm(false)}
                   >
                     No, Cancel

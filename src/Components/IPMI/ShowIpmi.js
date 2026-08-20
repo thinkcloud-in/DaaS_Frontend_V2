@@ -8,6 +8,9 @@ import { deleteIpmiServerThunk } from '../../redux/features/IPMI/IpmiThunks';
 import { selectIsIpmiDeleteLoading } from '../../redux/features/IPMI/IpmiSelectors';
 import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
 import { toast } from "react-toastify";
+import { Pagination } from "../Common";
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const columnStyles = [
   "w-[20%] text-center", 
@@ -17,7 +20,16 @@ const columnStyles = [
   "w-[20%] text-center", 
 ];
  
-const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
+const ShowIPMI = ({
+  ipmiList = [],
+  refreshIpmiList,
+  pagination,
+  currentPage = 1,
+  pageSize = 10,
+  onPageChange,
+  onPageSizeChange,
+  loading,
+}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -27,7 +39,7 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
 
   const handleDeleteIPMI = async (ipmi_id) => {
     if (!window.confirm('Are you sure you want to delete this IPMI server?')) return;
-    
+
     try {
       await dispatch(deleteIpmiServerThunk({ token, ipmiId: ipmi_id, userEmail })).unwrap();
       if (refreshIpmiList) refreshIpmiList();
@@ -74,9 +86,9 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
   };
 
   return (
-    <div className="w-[98%] flex-1 mx-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
+    <div className="w-[98%] flex-1 mx-auto bg-white dark:bg-gray-800 rounded-lg p-4 flex flex-col overflow-hidden">
       <div className="relative mb-4">
-        <h2 className="text-lg font-semibold text-center text-gray-700">Available IPMI Devices</h2>
+        <h2 className="text-lg font-semibold text-center text-gray-700 dark:text-gray-300">Available IPMI Devices</h2>
         <div className="absolute right-0 top-0">
           <button
             onClick={() => navigate("/ipmi/ipmi-create-form")}
@@ -86,10 +98,10 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
-        <table className="min-w-full bg-white text-[0.9rem] border-collapse">
-          <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-            <tr>
+      <div className="flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar">
+        <table className="min-w-full bg-white dark:bg-gray-800 text-[0.9rem] border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-[#1a365d] text-white font-bold uppercase text-[0.8rem] leading-normal select-none">
               <th className={`py-2 px-4 ${columnStyles[0]}`}>IPMI IP</th>
               <th className={`py-2 px-4 ${columnStyles[1]}`}>NAME</th>
               <th className={`py-2 px-4 ${columnStyles[2]}`}>USERNAME</th>
@@ -100,7 +112,7 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
           <tbody>
             {ipmiList.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-500">
+                <td colSpan={5} className="text-center py-8 text-gray-500 dark:text-gray-400">
                   No IPMI devices found.
                 </td>
               </tr>
@@ -108,14 +120,14 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
               ipmiList.map((item) => (
                 <tr
                   key={item.id}
-                  className="border-b border-gray-200 hover:bg-[#F0F8FFCC]"
+                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50/40 dark:hover:bg-gray-700/60 transition-colors"
                 >
                   <td className={`py-2 px-4 ${columnStyles[0]}`}>{item.ipmi_server_ip}</td>
                   <td className={`py-2 px-4 ${columnStyles[1]}`}>{item.name || "-"}</td>
                   <td className={`py-2 px-4 ${columnStyles[2]}`}>{item.username}</td>
                   <td className={`py-2 px-4 ${columnStyles[3]} align-middle`}>
                     <PencilSquareIcon
-                      className="h-5 w-5 text-[#4a38f0dc] hover:text-blue cursor-pointer mx-auto block"
+                      className="h-5 w-5 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 cursor-pointer mx-auto block"
                       title="Edit"
                       onClick={() => navigate(`/ipmi/edit-ipmi/${item.id}`)}
                       style={{ verticalAlign: "middle" }}
@@ -130,8 +142,23 @@ const ShowIPMI = ({ ipmiList = [], refreshIpmiList }) => {
           </tbody>
         </table>
       </div>
+      {ipmiList.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={pagination?.total_pages}
+          onPageChange={onPageChange}
+          totalItems={pagination?.total}
+          pageSize={pageSize}
+          onPageSizeChange={onPageSizeChange}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          itemLabel="IPMI devices"
+          loading={loading}
+          hasPrev={pagination?.has_prev}
+          hasNext={pagination?.has_next}
+        />
+      )}
     </div>
   );
 };
- 
+
 export default ShowIPMI;

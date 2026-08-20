@@ -117,7 +117,7 @@ const EditIpmi = () => {
   };
 
   return (
-    <div className="w-[98%] h-[90vh] m-auto mt-4 bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="w-[98%] h-[90vh] m-auto mt-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md flex flex-col overflow-hidden">
       <div className="flex items-center mb-6 mt-10">
         <button
           onClick={Goback}
@@ -153,11 +153,11 @@ const EditIpmi = () => {
         <h3 className="text-lg font-medium text-[#2d3146] mb-8 pb-4 pl-6 bg-transparent">
           Edit IPMI Device
         </h3>
-        <div className="bg-white rounded-xl h-full p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl h-full p-8">
           {fetchLoading ? (
             <form className="pr-2">
               <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                   <span>
                     <i className="fas fa-server mr-2"></i>
                   </span>
@@ -166,7 +166,7 @@ const EditIpmi = () => {
                 <SkeletonInput />
               </div>
               <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                   <span>
                     <i className="fas fa-signature mr-2"></i>
                   </span>
@@ -175,7 +175,7 @@ const EditIpmi = () => {
                 <SkeletonInput />
               </div>
               <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                   <span>
                     <i className="fas fa-user mr-2"></i>
                   </span>
@@ -184,7 +184,7 @@ const EditIpmi = () => {
                 <SkeletonInput />
               </div>
               <div className="mb-6 flex items-center">
-                <label className="flex items-center gap-2 font-medium text-[#22223b] min-w-[180px]">
+                <label className="flex items-center gap-2 font-medium text-[#22223b] dark:text-gray-100 min-w-[180px]">
                   <span>
                     <i className="fas fa-lock mr-2"></i>
                   </span>

@@ -51,25 +51,25 @@ const HarborDetail = () => {
     }, [detail, loadDetail]);
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen text-left flex flex-col w-full select-none">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full select-none">
 
             {/* Header */}
-            <div className="pb-4 border-b border-gray-200 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => navigate("/harbor")}
-                        className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
+                        className="p-1.5 rounded hover:bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:text-gray-300 transition-colors flex-shrink-0"
                     >
                         <ArrowLeft className="h-4 w-4" />
                     </button>
                     <div className="h-9 w-9 rounded-lg bg-[#1a365d]/10 flex items-center justify-center flex-shrink-0">
-                        <Activity className="h-4 w-4 text-[#1a365d]" />
+                        <Activity className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-[#1a365d]">
+                        <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">
                             {detail?.name || nameFromList || `Deployment #${id}`}
                         </h1>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {type === "kubernetes" ? "Kubernetes" : "LXC"} deployment · #{id}
                         </p>
                     </div>
@@ -77,7 +77,7 @@ const HarborDetail = () => {
                 <button
                     onClick={loadDetail}
                     disabled={loading}
-                    className="p-2 text-gray-500 hover:text-[#1a365d] bg-white hover:bg-gray-100 rounded border border-gray-200 shadow-xs transition-colors self-start sm:self-auto"
+                    className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 shadow-xs transition-colors self-start sm:self-auto"
                     title="Refresh"
                 >
                     <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -85,10 +85,10 @@ const HarborDetail = () => {
             </div>
 
             {/* Content */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 w-full max-w-3xl p-6 space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full max-w-3xl p-6 space-y-4">
                 {loading && !detail ? (
                     <div className="py-16 text-center">
-                        <Loader2 className="h-6 w-6 text-[#1a365d] animate-spin mx-auto mb-2" />
+                        <Loader2 className="h-6 w-6 text-[#1a365d] dark:text-blue-300 animate-spin mx-auto mb-2" />
                         <p className="text-xs text-gray-400">Loading details...</p>
                     </div>
                 ) : error ? (
@@ -102,13 +102,13 @@ const HarborDetail = () => {
                         <div className="flex items-center justify-between">
                             <DeployStatusBadge status={detail.status} />
                             {detail.progress?.pct != null && (
-                                <span className="text-xs font-semibold text-gray-500">
+                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                                     {detail.progress.label} — {detail.progress.pct}%
                                 </span>
                             )}
                         </div>
                         {detail.progress?.pct != null && (
-                            <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                                 <div
                                     className="h-1.5 rounded-full bg-[#1a365d] transition-all duration-500"
                                     style={{ width: `${detail.progress.pct}%` }}
@@ -148,7 +148,7 @@ const HarborDetail = () => {
                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
                                             {KNOWN_FIELD_LABELS[key] || prettifyKey(key)}
                                         </span>
-                                        <span className="text-xs font-medium text-gray-800 font-mono whitespace-pre-wrap break-all">
+                                        <span className="text-xs font-medium text-gray-800 dark:text-gray-100 font-mono whitespace-pre-wrap break-all">
                                             {formatValue(val)}
                                         </span>
                                     </div>

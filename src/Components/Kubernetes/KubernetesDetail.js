@@ -230,8 +230,8 @@ const KubernetesDetail = () => {
 
   if (!cluster || nodes.length === 0) {
     return (
-      <div className="p-6 text-center text-gray-500">
-        <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto text-[#1a365d] mb-2" />
+      <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+        <ArrowPathIcon className="h-6 w-6 animate-spin mx-auto text-[#1a365d] dark:text-blue-300 mb-2" />
         Loading monitoring dashboard...
       </div>
     );
@@ -282,12 +282,12 @@ const KubernetesDetail = () => {
     nodes.find((n) => n.role.includes("Master"))?.kubeletVersion || nodes[0]?.kubeletVersion || "-";
 
   return (
-    <div className="p-6 pb-32 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full">
+    <div className="p-6 pb-32 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full">
       {/* Breadcrumb / Back button */}
       <div className="mb-4">
         <button
           onClick={() => navigate("/kubernetes")}
-          className="flex items-center gap-1.5 text-[#1a365d] hover:text-[#153056] font-semibold text-sm transition-colors"
+          className="flex items-center gap-1.5 text-[#1a365d] dark:text-blue-300 hover:text-[#153056] font-semibold text-sm transition-colors"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           Back to Kubernetes Pools
@@ -295,34 +295,34 @@ const KubernetesDetail = () => {
       </div>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-5 border-b border-gray-200 mb-6 w-full gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between pb-5 border-b border-gray-200 dark:border-gray-700 mb-6 w-full gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-gray-900">{cluster.name}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{cluster.name}</h1>
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold shadow-sm border ${
                 isHealthyStatus
                   ? "bg-green-100 text-green-800 border-green-200"
-                  : "bg-gray-100 text-gray-700 border-gray-200"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700"
               }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${isHealthyStatus ? "bg-green-500" : "bg-gray-400"}`} />
               {statusLabel}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1 font-mono">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">
             API Endpoint: https://{cluster.headIp}:{cluster.port} | Version: {clusterVersion}
           </p>
         </div>
 
         {/* Top level tabs */}
-        <div className="flex bg-gray-200/60 p-0.5 rounded-lg border border-gray-200 shrink-0">
+        <div className="flex bg-gray-200/60 p-0.5 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0">
           <button
             onClick={() => setActiveTab("overview")}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeTab === "overview"
-                ? "bg-white text-[#1a365d] shadow-sm font-bold"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-gray-800 text-[#1a365d] dark:text-blue-300 shadow-sm font-bold"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100"
             }`}
           >
             Cluster Overview
@@ -331,8 +331,8 @@ const KubernetesDetail = () => {
             onClick={() => setActiveTab("pods")}
             className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
               activeTab === "pods"
-                ? "bg-white text-[#1a365d] shadow-sm font-bold"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-gray-800 text-[#1a365d] dark:text-blue-300 shadow-sm font-bold"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-gray-100"
             }`}
           >
             All Pods
@@ -345,7 +345,7 @@ const KubernetesDetail = () => {
           {/* Dashboard Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full mb-6">
             {/* Pods Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4 hover:shadow transition-shadow">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4 hover:shadow transition-shadow">
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
                 <Square3Stack3DIcon className="h-6 w-6" />
               </div>
@@ -353,13 +353,13 @@ const KubernetesDetail = () => {
                 <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
                   Pods Usage
                 </span>
-                <span className="text-2xl font-bold text-gray-800 block mt-0.5">
+                <span className="text-2xl font-bold text-gray-800 dark:text-gray-100 block mt-0.5">
                   {podsRunningDisplay} / {podsCapacityDisplay}
                 </span>
-                <span className="text-[10px] text-gray-500 block">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 block">
                   Usage: {podsUsagePercent}% Capacity
                 </span>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mt-2">
                   <div
                     className="bg-emerald-500 h-1.5 rounded-full transition-all"
                     style={{ width: `${podsUsagePercent}%` }}
@@ -369,7 +369,7 @@ const KubernetesDetail = () => {
             </div>
 
             {/* Nodes Status Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-center gap-4 hover:shadow transition-shadow">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4 hover:shadow transition-shadow">
               <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">
                 <ServerIcon className="h-6 w-6" />
               </div>
@@ -377,10 +377,10 @@ const KubernetesDetail = () => {
                 <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
                   Nodes Status
                 </span>
-                <span className="text-2xl font-bold text-gray-800 block mt-0.5">
+                <span className="text-2xl font-bold text-gray-800 dark:text-gray-100 block mt-0.5">
                   {nodesReadyDisplay} / {nodesTotalDisplay} Ready
                 </span>
-                <span className="text-[10px] text-gray-500 block">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 block">
                   {nodesReadyDisplay === nodesTotalDisplay
                     ? "All systems operating normally"
                     : "Some nodes are not ready"}
@@ -403,9 +403,9 @@ const KubernetesDetail = () => {
           {/* Topology Layout & Selected Node Panel */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full mb-6">
             {/* Kubernetes Multi-node Topology schema */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 lg:col-span-2 flex flex-col justify-between">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 lg:col-span-2 flex flex-col justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900 mb-1">
+                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">
                   Cluster Multi-Node Topology
                 </h3>
                 <p className="text-xs text-gray-400 mb-6">
@@ -414,24 +414,24 @@ const KubernetesDetail = () => {
               </div>
 
               {/* Graphical Schema representation */}
-              <div className="flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-xl border border-gray-200/50 min-h-[220px]">
+              <div className="flex flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-900/60/50 rounded-xl border border-gray-200 dark:border-gray-700/50 min-h-[220px]">
                 <div className="flex flex-col items-center gap-8 w-full">
                   {/* Master Card */}
                   {nodes.filter((n) => n.role.includes("Master")).map((masterNode) => (
                     <div
                       key={masterNode.id}
                       onClick={() => setSelectedNodeId(masterNode.id)}
-                      className={`relative flex flex-col items-center p-4 bg-white border rounded-xl shadow-sm cursor-pointer transition-all hover:-translate-y-1 w-64 text-center z-10
+                      className={`relative flex flex-col items-center p-4 bg-white dark:bg-gray-800 border rounded-xl shadow-sm cursor-pointer transition-all hover:-translate-y-1 w-64 text-center z-10
                         ${
                           selectedNodeId === masterNode.id
                             ? "ring-2 ring-[#1a365d] border-[#1a365d] bg-blue-50/10"
-                            : "border-gray-200 hover:shadow-md"
+                            : "border-gray-200 dark:border-gray-700 hover:shadow-md"
                         }`}
                     >
                       {/* Connection point dot */}
                       <span className="absolute -bottom-1.5 h-3 w-3 bg-[#1a365d] rounded-full border-2 border-white" />
-                      <ServerIcon className="h-7 w-7 text-[#1a365d] mb-1.5" />
-                      <span className="text-sm font-bold text-gray-800">{masterNode.name}</span>
+                      <ServerIcon className="h-7 w-7 text-[#1a365d] dark:text-blue-300 mb-1.5" />
+                      <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{masterNode.name}</span>
                       <span className="text-[10px] uppercase font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded mt-1 border border-blue-100">
                         Control Plane / Head
                       </span>
@@ -453,20 +453,20 @@ const KubernetesDetail = () => {
                         <div
                           key={workerNode.id}
                           onClick={() => setSelectedNodeId(workerNode.id)}
-                          className={`relative flex flex-col items-center p-4 bg-white border rounded-xl shadow-sm cursor-pointer transition-all hover:-translate-y-1 w-44 text-center
+                          className={`relative flex flex-col items-center p-4 bg-white dark:bg-gray-800 border rounded-xl shadow-sm cursor-pointer transition-all hover:-translate-y-1 w-44 text-center
                             ${
                               selectedNodeId === workerNode.id
                                 ? "ring-2 ring-[#1a365d] border-[#1a365d] bg-blue-50/10"
-                                : "border-gray-200 hover:shadow-md"
+                                : "border-gray-200 dark:border-gray-700 hover:shadow-md"
                             }`}
                         >
                           {/* Connection point dot */}
                           <span className="absolute -top-1.5 h-3 w-3 bg-gray-300 rounded-full border-2 border-white" />
-                          <ServerIcon className="h-6 w-6 text-gray-600 mb-1.5" />
-                          <span className="text-xs font-bold text-gray-800 truncate w-full px-1">
+                          <ServerIcon className="h-6 w-6 text-gray-600 dark:text-gray-400 mb-1.5" />
+                          <span className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate w-full px-1">
                             {workerNode.name}
                           </span>
-                          <span className="text-[9px] uppercase font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded mt-1">
+                          <span className="text-[9px] uppercase font-bold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded mt-1">
                             Worker Node
                           </span>
                           <span className="text-[10px] text-gray-400 mt-0.5 font-mono">{workerNode.ip}</span>
@@ -490,10 +490,10 @@ const KubernetesDetail = () => {
             </div>
 
             {/* Selected Node details Panel */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
-                  <h3 className="text-base font-bold text-gray-900">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
                     Node Metadata
                   </h3>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700">
@@ -507,20 +507,20 @@ const KubernetesDetail = () => {
                     <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                       Node Name
                     </span>
-                    <span className="text-gray-800 font-bold block mt-0.5">{selectedNode.name}</span>
+                    <span className="text-gray-800 dark:text-gray-100 font-bold block mt-0.5">{selectedNode.name}</span>
                   </div>
                   <div>
                     <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                       Role / Type
                     </span>
-                    <span className="text-gray-800 font-medium block mt-0.5">{selectedNode.role}</span>
+                    <span className="text-gray-800 dark:text-gray-100 font-medium block mt-0.5">{selectedNode.role}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                         IP Address
                       </span>
-                      <span className="text-gray-800 font-mono font-medium block mt-0.5">
+                      <span className="text-gray-800 dark:text-gray-100 font-mono font-medium block mt-0.5">
                         {selectedNode.ip}
                       </span>
                     </div>
@@ -528,7 +528,7 @@ const KubernetesDetail = () => {
                       <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                         Uptime
                       </span>
-                      <span className="text-gray-800 block mt-0.5">{selectedNode.uptime}</span>
+                      <span className="text-gray-800 dark:text-gray-100 block mt-0.5">{selectedNode.uptime}</span>
                     </div>
                   </div>
                   <div className="border-t border-gray-100 pt-3" />
@@ -537,7 +537,7 @@ const KubernetesDetail = () => {
                       <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                         vCPU Cores
                       </span>
-                      <span className="text-gray-800 font-bold block mt-0.5">
+                      <span className="text-gray-800 dark:text-gray-100 font-bold block mt-0.5">
                         {selectedNode.cpuCores} Cores
                       </span>
                     </div>
@@ -545,7 +545,7 @@ const KubernetesDetail = () => {
                       <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                         RAM Size
                       </span>
-                      <span className="text-gray-800 font-bold block mt-0.5">
+                      <span className="text-gray-800 dark:text-gray-100 font-bold block mt-0.5">
                         {selectedNode.ramGb} GB
                       </span>
                     </div>
@@ -553,7 +553,7 @@ const KubernetesDetail = () => {
                       <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                         Storage Size
                       </span>
-                      <span className="text-gray-800 font-bold block mt-0.5">
+                      <span className="text-gray-800 dark:text-gray-100 font-bold block mt-0.5">
                         {selectedNode.diskGb} GB
                       </span>
                     </div>
@@ -563,7 +563,7 @@ const KubernetesDetail = () => {
                     <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                       Container Runtime
                     </span>
-                    <span className="text-gray-700 font-mono block mt-0.5">
+                    <span className="text-gray-700 dark:text-gray-300 font-mono block mt-0.5">
                       {selectedNode.containerRuntime}
                     </span>
                   </div>
@@ -571,17 +571,17 @@ const KubernetesDetail = () => {
                     <span className="text-gray-400 font-semibold uppercase tracking-wide block">
                       Kubelet Version
                     </span>
-                    <span className="text-gray-700 font-mono block mt-0.5">
+                    <span className="text-gray-700 dark:text-gray-300 font-mono block mt-0.5">
                       {selectedNode.kubeletVersion}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3.5 mt-4">
-                <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+              <div className="bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-lg p-3.5 mt-4">
+                <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mb-1">
                   <span>Running Pods</span>
-                  <span className="font-bold text-gray-800">
+                  <span className="font-bold text-gray-800 dark:text-gray-100">
                     {selectedNode.podsRunning} / {selectedNode.podsLimit}
                   </span>
                 </div>
@@ -596,9 +596,9 @@ const KubernetesDetail = () => {
           </div>
 
           {/* Machine Hardware Monitoring Title */}
-          <div className="pb-3 border-b border-gray-200 mb-5 w-full flex items-center gap-2">
-            <ArrowTrendingUpIcon className="h-5 w-5 text-[#1a365d]" />
-            <h2 className="text-lg font-bold text-gray-900">
+          <div className="pb-3 border-b border-gray-200 dark:border-gray-700 mb-5 w-full flex items-center gap-2">
+            <ArrowTrendingUpIcon className="h-5 w-5 text-[#1a365d] dark:text-blue-300" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
               Machine Hardware Monitoring ({selectedNode.name})
             </h2>
           </div>
@@ -606,14 +606,14 @@ const KubernetesDetail = () => {
           {/* Real-time SVG Charts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
             {/* CPU Chart */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
                       Node CPU Usage
                     </span>
-                    <h4 className="text-xl font-bold text-gray-800 mt-0.5">
+                    <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-0.5">
                       {liveCpu}%
                     </h4>
                   </div>
@@ -624,7 +624,7 @@ const KubernetesDetail = () => {
               </div>
 
               {/* SVG Area Chart */}
-              <div className="h-[150px] w-full mt-4 relative bg-gray-50/30 rounded border border-gray-100 overflow-hidden">
+              <div className="h-[150px] w-full mt-4 relative bg-gray-50 dark:bg-gray-900/60/30 rounded border border-gray-100 overflow-hidden">
                 <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="cpuGrad" x1="0" y1="0" x2="0" y2="1">
@@ -657,14 +657,14 @@ const KubernetesDetail = () => {
             </div>
 
             {/* RAM Chart */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
                       Node RAM Usage
                     </span>
-                    <h4 className="text-xl font-bold text-gray-800 mt-0.5">
+                    <h4 className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-0.5">
                       {liveMem}%
                     </h4>
                   </div>
@@ -675,7 +675,7 @@ const KubernetesDetail = () => {
               </div>
 
               {/* SVG Area Chart */}
-              <div className="h-[150px] w-full mt-4 relative bg-gray-50/30 rounded border border-gray-100 overflow-hidden">
+              <div className="h-[150px] w-full mt-4 relative bg-gray-50 dark:bg-gray-900/60/30 rounded border border-gray-100 overflow-hidden">
                 <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="memGrad" x1="0" y1="0" x2="0" y2="1">
@@ -708,25 +708,25 @@ const KubernetesDetail = () => {
             </div>
 
             {/* Network Traffic Chart */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <span className="text-xs font-semibold text-gray-400 block uppercase tracking-wide">
                       Network Throughput
                     </span>
-                    <h4 className="text-sm font-bold text-gray-800 mt-1">
+                    <h4 className="text-sm font-bold text-gray-800 dark:text-gray-100 mt-1">
                       In: <span className="text-emerald-600 text-base">{liveNetIn} MB/s</span> | Out: <span className="text-indigo-600 text-base">{liveNetOut} MB/s</span>
                     </h4>
                   </div>
-                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[9px] uppercase font-bold tracking-wider">
+                  <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-[9px] uppercase font-bold tracking-wider">
                     kube-overlay
                   </span>
                 </div>
               </div>
 
               {/* SVG Area Chart */}
-              <div className="h-[150px] w-full mt-4 relative bg-gray-50/30 rounded border border-gray-100 overflow-hidden">
+              <div className="h-[150px] w-full mt-4 relative bg-gray-50 dark:bg-gray-900/60/30 rounded border border-gray-100 overflow-hidden">
                 <svg className="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="netGrad" x1="0" y1="0" x2="0" y2="1">
@@ -761,9 +761,9 @@ const KubernetesDetail = () => {
         </>
       ) : (
         /* Pods Tab */
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 w-full">
           <div className="mb-4">
-            <h3 className="text-base font-bold text-gray-900 mb-1">
+            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-1">
               All Pods
             </h3>
             <p className="text-xs text-gray-400">
@@ -773,8 +773,8 @@ const KubernetesDetail = () => {
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-xs">
-              <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wide">
-                <tr>
+              <thead>
+                <tr className="bg-[#1a365d] text-white font-bold uppercase tracking-wide select-none">
                   <th className="py-3 px-4 text-left">Name</th>
                   <th className="py-3 px-4 text-left">Namespace</th>
                   <th className="py-3 px-4 text-left">Node</th>
@@ -785,7 +785,7 @@ const KubernetesDetail = () => {
                   <th className="py-3 px-4 text-left">IP</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 text-gray-700">
+              <tbody className="divide-y divide-gray-200 text-gray-700 dark:text-gray-300">
                 {!cluster.allPods || cluster.allPods.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="py-8 text-center text-gray-400">
@@ -796,10 +796,10 @@ const KubernetesDetail = () => {
                   cluster.allPods.map((pod, idx) => {
                     const isHealthy = (pod.status || "").toLowerCase() === "running";
                     return (
-                      <tr key={idx} className="hover:bg-gray-50/50">
-                        <td className="py-3.5 px-4 font-bold text-gray-800">{pod.name}</td>
-                        <td className="py-3.5 px-4 font-mono text-gray-500">{pod.namespace}</td>
-                        <td className="py-3.5 px-4 text-gray-600">{pod.node}</td>
+                      <tr key={idx} className="hover:bg-gray-50 dark:bg-gray-900/60/50">
+                        <td className="py-3.5 px-4 font-bold text-gray-800 dark:text-gray-100">{pod.name}</td>
+                        <td className="py-3.5 px-4 font-mono text-gray-500 dark:text-gray-400">{pod.namespace}</td>
+                        <td className="py-3.5 px-4 text-gray-600 dark:text-gray-400">{pod.node}</td>
                         <td className="py-3.5 px-4 text-center">
                           <span
                             className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -816,10 +816,10 @@ const KubernetesDetail = () => {
                             {pod.status}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 text-center text-gray-600">{pod.ready}</td>
-                        <td className="py-3.5 px-4 text-center text-gray-600">{pod.restarts}</td>
-                        <td className="py-3.5 px-4 text-gray-500">{pod.age}</td>
-                        <td className="py-3.5 px-4 font-mono text-gray-500">{pod.pod_ip}</td>
+                        <td className="py-3.5 px-4 text-center text-gray-600 dark:text-gray-400">{pod.ready}</td>
+                        <td className="py-3.5 px-4 text-center text-gray-600 dark:text-gray-400">{pod.restarts}</td>
+                        <td className="py-3.5 px-4 text-gray-500 dark:text-gray-400">{pod.age}</td>
+                        <td className="py-3.5 px-4 font-mono text-gray-500 dark:text-gray-400">{pod.pod_ip}</td>
                       </tr>
                     );
                   })

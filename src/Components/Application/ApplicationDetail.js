@@ -31,15 +31,15 @@ const isActive = (s) => ACTIVE_STATUSES.includes(s?.toLowerCase());
 const InfoRow = ({ label, value, mono }) => (
     <div>
         <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide block">{label}</span>
-        <span className={`text-sm text-gray-800 font-medium block mt-0.5 ${mono ? "font-mono text-xs" : ""}`}>{value || "—"}</span>
+        <span className={`text-sm text-gray-800 dark:text-gray-100 font-medium block mt-0.5 ${mono ? "font-mono text-xs" : ""}`}>{value || "—"}</span>
     </div>
 );
 
 const Panel = ({ title, icon: Icon, children, action, badge }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Icon className="h-4 w-4 text-[#1a365d]" />
+            <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Icon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                 {title}
                 {badge && (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 ring-1 ring-inset ring-red-200">
@@ -105,13 +105,13 @@ const CopyableField = ({ label, value, maskable }) => {
                     value={value}
                     readOnly
                     onFocus={(e) => e.target.select()}
-                    className="flex-1 min-w-0 text-xs font-mono text-gray-800 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                    className="flex-1 min-w-0 text-xs font-mono text-gray-800 dark:text-gray-100 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
                 />
                 {maskable && (
                     <button
                         type="button"
                         onClick={() => setVisible((s) => !s)}
-                        className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                        className="text-gray-400 hover:text-gray-600 dark:text-gray-400 flex-shrink-0"
                     >
                         {visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </button>
@@ -119,7 +119,7 @@ const CopyableField = ({ label, value, maskable }) => {
                 <button
                     type="button"
                     onClick={handleCopy}
-                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                    className="text-gray-400 hover:text-gray-600 dark:text-gray-400 flex-shrink-0"
                 >
                     {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                 </button>
@@ -148,13 +148,13 @@ const ServicePanel = ({ application }) => {
                                 href={application.serviceUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 text-sm font-mono text-[#1a365d] hover:underline break-all"
+                                className="inline-flex items-center gap-1.5 text-sm font-mono text-[#1a365d] dark:text-blue-300 hover:underline break-all"
                             >
                                 {application.serviceUrl}
                                 <ExternalLink className="h-3 w-3 flex-shrink-0" />
                             </a>
                         ) : (
-                            <span className="text-sm font-mono text-gray-800 break-all block">{application.serviceUrl}</span>
+                            <span className="text-sm font-mono text-gray-800 dark:text-gray-100 break-all block">{application.serviceUrl}</span>
                         )}
                     </div>
                     {application.adminEmail && (
@@ -313,7 +313,7 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                 <button
                     type="button"
                     onClick={handleToggleConnectForm}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-2.5 py-1 rounded transition-colors"
                 >
                     <Plus className="h-3.5 w-3.5" />
                     Connect
@@ -336,7 +336,7 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                         ) : items.length === 0 ? (
                             <div className="py-4 text-center">
                                 <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-500">No deployed Private LLM instances</p>
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No deployed Private LLM instances</p>
                                 <p className="text-xs text-gray-400 mt-1">Deploy one from Pools → Private LLM.</p>
                             </div>
                         ) : (
@@ -346,7 +346,7 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                                         type="button"
                                         onClick={() => setDropdownOpen((o) => !o)}
                                         disabled={connecting}
-                                        className="w-full flex items-center justify-between rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
+                                        className="w-full flex items-center justify-between rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm text-gray-900 dark:text-gray-100 hover:border-[#1a365d] focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                                     >
                                         {selectedToConnect.length > 0 ? (
                                             <span className="truncate">
@@ -364,7 +364,7 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                                         <div
                                             ref={listRef}
                                             onScroll={handleListScroll}
-                                            className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg"
+                                            className="absolute z-20 mt-1 w-full max-h-56 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg"
                                         >
                                             {items.map((item) => {
                                                 const checked = selectedToConnect.some((i) => i.id === item.id);
@@ -378,9 +378,9 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                                                             type="checkbox"
                                                             checked={checked}
                                                             onChange={() => toggleToConnect(item)}
-                                                            className="h-3.5 w-3.5 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] flex-shrink-0"
+                                                            className="h-3.5 w-3.5 rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d] flex-shrink-0"
                                                         />
-                                                        <span className="text-sm text-gray-800 truncate">{item.name}</span>
+                                                        <span className="text-sm text-gray-800 dark:text-gray-100 truncate">{item.name}</span>
                                                     </label>
                                                 );
                                             })}
@@ -436,13 +436,13 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                                     checked={selectedToDisconnect.includes(llm.id)}
                                     onChange={() => toggleToDisconnect(llm.id)}
                                     disabled={disconnecting || disconnectingId === llm.id}
-                                    className="h-3.5 w-3.5 rounded border-gray-300 text-[#1a365d] focus:ring-[#1a365d] flex-shrink-0"
+                                    className="h-3.5 w-3.5 rounded border-gray-300 dark:border-gray-600 text-[#1a365d] dark:text-blue-300 focus:ring-[#1a365d] flex-shrink-0"
                                 />
                                 <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-gray-800 truncate">{llm.name}</p>
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{llm.name}</p>
                                     {llm.endpointUrl && (
-                                        <p className="text-[11px] text-gray-500 font-mono truncate">{llm.endpointUrl}</p>
+                                        <p className="text-[11px] text-gray-500 dark:text-gray-400 font-mono truncate">{llm.endpointUrl}</p>
                                     )}
                                 </div>
                                 <button
@@ -461,7 +461,7 @@ const PrivateLLMPanel = ({ application, onChanged }) => {
                     !showConnectForm && (
                         <div className="py-6 text-center">
                             <Cpu className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                            <p className="text-sm font-medium text-gray-500">No Private LLM connected</p>
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No Private LLM connected</p>
                             <p className="text-xs text-gray-400 mt-1">Click Connect to link one.</p>
                         </div>
                     )
@@ -506,7 +506,7 @@ const KeycloakConfigPanel = ({ application, onChanged }) => {
                     <button
                         type="button"
                         onClick={() => setShowUsersModal(true)}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-2.5 py-1 rounded transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-2.5 py-1 rounded transition-colors"
                     >
                         <Users className="h-3.5 w-3.5" />
                         Manage Users
@@ -516,7 +516,7 @@ const KeycloakConfigPanel = ({ application, onChanged }) => {
         >
             <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                         {connected ? "Keycloak SSO connected" : "Keycloak SSO not connected"}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">Let users sign in to this Open WebUI instance with Keycloak.</p>
@@ -531,7 +531,7 @@ const KeycloakConfigPanel = ({ application, onChanged }) => {
                         ${connected ? "bg-[#1a365d]" : "bg-gray-300"}`}
                 >
                     <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform flex items-center justify-center
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-800 shadow transition-transform flex items-center justify-center
                             ${connected ? "translate-x-6" : "translate-x-1"}`}
                     >
                         {toggling && <Loader2 className="h-3 w-3 animate-spin text-gray-400" />}
@@ -602,7 +602,7 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search by name or email..."
-                    className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-xs text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all"
+                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-8 pr-3 text-xs text-gray-900 dark:text-gray-100 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all"
                 />
             </div>
 
@@ -618,7 +618,7 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
             ) : items.length === 0 ? (
                 <div className="py-6 text-center">
                     <ShieldCheck className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-500">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                         {search ? "No users match your search" : `No ${role === "admin" ? "admins" : "users"} yet`}
                     </p>
                 </div>
@@ -628,16 +628,26 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
                         {items.map((u) => {
                             const id = kcUserId(u);
                             return (
-                                <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
+                                <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
                                     <div className="min-w-0">
-                                        <p className="text-sm font-medium text-gray-800 truncate">{kcUserLabel(u)}</p>
+                                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{kcUserLabel(u)}</p>
                                         {u.email && u.email !== kcUserLabel(u) && (
                                             <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
                                         )}
                                     </div>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold capitalize bg-gray-100 text-gray-600 flex-shrink-0">
-                                        {role}
-                                    </span>
+                                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                                        {updatingId === id && <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />}
+                                        <select
+                                            value={role}
+                                            onChange={(e) => handleRoleChange(u, e.target.value)}
+                                            disabled={updatingId === id}
+                                            className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-1 px-2 text-xs font-semibold text-gray-800 dark:text-gray-100 capitalize focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none disabled:opacity-50"
+                                        >
+                                            {ROLE_OPTIONS.map((r) => (
+                                                <option key={r} value={r} className="capitalize">{r}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             );
                         })}
@@ -650,7 +660,7 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
                                     type="button"
                                     onClick={() => load(page - 1, search)}
                                     disabled={page <= 1 || loading}
-                                    className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                    className="p-1 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 disabled:opacity-40 transition-colors"
                                 >
                                     <ChevronLeft className="h-4 w-4" />
                                 </button>
@@ -658,7 +668,7 @@ const RoleUsersList = ({ application, role, fetchFn }) => {
                                     type="button"
                                     onClick={() => load(page + 1, search)}
                                     disabled={page >= totalPages || loading}
-                                    className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                    className="p-1 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 disabled:opacity-40 transition-colors"
                                 >
                                     <ChevronRight className="h-4 w-4" />
                                 </button>
@@ -745,19 +755,19 @@ const KeycloakUsersModal = ({ application, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
-                <div className="p-5 border-b border-gray-200 flex items-start justify-between gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+                <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex items-start justify-between gap-3">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                            <ShieldCheck className="h-4 w-4 text-[#1a365d]" />
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <ShieldCheck className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                             Keycloak Users
                         </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">{application.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{application.name}</p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1 text-gray-400 hover:text-gray-700 rounded hover:bg-gray-100 transition-colors flex-shrink-0"
+                        className="p-1 text-gray-400 hover:text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:bg-gray-700 transition-colors flex-shrink-0"
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -773,7 +783,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                                 className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors
                                     ${activeTab === tab.key
                                         ? "bg-[#1a365d] text-white shadow-sm"
-                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#1a365d]"
+                                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-900/60 hover:text-[#1a365d] dark:text-blue-300"
                                     }`}
                             >
                                 {tab.label}
@@ -789,7 +799,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                                 value={kcSearch}
                                 onChange={(e) => setKcSearch(e.target.value)}
                                 placeholder="Search by name or email..."
-                                className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-8 pr-3 text-xs text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all"
+                                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 pl-8 pr-3 text-xs text-gray-900 dark:text-gray-100 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all"
                             />
                         </div>
                     )}
@@ -828,7 +838,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                 ) : kcUsers.length === 0 ? (
                     <div className="py-6 text-center">
                         <ShieldCheck className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-gray-500">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                             {kcSearch ? "No users match your search" : "No Keycloak users found"}
                         </p>
                     </div>
@@ -838,9 +848,9 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                             {kcUsers.map((u) => {
                                 const id = kcUserId(u);
                                 return (
-                                    <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2">
+                                    <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
                                         <div className="min-w-0">
-                                            <p className="text-sm font-medium text-gray-800 truncate">{kcUserLabel(u)}</p>
+                                            <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{kcUserLabel(u)}</p>
                                             {u.email && u.email !== kcUserLabel(u) && (
                                                 <p className="text-[11px] text-gray-400 truncate">{u.email}</p>
                                             )}
@@ -850,7 +860,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                                             onChange={(e) => handlePendingRoleChange(id, e.target.value)}
                                             disabled={assigning}
                                             className={`rounded border py-1 px-2 text-xs font-semibold capitalize focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none disabled:opacity-50 flex-shrink-0
-                                                ${pendingRoles[id] ? "border-blue-300 bg-blue-50 text-blue-800" : "border-gray-300 bg-white text-gray-800"}`}
+                                                ${pendingRoles[id] ? "border-blue-300 bg-blue-50 text-blue-800" : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"}`}
                                         >
                                             <option value="" disabled>Set role...</option>
                                             {ROLE_OPTIONS.map((r) => (
@@ -869,7 +879,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                                         type="button"
                                         onClick={() => loadKcUsers(kcPage - 1)}
                                         disabled={kcPage <= 1 || kcLoading}
-                                        className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                        className="p-1 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 disabled:opacity-40 transition-colors"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </button>
@@ -877,7 +887,7 @@ const KeycloakUsersModal = ({ application, onClose }) => {
                                         type="button"
                                         onClick={() => loadKcUsers(kcPage + 1)}
                                         disabled={kcPage >= kcTotalPages || kcLoading}
-                                        className="p-1 text-gray-500 hover:text-[#1a365d] bg-white rounded border border-gray-200 disabled:opacity-40 transition-colors"
+                                        className="p-1 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 disabled:opacity-40 transition-colors"
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </button>
@@ -952,7 +962,7 @@ const VectorDbLinkPanel = ({ application, onChanged }) => {
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0" />
-                        <span className="text-sm font-semibold text-gray-800">
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                             Connected to {linkedVectorDb?.name || `Vector DB #${linkedId}`}
                         </span>
                     </div>
@@ -969,7 +979,7 @@ const VectorDbLinkPanel = ({ application, onChanged }) => {
             ) : vectorDbs.length === 0 ? (
                 <div className="py-6 text-center">
                     <Box className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-500">No Vector DB applications deployed yet</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No Vector DB applications deployed yet</p>
                     <p className="text-xs text-gray-400 mt-1">Deploy a Vector DB instance to connect it here.</p>
                 </div>
             ) : (
@@ -978,7 +988,7 @@ const VectorDbLinkPanel = ({ application, onChanged }) => {
                         value={selected}
                         onChange={(e) => setSelected(e.target.value)}
                         disabled={connecting}
-                        className="flex-1 rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm text-gray-900 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 px-3 text-sm text-gray-900 dark:text-gray-100 focus:border-[#1a365d] focus:ring-1 focus:ring-[#1a365d] focus:outline-none transition-all disabled:opacity-50"
                     >
                         <option value="">Select a Vector DB...</option>
                         {vectorDbs.map((v) => (
@@ -1005,7 +1015,7 @@ const LinkedAppsPanel = () => (
     <Panel title="Linked Applications" icon={Link2}>
         <div className="py-6 text-center">
             <Link2 className="h-6 w-6 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm font-medium text-gray-500">Not linked to any application yet</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Not linked to any application yet</p>
             <p className="text-xs text-gray-400 mt-1">Open WebUI instances connected to this Vector DB will appear here.</p>
         </div>
     </Panel>
@@ -1095,8 +1105,8 @@ const ApplicationDetail = () => {
 
     if (loading) {
         return (
-            <div className="p-6 text-center text-gray-500">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#1a365d] mb-2" />
+            <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#1a365d] dark:text-blue-300 mb-2" />
                 Loading application...
             </div>
         );
@@ -1106,11 +1116,11 @@ const ApplicationDetail = () => {
         return (
             <div className="p-6 flex flex-col items-center justify-center text-center min-h-[60vh]">
                 <Layers className="h-8 w-8 text-gray-300 mb-3" />
-                <p className="text-sm font-medium text-gray-500">Application not found</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Application not found</p>
                 <p className="text-xs text-gray-400 mt-1 mb-4">It may have been removed, or is not reachable right now.</p>
                 <button
                     onClick={() => navigate("/application")}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a365d] hover:bg-blue-50 px-3 py-1.5 rounded transition-colors"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-3 py-1.5 rounded transition-colors"
                 >
                     <ChevronLeft className="h-3.5 w-3.5" />
                     Back to Applications
@@ -1124,12 +1134,12 @@ const ApplicationDetail = () => {
     const isReady = !isActive(application.status);
 
     return (
-        <div className="p-6 pb-32 bg-gray-50 min-h-screen text-left items-start flex flex-col w-full">
+        <div className="p-6 pb-32 bg-gray-50 dark:bg-gray-900 min-h-screen text-left items-start flex flex-col w-full">
             {/* Back button */}
             <div className="mb-4">
                 <button
                     onClick={() => navigate("/application")}
-                    className="flex items-center gap-1.5 text-[#1a365d] hover:text-[#153056] font-semibold text-sm transition-colors"
+                    className="flex items-center gap-1.5 text-[#1a365d] dark:text-blue-300 hover:text-[#153056] font-semibold text-sm transition-colors"
                 >
                     <ChevronLeft className="h-4 w-4" />
                     Back to Applications
@@ -1137,13 +1147,13 @@ const ApplicationDetail = () => {
             </div>
 
             {/* Header */}
-            <div className="flex items-center gap-3 pb-5 border-b border-gray-200 mb-6 w-full">
+            <div className="flex items-center gap-3 pb-5 border-b border-gray-200 dark:border-gray-700 mb-6 w-full">
                 <div className="h-9 w-9 rounded-lg bg-[#1a365d]/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="h-4 w-4 text-[#1a365d]" />
+                    <Icon className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                 </div>
                 <div>
                     <div className="flex items-center gap-2.5">
-                        <h1 className="text-2xl font-bold text-gray-900">{application.name}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{application.name}</h1>
                         <span
                             className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                                 isReady
@@ -1159,12 +1169,12 @@ const ApplicationDetail = () => {
                             {application.status || "Unknown"}
                         </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{activeApp?.label}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{activeApp?.label}</p>
                 </div>
             </div>
 
             {/* Overview */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 w-full mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 w-full mb-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                     <InfoRow label="Namespace" value={application.namespace} />
                     <InfoRow label="Cluster" value={clusterName || application.clusterId} />

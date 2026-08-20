@@ -10,6 +10,11 @@ export const selectIpmiList = createSelector(
   (ipmiState) => ipmiState.ipmiList
 );
 
+export const selectIpmiPagination = createSelector(
+  [selectIpmiState],
+  (ipmiState) => ipmiState.pagination
+);
+
 export const selectIpmiLoading = createSelector(
   [selectIpmiState],
   (ipmiState) => ipmiState.loading

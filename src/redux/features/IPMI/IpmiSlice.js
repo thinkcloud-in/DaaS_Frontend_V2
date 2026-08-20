@@ -9,6 +9,7 @@ import {
 
 const initialState = {
   ipmiList: [],
+  pagination: { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false },
   selectedIpmi: null,
   loading: false,
   error: null,
@@ -46,7 +47,10 @@ const ipmiSlice = createSlice({
       })
       .addCase(fetchIpmiListThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.ipmiList = action.payload;
+        state.ipmiList = action.payload?.items || [];
+        if (action.payload?.pagination) {
+          state.pagination = action.payload.pagination;
+        }
       })
       .addCase(fetchIpmiListThunk.rejected, (state, action) => {
         state.loading = false;

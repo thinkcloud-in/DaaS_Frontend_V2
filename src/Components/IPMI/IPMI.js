@@ -1,15 +1,15 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { PoolContext } from "../../Context/PoolContext";
 import ShowIpmi from "./ShowIpmi";
 import CreateNewIpmi from "./CreateNewIpmi";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchIpmiListThunk } from '../../redux/features/IPMI/IpmiThunks';
-import { 
-  selectIpmiList, 
-  selectIpmiLoading, 
-  selectIpmiError 
+import {
+  selectIpmiList,
+  selectIpmiPagination,
+  selectIpmiLoading,
+  selectIpmiError
 } from '../../redux/features/IPMI/IpmiSelectors';
 import { clearError } from '../../redux/features/IPMI/IpmiSlice';
 import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
@@ -33,19 +33,19 @@ const SkeletonRow = () => (
 );
 
 const SkeletonLoader = ({ rows = 5 }) => (
-  <div className="w-[98%]  m-auto bg-white rounded-lg p-4 flex flex-col overflow-hidden">
+  <div className="w-[98%]  m-auto bg-white dark:bg-gray-800 rounded-lg p-4 flex flex-col overflow-hidden">
     <div className="relative mb-4">
-      <h2 className="text-lg font-semibold text-center text-gray-700">Available IPMI Devices</h2>
+      <h2 className="text-lg font-semibold text-center text-gray-700 dark:text-gray-300">Available IPMI Devices</h2>
       <div className="absolute right-0 top-0">
         <div className="bg-[#1a365d]/80 text-white rounded-md px-5 py-2 text-sm font-medium opacity-50">
           <div className="h-5 w-24 bg-[#1a365d]/80 rounded animate-pulse"></div>
         </div>
       </div>
     </div>
-    <div className="flex-1 overflow-y-auto rounded-md bg-white custom-scrollbar">
-      <table className="min-w-full bg-white text-[0.9rem] border-collapse">
-        <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-          <tr>
+    <div className="flex-1 overflow-y-auto rounded-md bg-white dark:bg-gray-800 custom-scrollbar">
+      <table className="min-w-full bg-white dark:bg-gray-800 text-[0.9rem] border-collapse">
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-[#1a365d] text-white font-bold uppercase text-[0.8rem] leading-normal select-none">
             <th className={`py-2 px-4 ${columnStyles[0]}`}>IPMI IP</th>
             <th className={`py-2 px-4 ${columnStyles[1]}`}>NAME</th>
             <th className={`py-2 px-4 ${columnStyles[2]}`}>USERNAME</th>
@@ -65,7 +65,6 @@ const SkeletonLoader = ({ rows = 5 }) => (
  
 const IPMI = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   
   const token = useSelector(selectAuthToken);
   const tokenParsed = useSelector(selectAuthTokenParsed);
@@ -73,14 +72,22 @@ const IPMI = () => {
 
   // Redux selectors
   const ipmiList = useSelector(selectIpmiList);
+  const pagination = useSelector(selectIpmiPagination);
   const loading = useSelector(selectIpmiLoading);
   const error = useSelector(selectIpmiError);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     if (token) {
-      dispatch(fetchIpmiListThunk(token));
+      dispatch(fetchIpmiListThunk({ token, page: currentPage, pageSize }));
     }
-  }, [dispatch, token]);
+  }, [dispatch, token, currentPage, pageSize]);
 
   useEffect(() => {
     if (error) {
@@ -91,27 +98,28 @@ const IPMI = () => {
 
   const refreshIpmiList = () => {
     if (token) {
-      dispatch(fetchIpmiListThunk(token));
+      dispatch(fetchIpmiListThunk({ token, page: currentPage, pageSize }));
     }
   };
 
   return (
-    <div className="pools w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md overflow-hidden">
+    <div className="pools w-[98%] h-[90vh] min-h-[75vh] mt-4 m-auto bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md overflow-hidden">
       <div className="flex justify-start ml-4 mt-3 mb-2">
-        <div
-          onClick={() => navigate("/")}
-          className="bg-[#1a365d]/80 text-[#f5f5f5] hover:text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-        </div>
       </div>
       <div className="flex-1 overflow-auto">
         {loading ? (
           <SkeletonLoader />
-        ) : ipmiList.length > 0 ? (
-          <ShowIpmi ipmiList={ipmiList} refreshIpmiList={refreshIpmiList} />
+        ) : ipmiList.length > 0 || (pagination?.total || 0) > 0 ? (
+          <ShowIpmi
+            ipmiList={ipmiList}
+            refreshIpmiList={refreshIpmiList}
+            pagination={pagination}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={handlePageSizeChange}
+            loading={loading}
+          />
         ) : (
           <CreateNewIpmi />
         )}

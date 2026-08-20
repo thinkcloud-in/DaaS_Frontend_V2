@@ -23,7 +23,7 @@ const RetentionPeriod = () => {
 
   return (
     <div className="p-2 md:p-4 h-full flex flex-col overflow-hidden">
-      <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] mx-auto bg-white rounded-lg p-2 md:p-4 shadow-lg flex flex-col overflow-hidden">
+      <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] mx-auto bg-white dark:bg-gray-800 rounded-lg p-2 md:p-4 shadow-lg flex flex-col overflow-hidden">
         <div className="flex justify-start mb-2">
           <div
             onClick={Goback}
@@ -33,12 +33,12 @@ const RetentionPeriod = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-[#1a365d] ml-4">Retention Period</h2>
+          <h2 className="text-lg font-semibold text-[#1a365d] dark:text-blue-300 ml-4">Retention Period</h2>
         </div>
 
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-center text-gray-500">Loading...</p>
+            <p className="text-center text-gray-500 dark:text-gray-400">Loading...</p>
           </div>
         ) : Array.isArray(namespaces) && namespaces.length > 0 ? (
           <div className="flex-1 overflow-auto custom-scrollbar">
@@ -48,7 +48,7 @@ const RetentionPeriod = () => {
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-center text-gray-500">No namespace data available.</p>
+            <p className="text-center text-gray-500 dark:text-gray-400">No namespace data available.</p>
           </div>
         )}
       </div>

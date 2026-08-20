@@ -12,7 +12,7 @@ import {
   testLdapAuthentication as testLdapAuthenticationThunk,
   fetchDomains,
 } from "../../redux/features/Domain/DomainThunks";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { getEnv } from "utils/getEnv";
 
@@ -343,30 +343,18 @@ export default function DomainCreationForm() {
     navigate(-1);
   };
   return (
-    <div className="domain_creation_wrapper domain_create flex flex-col h-[90vh] w-[98%] m-auto mt-4 bg-white rounded-md overflow-hidden shadow-md">
+    <div className="domain_creation_wrapper domain_create flex flex-col h-[90vh] w-[98%] m-auto mt-4 bg-white dark:bg-gray-800 rounded-md overflow-hidden shadow-md">
       <div className="flex justify-between items-center ">
         <div className="flex justify-start ml-10 mt-5">
-          <div
+          <button
+            type="button"
             onClick={Goback}
-            className="ml-4 bg-[#1a365d]/80 text-white px-2 py-2 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d]/50 focus:ring-opacity-10"
+            className="ml-4 p-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors text-gray-700 dark:text-gray-300"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </div>
+            <ArrowLeftIcon className="h-5 w-5 stroke-[2.5]" />
+          </button>
         </div>
-        {/* <h2 className="font-semibold mr-[21rem] p-3 pb-0 text-3xl text-gray-700 ">
+        {/* <h2 className="font-semibold mr-[21rem] p-3 pb-0 text-3xl text-gray-700 dark:text-gray-300 ">
         LDAP
       </h2> */}
       </div>
@@ -384,15 +372,15 @@ export default function DomainCreationForm() {
       <div
         className={`flex-1 overflow-y-auto px-4 custom-scrollbar ${loading.submit ? "opacity-50 pointer-events-none select-none" : ""}`}
       >
-        <div className="p-3 pb-0 bg-white w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+        <div className="p-3 pb-0 bg-white dark:bg-gray-800 w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
             General options
           </h2>
 
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   UI display name
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -405,7 +393,7 @@ export default function DomainCreationForm() {
                       name="name"
                       value={ad.name}
                       onChange={handleOnChange}
-                      className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-black  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 w-full"
+                      className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-black dark:text-gray-100  placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 w-full"
                       required
                     />
                   </div>
@@ -415,7 +403,7 @@ export default function DomainCreationForm() {
 
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Vendor
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -426,7 +414,7 @@ export default function DomainCreationForm() {
                     name="vendor"
                     value={ad.vendor}
                     // onChange={handleOnChange}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     <option value="ad">Active Directory</option>
                     {/* <option value="rhds">Red Hat Directory Server</option>
@@ -440,15 +428,15 @@ export default function DomainCreationForm() {
           </div>
         </div>
         {/*Connection and authentication settings*/}
-        <div className="bg-white mx-10 p-3 pb-0  w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC]  p-1 text-left">
+        <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0  w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40  p-1 text-left">
             Connection and authentication settings
           </h2>
 
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Connection URL
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -462,7 +450,7 @@ export default function DomainCreationForm() {
                       name="connectionUrl"
                       value={ad.connectionUrl}
                       onChange={handleOnChange}
-                      className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-black placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 w-full"
+                      className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-black dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 w-full"
                       required
                     />
                   </div>
@@ -471,7 +459,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Enable StartTLS
                 </label>
               </div>
@@ -490,7 +478,7 @@ export default function DomainCreationForm() {
             </div>
             <div className="domain-tr">
               <div className="domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Use Truststore SPI
                 </label>
               </div>
@@ -500,7 +488,7 @@ export default function DomainCreationForm() {
                     name="useTruststoreSpi"
                     value={ad.useTruststoreSpi}
                     onChange={handleOnChange}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     <option value="always">Always</option>
                     <option value="never">Never</option>
@@ -510,7 +498,7 @@ export default function DomainCreationForm() {
             </div>
             <div className="domain-tr">
               <div className="domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Connection pooling
                 </label>
               </div>
@@ -529,19 +517,19 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Connection timeout
                 </label>
               </div>
               <div className="domain-td">
                 <div className="mt-2 border-0">
-                  <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
+                  <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 ">
                     <input
                       type="number"
                       name="connectionTimeout"
                       onChange={handleOnChange}
                       value={ad.connectionTimeout}
-                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
                     />
                   </div>
                 </div>
@@ -565,7 +553,7 @@ export default function DomainCreationForm() {
 
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Bind Type
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -576,9 +564,9 @@ export default function DomainCreationForm() {
                     name="authType"
                     value={ad.authType}
                     onChange={handleOnChange}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
-                    {/* block w-full cursor-pointer rounded-md border-2 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6 w-80 */}
+                    {/* block w-full cursor-pointer rounded-md border-2 py-1.5 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6 w-80 */}
                     <option value="simple">Simple</option>
                     <option value="none">None</option>
                   </select>
@@ -587,21 +575,21 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Bind DN
                 </label>
                 <span className="text-lg text-red-700">*</span>
               </div>
               <div className=" domain-td">
                 <div className="mt-2 border-0">
-                  <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
                       placeholder="CN=Administrator,CN=Users,DC=yourdomain,DC=com"
                       type="text"
                       name="bindDn"
                       onChange={handleOnChange}
                       value={ad.bindDn}
-                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -609,20 +597,20 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Bind Credentials
                 </label>
                 <span className="text-lg text-red-700">*</span>
               </div>
               <div className=" domain-td">
                 <div className="mt-2 border-0">
-                  <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600  relative">
+                  <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600  relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       name="bindCredential"
                       onChange={handleOnChange}
                       value={ad.bindCredential}
-                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
                       id="passwordInput"
                     />
                     <span
@@ -657,15 +645,15 @@ export default function DomainCreationForm() {
           </div>
         </div>
         {/*LDAP searching and updating */}
-        <div className="bg-white p-3 mx-10 w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+        <div className="bg-white dark:bg-gray-800 p-3 mx-10 w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
             LDAP searching and updating
           </h2>
 
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Edit mode
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -676,7 +664,7 @@ export default function DomainCreationForm() {
                     name="editMode"
                     onChange={handleOnChange}
                     value={ad.editMode}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     <option selected value={""} disabled>
                       --
@@ -690,7 +678,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Users DN
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -704,7 +692,7 @@ export default function DomainCreationForm() {
                       name="usersDn"
                       onChange={handleOnChange}
                       value={ad.usersDn}
-                      className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -712,7 +700,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Username LDAP Attribute
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -726,7 +714,7 @@ export default function DomainCreationForm() {
                       name="usernameLDAPAttribute"
                       onChange={handleOnChange}
                       value={ad.usernameLDAPAttribute}
-                      className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -734,7 +722,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   RDN LDAP Attribute
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -748,7 +736,7 @@ export default function DomainCreationForm() {
                       name="rdnLDAPAttribute"
                       onChange={handleOnChange}
                       value={ad.rdnLDAPAttribute}
-                      className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -756,7 +744,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   UUID LDAP attribute
                 </label>
                 <span className="text-lg text-red-700">*</span>
@@ -770,7 +758,7 @@ export default function DomainCreationForm() {
                       name="uuidLDAPAttribute"
                       onChange={handleOnChange}
                       value={ad.uuidLDAPAttribute}
-                      className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -778,21 +766,21 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td flex gap-1">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                   User object classes
                 </label>
                 <span className="text-lg text-red-700">*</span>
               </div>
               <div className=" domain-td">
                 <div className="mt-2 border-0">
-                  <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
                       placeholder="(e.g. top,person,organizationalPerson, user)"
                       type="text"
                       name="userObjectClasses"
                       onChange={handleOnChange}
                       value={ad.userObjectClasses}
-                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -800,19 +788,19 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0 ">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0 ">
                   User LDAP filter
                 </label>
               </div>
               <div className=" domain-td">
                 <div className="mt-2 border-0">
-                  <div className="flex bg-white rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                  <div className="flex bg-white dark:bg-gray-800 rounded-md border-2 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
                     <input
                       type="text"
                       name="customUserSearchFilter"
                       onChange={handleOnChange}
                       value={ad.customUserSearchFilter}
-                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     />
                   </div>
                 </div>
@@ -820,7 +808,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Search scope
                 </label>
               </div>
@@ -830,7 +818,7 @@ export default function DomainCreationForm() {
                     name="searchScope"
                     value={ad.searchScope}
                     onChange={handleOnChange}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     <option value="One Level">One Level</option>
                     <option value="Sub tree">Sub tree</option>
@@ -840,7 +828,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Read timeout
                 </label>
               </div>
@@ -852,7 +840,7 @@ export default function DomainCreationForm() {
                       name="readTimeout"
                       value={ad.readTimeout}
                       onChange={handleOnChange}
-                      className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                      className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
                     />
                   </div>
                 </div>
@@ -860,7 +848,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Pagination
                 </label>
               </div>
@@ -879,7 +867,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Referral
                 </label>
               </div>
@@ -889,7 +877,7 @@ export default function DomainCreationForm() {
                     name="referral"
                     value={ad.referral}
                     onChange={handleOnChange}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     <option value="ignore">ignore</option>
                     <option value="follow">follow</option>
@@ -900,15 +888,15 @@ export default function DomainCreationForm() {
           </div>
         </div>
         {/*Synchronization settings*/}
-        <div className="bg-white mx-10 p-3 pb-0 w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+        <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0 w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
             Synchronization settings
           </h2>
 
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Import users
                 </label>
               </div>
@@ -929,7 +917,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Sync Registrations
                 </label>
               </div>
@@ -950,7 +938,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Batch size
                 </label>
               </div>
@@ -962,7 +950,7 @@ export default function DomainCreationForm() {
                       name="batchSizeForSync"
                       value={ad.batchSizeForSync}
                       onChange={handleOnChange}
-                      className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                      className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                       required
                     />
                   </div>
@@ -971,7 +959,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Periodic full sync
                 </label>
               </div>
@@ -993,7 +981,7 @@ export default function DomainCreationForm() {
             {syncSettingsEnable.fullSyncEnabled && (
               <div className=" domain-tr">
                 <div className=" domain-td">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                  <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                     Full sync period
                   </label>
                 </div>
@@ -1005,7 +993,7 @@ export default function DomainCreationForm() {
                         name="fullSyncPeriod"
                         value={ad.fullSyncPeriod}
                         onChange={handleOnChange}
-                        className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                        className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                         required
                       />
                     </div>
@@ -1015,7 +1003,7 @@ export default function DomainCreationForm() {
             )}
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Periodic changed users sync
                 </label>
               </div>
@@ -1037,7 +1025,7 @@ export default function DomainCreationForm() {
             {syncSettingsEnable.changedSyncEnabled && (
               <div className=" domain-tr">
                 <div className=" domain-td">
-                  <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                  <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                     Changed users sync period
                   </label>
                 </div>
@@ -1049,7 +1037,7 @@ export default function DomainCreationForm() {
                         name="changedSyncPeriod"
                         value={ad.changedSyncPeriod}
                         onChange={handleOnChange}
-                        className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                        className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                         required
                       />
                     </div>
@@ -1060,14 +1048,14 @@ export default function DomainCreationForm() {
           </div>
         </div>
         {/*Kerberos integration*/}
-        <div className="bg-white mx-10 p-3 pb-0  w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+        <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0  w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
             Kerberos integration
           </h2>
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Allow Kerberos authentication
                 </label>
               </div>
@@ -1090,7 +1078,7 @@ export default function DomainCreationForm() {
               <>
                 <div className=" domain-tr">
                   <div className=" domain-td flex gap-1">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Kerberos realm
                     </label>
                     <span className="text-lg text-red-700">*</span>
@@ -1103,7 +1091,7 @@ export default function DomainCreationForm() {
                           name="kerberosRealm"
                           value={ad.kerberosRealm}
                           onChange={handleOnChange}
-                          className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                          className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           required
                         />
                       </div>
@@ -1112,7 +1100,7 @@ export default function DomainCreationForm() {
                 </div>
                 <div className=" domain-tr">
                   <div className=" domain-td flex gap-1">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Server principal
                     </label>
                     <span className="text-lg text-red-700">*</span>
@@ -1125,7 +1113,7 @@ export default function DomainCreationForm() {
                           name="serverPrincipal"
                           value={ad.serverPrincipal}
                           onChange={handleOnChange}
-                          className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                          className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           required
                         />
                       </div>
@@ -1134,7 +1122,7 @@ export default function DomainCreationForm() {
                 </div>
                 <div className=" domain-tr">
                   <div className=" domain-td flex gap-1">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Key tab
                     </label>
                     <span className="text-lg text-red-700">*</span>
@@ -1147,7 +1135,7 @@ export default function DomainCreationForm() {
                           name="keyTab"
                           value={ad.keyTab}
                           onChange={handleOnChange}
-                          className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
+                          className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 "
                           required
                         />
                       </div>
@@ -1156,7 +1144,7 @@ export default function DomainCreationForm() {
                 </div>
                 <div className=" domain-tr">
                   <div className=" domain-td">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Kerberos principal attribute
                     </label>
                   </div>
@@ -1168,7 +1156,7 @@ export default function DomainCreationForm() {
                           name="krbPrincipalAttribute"
                           value={ad.krbPrincipalAttribute}
                           onChange={handleOnChange}
-                          className="block flex-1 bg-transparent bg-white rounded-md border-2 py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                          className="block flex-1 bg-transparent bg-white dark:bg-gray-800 rounded-md border-2 py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                           required
                         />
                       </div>
@@ -1177,7 +1165,7 @@ export default function DomainCreationForm() {
                 </div>
                 <div className=" domain-tr">
                   <div className=" domain-td">
-                    <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                    <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                       Debug
                     </label>
                   </div>
@@ -1199,7 +1187,7 @@ export default function DomainCreationForm() {
             )}
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Use Kerberos for password authentication
                 </label>
               </div>
@@ -1220,15 +1208,15 @@ export default function DomainCreationForm() {
           </div>
         </div>
         {/*Cache settings*/}
-        <div className="bg-white mx-10 p-3 pb-0 w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+        <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0 w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
             Cache settings
           </h2>
 
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Cache policy
                 </label>
               </div>
@@ -1238,7 +1226,7 @@ export default function DomainCreationForm() {
                     name="cachePolicy"
                     value={ad.cachePolicy}
                     onChange={handleOnChange}
-                    className="block flex-1 bg-white rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
+                    className="block flex-1 bg-white dark:bg-gray-800 rounded-md border-2 bg-transparent py-1.5 pl-1 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                   >
                     {[
                       "DEFAULT",
@@ -1256,15 +1244,15 @@ export default function DomainCreationForm() {
           </div>
         </div>
         {/*Advanced settings*/}
-        <div className="bg-white mx-10 p-3 pb-0  w-[95%] mx-auto">
-          <h2 className="font-semibold leading-7 text-[#00000099] bg-[#F0F8FFCC] border-2 border-[#F0F8FFCC] p-1 text-left">
+        <div className="bg-white dark:bg-gray-800 mx-10 p-3 pb-0  w-[95%] mx-auto">
+          <h2 className="font-semibold leading-7 text-[#00000099] dark:text-gray-100 bg-[#F0F8FFCC] dark:bg-blue-950/30 border-2 border-[#F0F8FFCC] dark:border-blue-900/40 p-1 text-left">
             Advanced settings
           </h2>
 
           <div className="text-left table-auto p-3">
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Enable the LDAPv3 password modify extended operation
                 </label>
               </div>
@@ -1284,7 +1272,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Validate password policy
                 </label>
               </div>
@@ -1304,7 +1292,7 @@ export default function DomainCreationForm() {
             </div>
             <div className=" domain-tr">
               <div className=" domain-td">
-                <label className="block text-sm font-medium leading-6 text-gray-900 border-0">
+                <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 border-0">
                   Trust Email
                 </label>
               </div>

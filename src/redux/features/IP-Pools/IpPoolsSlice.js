@@ -7,6 +7,7 @@ import {
 
 const initialState = {
   pools: [],
+  pagination: { page: 1, page_size: 10, total: 0, total_pages: 1, has_next: false, has_prev: false },
   loading: false,
   error: null,
   createLoading: false,
@@ -38,7 +39,10 @@ const ipPoolsSlice = createSlice({
       })
       .addCase(fetchIpPoolsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.pools = action.payload;
+        state.pools = action.payload?.items || [];
+        if (action.payload?.pagination) {
+          state.pagination = action.payload.pagination;
+        }
       })
       .addCase(fetchIpPoolsThunk.rejected, (state, action) => {
         state.loading = false;

@@ -37,7 +37,7 @@ const StatusBadge = ({ status }) => {
         </span>
     );
     return (
-        <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600 ring-1 ring-inset ring-gray-300">
+        <span className="inline-flex items-center gap-1 rounded bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-300">
             {status}
         </span>
     );
@@ -141,19 +141,19 @@ const ApplicationList = () => {
     const typeMeta = (id) => APP_TYPES.find((t) => t.apiType === id || t.id === id);
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen text-left flex flex-col w-full select-none">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full select-none">
 
             {/* Header */}
-            <div className="pb-4 border-b border-gray-200 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-[#1a365d]/10 flex items-center justify-center flex-shrink-0">
-                        <LayoutGrid className="h-4 w-4 text-[#1a365d]" />
+                        <LayoutGrid className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-[#1a365d]">Applications</h1>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">Applications</h1>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             Deploy and manage applications on your connected Kubernetes clusters.
-                            {meta.total > 0 && <span className="ml-1 font-medium text-gray-600">{meta.total} total</span>}
+                            {meta.total > 0 && <span className="ml-1 font-medium text-gray-600 dark:text-gray-400">{meta.total} total</span>}
                         </p>
                     </div>
                 </div>
@@ -161,7 +161,7 @@ const ApplicationList = () => {
                     <button
                         onClick={loadApplications}
                         disabled={loading}
-                        className="p-2 text-gray-500 hover:text-[#1a365d] bg-white hover:bg-gray-100 rounded border border-gray-200 shadow-xs transition-colors"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 shadow-xs transition-colors"
                         title="Refresh"
                     >
                         <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -177,7 +177,7 @@ const ApplicationList = () => {
             </div>
 
             {/* Applications table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[800px] text-left border-collapse">
                         <thead>
@@ -195,11 +195,11 @@ const ApplicationList = () => {
                                 <th className="py-3.5 px-6 text-center w-24">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+                        <tbody className="divide-y divide-gray-200 text-sm text-gray-700 dark:text-gray-300">
                             {loading && applications.length === 0 ? (
                                 <tr>
                                     <td colSpan="7" className="py-12 text-center text-gray-400">
-                                        <Loader2 className="h-5 w-5 text-[#1a365d] animate-spin mx-auto mb-2" />
+                                        <Loader2 className="h-5 w-5 text-[#1a365d] dark:text-blue-300 animate-spin mx-auto mb-2" />
                                         Loading applications...
                                     </td>
                                 </tr>
@@ -207,7 +207,7 @@ const ApplicationList = () => {
                                 <tr>
                                     <td colSpan="7" className="py-12 text-center text-gray-400">
                                         <Layers className="h-7 w-7 text-gray-300 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-gray-500">No applications deployed yet</p>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No applications deployed yet</p>
                                         <p className="text-xs text-gray-400 mt-1">
                                             Click <span className="font-semibold">Deploy</span> above to get started.
                                         </p>
@@ -223,17 +223,17 @@ const ApplicationList = () => {
                                             onClick={() => navigate(`/application/detail/${app.id}`, { state: { applicationData: app } })}
                                             className="hover:bg-blue-50/20 cursor-pointer transition-colors"
                                         >
-                                            <td className="py-4 px-6 text-gray-900 font-bold whitespace-nowrap">{app.name || "—"}</td>
+                                            <td className="py-4 px-6 text-gray-900 dark:text-gray-100 font-bold whitespace-nowrap">{app.name || "—"}</td>
                                             <td className="py-4 px-6">
-                                                <span className="inline-flex items-center gap-1.5 text-gray-600">
-                                                    <Icon className="h-3.5 w-3.5 text-[#1a365d]" />
+                                                <span className="inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                                                    <Icon className="h-3.5 w-3.5 text-[#1a365d] dark:text-blue-300" />
                                                     {meta?.label || app.type}
                                                 </span>
                                             </td>
-                                            <td className="py-4 px-6 font-mono text-xs text-gray-600">{app.namespace || "—"}</td>
-                                            <td className="py-4 px-6 text-gray-600">{clusterNames[app.clusterId] || app.clusterId || "—"}</td>
+                                            <td className="py-4 px-6 font-mono text-xs text-gray-600 dark:text-gray-400">{app.namespace || "—"}</td>
+                                            <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{clusterNames[app.clusterId] || app.clusterId || "—"}</td>
                                             <td className="py-4 px-6 text-center"><StatusBadge status={app.status} /></td>
-                                            <td className="py-4 px-6 text-xs text-gray-500 whitespace-nowrap">{formatDateTime(app.createdAt)}</td>
+                                            <td className="py-4 px-6 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{formatDateTime(app.createdAt)}</td>
                                             <td className="py-4 px-6 text-center" onClick={(e) => e.stopPropagation()}>
                                                 <div className="flex items-center justify-center gap-1">
                                                     <button
@@ -318,23 +318,23 @@ const ApplicationList = () => {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm mx-4 overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-sm mx-4 overflow-hidden">
                         <div className="p-5 flex items-start gap-3">
                             <div className="flex-shrink-0 h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
                                 <Trash2 className="h-4 w-4 text-red-600" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900">Delete Application</h3>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Are you sure you want to delete <span className="font-semibold text-gray-700">"{deleteConfirm.name}"</span>? This action cannot be undone.
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Delete Application</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Are you sure you want to delete <span className="font-semibold text-gray-700 dark:text-gray-300">"{deleteConfirm.name}"</span>? This action cannot be undone.
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-gray-50 border-t border-gray-200 px-5 py-3 flex justify-end gap-2">
+                        <div className="bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 px-5 py-3 flex justify-end gap-2">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
                                 disabled={deleting}
-                                className="px-4 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
+                                className="px-4 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:bg-gray-900/60 transition-colors uppercase tracking-wider disabled:opacity-50"
                             >
                                 Cancel
                             </button>

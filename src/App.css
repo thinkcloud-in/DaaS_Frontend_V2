@@ -4,11 +4,16 @@
 .App {
   text-align: center;
   overflow: hidden;
-  background-color:rgba(240, 248, 255, 0.801);
+  background-color: #f9fafb;
   height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: row;
+  transition: background-color 0.2s ease;
+}
+
+html.dark .App {
+  background-color: #111827;
 }
 
 .app1 {
@@ -18,18 +23,29 @@
   flex-direction: column;
   overflow: hidden;
   flex: 1;
-  background-color: rgba(240, 248, 255, 0.801);
+  background-color: #f9fafb;
+  transition: background-color 0.2s ease;
+}
+
+html.dark .app1 {
+  background-color: #111827;
 }
 
 .app-content-wrapper {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1rem;
+  background-color: #f9fafb;
+  transition: background-color 0.2s ease;
+  /* padding: 1rem; */
+}
+
+html.dark .app-content-wrapper {
+  background-color: #111827;
 }
 
 .app-footer-wrapper {
-  padding: 0 1rem 1rem 1rem;
+  padding: 0.1rem 0.1rem 0.1rem 0.1rem;
   flex-shrink: 0;
 }
 

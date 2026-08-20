@@ -75,13 +75,13 @@ export const DeployStatusBadge = ({ status }) => {
         </span>
     );
     if (s === "completed" || s === "done" || s === "success") return (
-        <span className="inline-flex items-center gap-1 rounded bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600 ring-1 ring-inset ring-gray-300">
+        <span className="inline-flex items-center gap-1 rounded bg-gray-50 dark:bg-gray-900/60 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-300">
             <CheckCircle className="h-3 w-3 text-gray-400" />
             Completed
         </span>
     );
     return (
-        <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600 ring-1 ring-inset ring-gray-300">
+        <span className="inline-flex items-center gap-1 rounded bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-300">
             {status}
         </span>
     );
@@ -168,19 +168,19 @@ const HarborList = () => {
     };
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen text-left flex flex-col w-full select-none">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full select-none">
 
             {/* Header */}
-            <div className="pb-4 border-b border-gray-200 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-[#1a365d]/10 flex items-center justify-center flex-shrink-0">
-                        <Activity className="h-4 w-4 text-[#1a365d]" />
+                        <Activity className="h-4 w-4 text-[#1a365d] dark:text-blue-300" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-[#1a365d]">Harbor Deployments</h1>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">Harbor Deployments</h1>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             All Harbor deployment jobs and their live status.
-                            {meta.total > 0 && <span className="ml-1 font-medium text-gray-600">{meta.total} total</span>}
+                            {meta.total > 0 && <span className="ml-1 font-medium text-gray-600 dark:text-gray-400">{meta.total} total</span>}
                         </p>
                     </div>
                 </div>
@@ -188,7 +188,7 @@ const HarborList = () => {
                     <button
                         onClick={loadDeployments}
                         disabled={loading}
-                        className="p-2 text-gray-500 hover:text-[#1a365d] bg-white hover:bg-gray-100 rounded border border-gray-200 shadow-xs transition-colors"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 shadow-xs transition-colors"
                         title="Refresh"
                     >
                         <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
@@ -204,31 +204,31 @@ const HarborList = () => {
             </div>
 
             {/* Deployments table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[650px] text-left border-collapse">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[6%]">#</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[22%]">Name</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[14%]">Status</th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[18%]">
+                        <thead>
+                            <tr className="bg-[#1a365d] text-white text-[11px] font-bold uppercase tracking-wide select-none">
+                                <th className="p-4 w-[6%]">#</th>
+                                <th className="p-4 w-[22%]">Name</th>
+                                <th className="p-4 w-[14%]">Status</th>
+                                <th className="p-4 w-[18%]">
                                     <span className="inline-flex items-center gap-1"><Wifi className="h-3 w-3" /> IP Address</span>
                                 </th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[22%]">
+                                <th className="p-4 w-[22%]">
                                     <span className="inline-flex items-center gap-1"><Cpu className="h-3 w-3" /> Node / VMID</span>
                                 </th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[18%]">
+                                <th className="p-4 w-[18%]">
                                     <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> Created</span>
                                 </th>
-                                <th className="p-4 text-[11px] font-bold text-gray-500 uppercase tracking-wide w-[8%] text-right">Actions</th>
+                                <th className="p-4 w-[8%] text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {loading && deployments.length === 0 ? (
                                 <tr>
                                     <td colSpan="7" className="p-12 text-center">
-                                        <Loader2 className="h-5 w-5 text-[#1a365d] animate-spin mx-auto mb-2" />
+                                        <Loader2 className="h-5 w-5 text-[#1a365d] dark:text-blue-300 animate-spin mx-auto mb-2" />
                                         <p className="text-xs text-gray-400">Loading deployments...</p>
                                     </td>
                                 </tr>
@@ -236,7 +236,7 @@ const HarborList = () => {
                                 <tr>
                                     <td colSpan="7" className="p-12 text-center">
                                         <Activity className="h-7 w-7 text-gray-300 mx-auto mb-2" />
-                                        <p className="text-sm font-medium text-gray-500">No deployments yet</p>
+                                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No deployments yet</p>
                                         <p className="text-xs text-gray-400 mt-1">Click <span className="font-semibold">Deploy</span> to start a new deployment.</p>
                                     </td>
                                 </tr>
@@ -244,12 +244,12 @@ const HarborList = () => {
                                 deployments.map((job) => {
                                     const jobId = job.job_id ?? job.deploy_id ?? job.id;
                                     return (
-                                        <tr key={jobId} className={`transition-colors ${isActive(job.status) ? "bg-blue-50/20" : "hover:bg-gray-50/40"}`}>
+                                        <tr key={jobId} className={`transition-colors ${isActive(job.status) ? "bg-blue-50/20" : "hover:bg-gray-50 dark:bg-gray-900/60/40"}`}>
                                             <td className="p-4 text-xs text-gray-400 font-mono">
                                                 #{jobId}
                                             </td>
                                             <td className="p-4">
-                                                <p className="text-sm font-semibold text-gray-900">{job.name || "—"}</p>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{job.name || "—"}</p>
                                                 {job.template_name && (
                                                     <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
                                                         <Server className="h-2.5 w-2.5" />
@@ -260,7 +260,7 @@ const HarborList = () => {
                                             <td className="p-4">
                                                 <DeployStatusBadge status={job.status} />
                                             </td>
-                                            <td className="p-4 text-xs font-mono text-gray-700 max-w-[220px] truncate">
+                                            <td className="p-4 text-xs font-mono text-gray-700 dark:text-gray-300 max-w-[220px] truncate">
                                                 {job.harbor_url ? (
                                                     <a
                                                         href={job.harbor_url}
@@ -274,12 +274,12 @@ const HarborList = () => {
                                                 ) : job.ip_address || <span className="text-gray-300">—</span>}
                                             </td>
                                             <td className="p-4">
-                                                <span className="text-xs font-medium text-gray-700">{job.node_name || job.node || "—"}</span>
+                                                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{job.node_name || job.node || "—"}</span>
                                                 {job.vmid && (
                                                     <span className="ml-1.5 text-xs text-gray-400 font-mono">· VM {job.vmid}</span>
                                                 )}
                                             </td>
-                                            <td className="p-4 text-xs text-gray-500 whitespace-nowrap">
+                                            <td className="p-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                                                 {formatDateTime(job.created_at)}
                                             </td>
                                             <td className="p-4 text-right">
@@ -288,14 +288,14 @@ const HarborList = () => {
                                                         type="button"
                                                         onClick={() => handleViewDetail(job)}
                                                         title="View Details"
-                                                        className="p-1.5 text-gray-400 hover:text-[#1a365d] bg-white hover:bg-gray-100 rounded border border-gray-200 transition-colors shadow-2xs"
+                                                        className="p-1.5 text-gray-400 hover:text-[#1a365d] dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 transition-colors shadow-2xs"
                                                     >
                                                         <Eye className="h-3.5 w-3.5" />
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteConfirm({ job_id: jobId, name: job.name })}
                                                         title="Delete"
-                                                        className="p-1.5 text-gray-400 hover:text-red-600 bg-white hover:bg-red-50 rounded border border-gray-200 transition-colors shadow-2xs"
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 bg-white dark:bg-gray-800 hover:bg-red-50 rounded border border-gray-200 dark:border-gray-700 transition-colors shadow-2xs"
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />
                                                     </button>
@@ -377,23 +377,23 @@ const HarborList = () => {
             {/* Delete Confirmation Modal */}
             {deleteConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm mx-4 overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-sm mx-4 overflow-hidden">
                         <div className="p-5 flex items-start gap-3">
                             <div className="flex-shrink-0 h-9 w-9 rounded-full bg-red-100 flex items-center justify-center">
                                 <Trash2 className="h-4 w-4 text-red-600" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900">Delete Deployment</h3>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Are you sure you want to delete <span className="font-semibold text-gray-700">"{deleteConfirm.name}"</span>? This action cannot be undone.
+                                <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Delete Deployment</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Are you sure you want to delete <span className="font-semibold text-gray-700 dark:text-gray-300">"{deleteConfirm.name}"</span>? This action cannot be undone.
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-gray-50 border-t border-gray-200 px-5 py-3 flex justify-end gap-2">
+                        <div className="bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 px-5 py-3 flex justify-end gap-2">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
                                 disabled={deleting}
-                                className="px-4 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors uppercase tracking-wider disabled:opacity-50"
+                                className="px-4 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:bg-gray-900/60 transition-colors uppercase tracking-wider disabled:opacity-50"
                             >
                                 Cancel
                             </button>

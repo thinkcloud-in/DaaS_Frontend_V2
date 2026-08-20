@@ -45,7 +45,7 @@ const TotpVerifyModal = ({ onSuccess, onCancel, token, actionLabel = "this actio
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]" onClick={onCancel} />
             <div className="fixed inset-0 z-[210] flex items-center justify-center p-4">
                 <div
-                    className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-sm p-6"
+                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-sm p-6"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
@@ -55,13 +55,13 @@ const TotpVerifyModal = ({ onSuccess, onCancel, token, actionLabel = "this actio
                                 <ShieldCheckIcon className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                                <h3 className="text-base font-bold text-gray-900">OTP Verification Required</h3>
-                                <p className="text-xs text-gray-500 mt-0.5">Your account has TOTP enabled</p>
+                                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">OTP Verification Required</h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Your account has TOTP enabled</p>
                             </div>
                         </div>
                         <button
                             onClick={onCancel}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-md transition-colors"
+                            className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-400 rounded-md transition-colors"
                         >
                             <XMarkIcon className="h-5 w-5" />
                         </button>
@@ -92,7 +92,7 @@ const TotpVerifyModal = ({ onSuccess, onCancel, token, actionLabel = "this actio
                                         ? "border-red-400 bg-red-50 text-red-700"
                                         : digit
                                             ? "border-blue-500 bg-blue-50 text-blue-800"
-                                            : "border-gray-300 bg-gray-50 text-gray-900 focus:border-blue-400 focus:bg-white"
+                                            : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/60 text-gray-900 dark:text-gray-100 focus:border-blue-400 focus:bg-white dark:bg-gray-800"
                                     }`}
                             />
                         ))}
@@ -106,7 +106,7 @@ const TotpVerifyModal = ({ onSuccess, onCancel, token, actionLabel = "this actio
                     <div className="flex gap-2 mt-4">
                         <button
                             onClick={onCancel}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
                         >
                             Cancel
                         </button>

@@ -51,24 +51,24 @@ const ShowRetentionDetails = ({ namespaces }) => {
   return (
     <div className="w-full h-auto p-4 md:p-6">
       <div className="flex justify-center flex-1">
-        <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-between border border-gray-100">
-          <h2 className="text-lg font-semibold text-[#1a365d] mb-6">
+        <div className="w-full max-w-xl bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6 flex flex-col justify-between border border-gray-100">
+          <h2 className="text-lg font-semibold text-[#1a365d] dark:text-blue-300 mb-6">
             Namespace Details
           </h2>
 
           <div className="flex flex-col gap-6 w-full">
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-9">
-              <label className="text-[0.9rem] text-gray-700 font-medium md:w-32">Namespace</label>
+              <label className="text-[0.9rem] text-gray-700 dark:text-gray-300 font-medium md:w-32">Namespace</label>
               <input
                 type="text"
                 value={namespace}
                 readOnly
-                className="flex-1 px-3 py-2 border border-gray-200 rounded shadow-sm bg-gray-50 cursor-not-allowed text-gray-500 text-sm"
+                className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded shadow-sm bg-gray-50 dark:bg-gray-900/60 cursor-not-allowed text-gray-500 dark:text-gray-400 text-sm"
               />
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-9">
-              <label className="text-[0.9rem] text-gray-700 font-medium md:w-32">Retention Period</label>
+              <label className="text-[0.9rem] text-gray-700 dark:text-gray-300 font-medium md:w-32">Retention Period</label>
               <div className="flex-1 relative">
                 <input
                   type="number"
@@ -85,7 +85,7 @@ const ShowRetentionDetails = ({ namespaces }) => {
                       setRetentionDays(parsed);
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a365d]/50 focus:border-[#1a365d] text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a365d]/50 focus:border-[#1a365d] text-sm"
                   placeholder="e.g. 7"
                   required
                 />

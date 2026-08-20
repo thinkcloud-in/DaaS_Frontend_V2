@@ -5,13 +5,13 @@ import { PlusIcon} from "@heroicons/react/24/outline";
 const CreateNewIpmi = () => {
   const navigate=useNavigate()
   return (
-    <div className="h-[75vh] flex items-center justify-center m-3 p-5 border-dashed border-stone-300 border-2 bg-white">
+    <div className="h-[75vh] flex items-center justify-center m-3 p-5 border-dashed border-stone-300 border-2 bg-white dark:bg-gray-800">
       <div className="text-center">
         <div className="mb-4">
         <PlusIcon className="w-12 h-12 mx-auto text-gray-400"/>
         </div>
-        <p className="mb-2 text-lg text-gray-600">No IPMI Servers Available</p>
-        <p className="mb-8 text-gray-500">
+        <p className="mb-2 text-lg text-gray-600 dark:text-gray-400">No IPMI Servers Available</p>
+        <p className="mb-8 text-gray-500 dark:text-gray-400">
           Get started by creating a new IPMI server.
         </p>
         <div className="w-full flex justify-center items-center">

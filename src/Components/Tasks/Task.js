@@ -43,27 +43,27 @@ const Tasks = (props) => {
   }, [dispatch, userName, days]);
 
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto min-h-[75vh] mt-4 bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
+    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] m-auto min-h-[75vh] mt-4 bg-white dark:bg-gray-800 rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
       <div className="relative mb-4">
-        <h2 className="text-lg font-semibold text-center text-gray-700">
+        <h2 className="text-lg font-semibold text-center text-gray-700 dark:text-gray-300">
           Task List
         </h2>
         <div className="absolute right-0 top-0">
           <input
             type="number"
             min="0"
-            className="border border-gray-200 rounded px-2 py-1 w-20 text-sm focus:outline-none hover:cursor-pointer transition duration-150 ease-in-out"
+            className="border border-gray-200 dark:border-gray-700 rounded px-2 py-1 w-20 text-sm focus:outline-none hover:cursor-pointer transition duration-150 ease-in-out"
             value={days}
             onChange={(e) => dispatch(setDays(Number(e.target.value)))}
             placeholder="Days"
           />
-          <span className="text-[0.8rem] text-gray-500">days</span>
+          <span className="text-[0.8rem] text-gray-500 dark:text-gray-400">days</span>
         </div>
       </div>
-      <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar">
-        <table className="min-w-full bg-white text-[0.75rem] border-collapse">
-          <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-            <tr>
+      <div className="flex-1 overflow-auto rounded-md bg-white dark:bg-gray-800 table-container custom-scrollbar">
+        <table className="min-w-full bg-white dark:bg-gray-800 text-[0.75rem] border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-[#1a365d] text-white font-bold uppercase text-[0.8rem] leading-normal select-none">
               <th className="py-2 px-3">S.No</th>
               <th className="py-2 px-3">Task Name</th>
               <th className="py-2 px-3">Action</th>
@@ -81,7 +81,7 @@ const Tasks = (props) => {
               data.map((task, index) => (
                 <tr
                   key={index}
-                  className="text-center border-b border-gray-200"
+                  className="text-center border-b border-gray-200 dark:border-gray-700"
                 >
                   <td className="py-2 px-3">{task.sNo}</td>
                   <td className="py-2 px-3">{task.taskName}</td>
@@ -114,7 +114,7 @@ const Tasks = (props) => {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center py-4 text-gray-500">
+                <td colSpan="8" className="text-center py-4 text-gray-500 dark:text-gray-400">
                   No tasks available
                 </td>
               </tr>

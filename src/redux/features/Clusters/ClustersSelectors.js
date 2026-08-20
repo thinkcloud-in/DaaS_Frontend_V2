@@ -1,6 +1,7 @@
 
 export const selectClustersState = state => state.clusters;
 export const selectAllClusters = state => state.clusters.clusters;
+export const selectClustersPagination = state => state.clusters.pagination;
 export const selectClustersLoading = state => state.clusters.isLoading;
 export const selectClusterDetails = state => state.clusters.clusterDetails;
 export const selectMonitoring = state => state.clusters.monitoring;

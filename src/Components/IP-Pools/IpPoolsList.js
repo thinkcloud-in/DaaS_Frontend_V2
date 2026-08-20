@@ -1,20 +1,24 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { PoolContext } from "../../Context/PoolContext";
-import { 
-  fetchIpPoolsThunk, 
-  deleteIpPoolThunk 
+import {
+  fetchIpPoolsThunk,
+  deleteIpPoolThunk
 } from '../../redux/features/IP-Pools/IpPoolsThunks';
-import { 
-  selectIpPools, 
-  selectIpPoolsLoading, 
-  selectIpPoolsError, 
-  selectIsPoolDeleteLoading 
+import {
+  selectIpPools,
+  selectIpPoolsPagination,
+  selectIpPoolsLoading,
+  selectIpPoolsError,
+  selectIsPoolDeleteLoading
 } from '../../redux/features/IP-Pools/IpPoolsSelectors';
 import { clearError } from '../../redux/features/IP-Pools/IpPoolsSlice';
 import { selectAuthToken, selectAuthTokenParsed } from '../../redux/features/Auth/AuthSelectors';
+import { Pagination } from "../Common";
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const SkeletonLoader = () => (
   <tr>
@@ -36,14 +40,22 @@ const IpPoolsList = () => {
 
   // Redux selectors
   const pools = useSelector(selectIpPools);
+  const pagination = useSelector(selectIpPoolsPagination);
   const loading = useSelector(selectIpPoolsLoading);
   const error = useSelector(selectIpPoolsError);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     if (token) {
-      dispatch(fetchIpPoolsThunk(token));
+      dispatch(fetchIpPoolsThunk({ token, page: currentPage, pageSize }));
     }
-  }, [dispatch, token]);
+  }, [dispatch, token, currentPage, pageSize]);
 
   useEffect(() => {
     if (error) {
@@ -58,6 +70,8 @@ const IpPoolsList = () => {
     try {
       const result = await dispatch(deleteIpPoolThunk({ token, poolName })).unwrap();
       toast.success(result?.msg || `IP Pool "${poolName}" deleted successfully.`);
+      // Re-fetch current page so pagination totals stay accurate after a delete.
+      dispatch(fetchIpPoolsThunk({ token, page: currentPage, pageSize }));
     } catch (error) {
       // toast.error(error || 'Failed to delete IP pool');
     }
@@ -65,10 +79,6 @@ const IpPoolsList = () => {
 
   const handleCreate = () => {
     navigate("/ip-pools/create");
-  };
-
-  const handleBack = () => {
-    navigate(-1);
   };
 
   const DeleteButton = ({ poolName }) => {
@@ -94,69 +104,82 @@ const IpPoolsList = () => {
   };
 
   return (
-    <div className="w-full md:w-[98%] h-[85vh] md:h-[90vh] min-h-[75vh] mt-4 m-auto bg-white rounded-lg p-2 md:p-4 shadow-md flex flex-col overflow-hidden">
-      <div className="relative mb-4">
-        <h2 className="text-lg font-semibold text-center text-gray-700">IP-Pool List</h2>
-        <div className="absolute left-0 top-0">
-          <button
-            onClick={handleBack}
-            className="bg-[#1a365d]/80 text-white w-8 h-8 rounded-md hover:bg-[#1a365d] focus:outline-none focus:ring-2 focus:ring-[#1a365d]/100 focus:ring-opacity-10 flex items-center justify-center"
-            title="Back"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+    <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-left flex flex-col w-full relative select-none">
+      {/* Header */}
+      <div className="pb-4 border-b border-gray-200 dark:border-gray-700 mb-5 w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-[#1a365d] dark:text-blue-300">IP Pools</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            IP address ranges available for VM/pool provisioning.
+          </p>
         </div>
-        <div className="absolute right-0 top-0">
+        <div className="flex gap-2 items-center flex-wrap self-start sm:self-auto">
           <button
             onClick={handleCreate}
-            className="bg-[#1a365d]/80 hover:bg-[#1a365d] hover:text-white text-[#f5f5f5] rounded-md px-5 py-2 text-sm font-medium"
+            className="inline-flex items-center gap-2 rounded-md bg-[#1a365d] hover:bg-[#122744] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all uppercase tracking-wider"
           >
             + New IP-Pool
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto rounded-md bg-white table-container custom-scrollbar">
-        <table className="min-w-full bg-white text-[0.9rem] border-collapse">
-          <thead className="bg-[#F0F8FFCC] text-[#00000099] font-bold uppercase text-[0.8rem] leading-normal sticky top-0 z-10">
-            <tr>
-              <th className="py-2 px-3">NAME</th>
-              <th className="py-2 px-3">START IP</th>
-              <th className="py-2 px-3">END IP</th>
-              <th className="py-2 px-3">SUBNET</th>
-              <th className="py-2 px-3">GATEWAY</th>
-              <th className="py-2 px-3">DNS</th>
-              <th className="py-2 px-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              [...Array(5)].map((_, index) => <SkeletonLoader key={index} />)
-            ) : pools.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-500">No Pools found.</td>
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 w-full overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white dark:bg-gray-800 text-[0.9rem] border-collapse">
+            <thead>
+              <tr className="bg-[#1a365d] text-white font-bold uppercase text-[0.8rem] leading-normal select-none">
+                <th className="py-2 px-3">NAME</th>
+                <th className="py-2 px-3">START IP</th>
+                <th className="py-2 px-3">END IP</th>
+                <th className="py-2 px-3">SUBNET</th>
+                <th className="py-2 px-3">GATEWAY</th>
+                <th className="py-2 px-3">DNS</th>
+                <th className="py-2 px-3"></th>
               </tr>
-            ) : (
-              pools.map((pool, idx) => (
-                <tr
-                  key={pool.id || pool.Pool_name || idx}
-                  className="text-center border-b border-gray-200 hover:bg-gray-100"
-                >
-                  <td className="py-2 px-3 font-medium">{pool.Pool_name}</td>
-                  <td className="py-2 px-3">{pool.Starting_ip}</td>
-                  <td className="py-2 px-3">{pool.Ending_ip}</td>
-                  <td className="py-2 px-3">{pool.Subnet}</td>
-                  <td className="py-2 px-3">{pool.Gateway}</td>
-                  <td className="py-2 px-3">{Array.isArray(pool.DNS) ? pool.DNS.join(", ") : pool.DNS}</td>
-                  <td className="py-2 px-3">
-                    <DeleteButton poolName={pool.Pool_name} />
-                  </td>
+            </thead>
+            <tbody>
+              {loading ? (
+                [...Array(5)].map((_, index) => <SkeletonLoader key={index} />)
+              ) : pools.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-gray-500 dark:text-gray-400">No Pools found.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                pools.map((pool, idx) => (
+                  <tr
+                    key={pool.id || pool.Pool_name || idx}
+                    className="text-center border-b border-gray-200 dark:border-gray-700 hover:bg-blue-50/40 dark:hover:bg-gray-700/60 transition-colors"
+                  >
+                    <td className="py-2 px-3 font-medium">{pool.Pool_name}</td>
+                    <td className="py-2 px-3">{pool.Starting_ip}</td>
+                    <td className="py-2 px-3">{pool.Ending_ip}</td>
+                    <td className="py-2 px-3">{pool.Subnet}</td>
+                    <td className="py-2 px-3">{pool.Gateway}</td>
+                    <td className="py-2 px-3">{Array.isArray(pool.DNS) ? pool.DNS.join(", ") : pool.DNS}</td>
+                    <td className="py-2 px-3">
+                      <DeleteButton poolName={pool.Pool_name} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        {pools.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={pagination?.total_pages}
+            onPageChange={setCurrentPage}
+            totalItems={pagination?.total}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            pageSizeOptions={PAGE_SIZE_OPTIONS}
+            itemLabel="IP pools"
+            loading={loading}
+            hasPrev={pagination?.has_prev}
+            hasNext={pagination?.has_next}
+          />
+        )}
       </div>
     </div>
   );

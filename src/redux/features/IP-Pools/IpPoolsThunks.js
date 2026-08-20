@@ -8,10 +8,17 @@ import {
 // Fetch IP Pools
 export const fetchIpPoolsThunk = createAsyncThunk(
   'ipPools/fetchIpPools',
-  async (token, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    // Back-compat: accept either a plain token string (old call sites) or
+    // { token, page, pageSize } (new paginated call sites).
+    const { token, page = 1, pageSize = 10 } =
+      typeof arg === "string" ? { token: arg } : arg || {};
     try {
-      const data = await fetchIpPools(token);
-      return data;
+      const data = await fetchIpPools(token, page, pageSize);
+      return {
+        items: Array.isArray(data?.items) ? data.items : [],
+        pagination: data?.pagination || null,
+      };
     } catch (error) {
       const errorMessage = error.response?.data?.msg || 'Failed to fetch IP pools';
       return rejectWithValue(errorMessage);

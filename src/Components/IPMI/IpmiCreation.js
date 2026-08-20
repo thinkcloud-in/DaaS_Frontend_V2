@@ -77,7 +77,7 @@ const IpmiCreationForm = () => {
   };
 
   return (
-    <div className=" w-[98%] h-[90vh] mt-4 m-auto bg-white rounded-lg p-4 shadow-md flex flex-col overflow-hidden ">
+    <div className=" w-[98%] h-[90vh] mt-4 m-auto bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md flex flex-col overflow-hidden ">
       <div className="flex items-center mb-6 mt-10">
         <button
           onClick={Goback}
@@ -111,10 +111,10 @@ const IpmiCreationForm = () => {
       <div
         className={`w-full mx-auto pt-12 px-2 h-[90vh] ${loading ? "opacity-50 pointer-events-none select-none" : ""}`}
       >
-        <h3 className="text-lg font-medium text-[#00000099] mb-8  pb-4 pl-6 bg-transparent">
+        <h3 className="text-lg font-medium text-[#00000099] dark:text-gray-100 mb-8  pb-4 pl-6 bg-transparent">
           Create New IPMI Device
         </h3>
-        <div className="bg-white rounded-xl h-full p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl h-full p-8">
           <form onSubmit={handleSubmit} className="pr-2">
             <InputField
               label="IPMI Server IP"
