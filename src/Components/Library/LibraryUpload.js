@@ -7,7 +7,7 @@ import {
     Server, Brain, HardDrive, Box,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { selectAuthToken } from "../../redux/features/Auth/AuthSelectors";
+import { selectAuthToken, selectAuthTokenParsed } from "../../redux/features/Auth/AuthSelectors";
 import { uploadLibraryThunk } from "../../redux/features/Library/LibraryThunks";
 import { selectLibraryUploadLoading } from "../../redux/features/Library/LibrarySelectors";
 import { clearUploadResult } from "../../redux/features/Library/LibrarySlice";
@@ -254,6 +254,8 @@ const LibraryUpload = () => {
     const nav      = useNavigate();
     const dispatch = useDispatch();
     const token    = useSelector(selectAuthToken);
+    const tokenParsed = useSelector(selectAuthTokenParsed);
+    const currentUserIdentity = tokenParsed?.email || tokenParsed?.preferred_username || "";
     const createLoading = useSelector(selectLibraryUploadLoading);
 
     const [selectedType, setSelectedType] = useState("");
@@ -353,6 +355,12 @@ const LibraryUpload = () => {
             setMetadataLoading(true);
             const { metadata: found, status } = await extractVersionMetadata(f);
             setMetadataLoading(false);
+            // Stamp uploaded_by with the logged-in user so it reflects who is
+            // actually performing this upload, not whatever was baked into the
+            // zip when it was originally packaged.
+            if (found && typeof found === "object" && currentUserIdentity) {
+                found.uploaded_by = currentUserIdentity;
+            }
             setMetadata(found);
             setMetadataStatus(status);
         }
