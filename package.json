@@ -36,6 +36,7 @@
     "html2canvas": "^1.4.1",
     "intl-pluralrules": "^2.0.1",
     "jspdf": "^2.5.1",
+    "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "keycloak-js": "^23.0.7",
     "lucide-react": "^0.469.0",

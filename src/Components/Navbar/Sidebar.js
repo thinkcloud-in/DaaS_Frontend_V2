@@ -35,6 +35,10 @@ import {
   faRobot,
   faAnchor,
   faCubes,
+  faCircleQuestion,
+  faCircleInfo,
+  faHeadset,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 import Beta from "../Beta/Beta";
 import Thinkcloud from "../../images/t3.jpg";
@@ -63,6 +67,7 @@ const getIcon = (name, level = 0, parent = "") => {
         Settings: faCog,
         Cluster: faLayerGroup,
         Library: faBook,
+        "Help & Support": faCircleQuestion,
       }[name] || faAngleRight
     );
   }
@@ -100,6 +105,16 @@ const getIcon = (name, level = 0, parent = "") => {
           "Agentic AI": faRobot,
           Kubernetes: faCubes,
           Application: faLayerGroup,
+        }[name] || faAngleRight
+      );
+    }
+
+    if (parent === "Help & Support") {
+      return (
+        {
+          About: faCircleInfo,
+          "Contact Support": faHeadset,
+          "Download Logs Bundle": faDownload,
         }[name] || faAngleRight
       );
     }
@@ -210,8 +225,14 @@ const Sidebar = ({ tokenParsed }) => {
     });
 
     // 3. Dynamic Menu positioning (Library -> Cluster)
+    // baseNavigation already ships "Library" and "Cluster" as top-level RBAC
+    // items, so only inject the manual fallback when RBAC hasn't already
+    // provided them — otherwise they render twice.
     let insertedMenus = false;
     const finalItems = [];
+
+    const hasLibrary = updatedItems.some((item) => item.name === "Library");
+    const hasClusterTopLevel = updatedItems.some((item) => item.name === "Cluster");
 
     const libraryItem = {
       name: "Library",
@@ -222,8 +243,8 @@ const Sidebar = ({ tokenParsed }) => {
     updatedItems.forEach((item) => {
       finalItems.push(item);
       if (item.name === "IP Pools" || item.name === "IpPools") {
-        finalItems.push(libraryItem);
-        if (clusterItem) {
+        if (!hasLibrary) finalItems.push(libraryItem);
+        if (clusterItem && !hasClusterTopLevel) {
           finalItems.push(clusterItem);
         }
         insertedMenus = true;
@@ -231,9 +252,20 @@ const Sidebar = ({ tokenParsed }) => {
     });
 
     if (!insertedMenus) {
-      finalItems.push(libraryItem);
-      if (clusterItem) finalItems.push(clusterItem);
+      if (!hasLibrary) finalItems.push(libraryItem);
+      if (clusterItem && !hasClusterTopLevel) finalItems.push(clusterItem);
     }
+
+    // 4. Help & Support menu (static, always visible — not RBAC-driven)
+    finalItems.push({
+      name: "Help & Support",
+      href: undefined,
+      submenus: [
+        { name: "About", href: "/about", submenus: [] },
+        { name: "Contact Support", href: "/support", submenus: [] },
+        { name: "Download Logs Bundle", href: "/download-bundle-logs", submenus: [] },
+      ],
+    });
 
     // Active tracking logic
     function markCurrent(items) {

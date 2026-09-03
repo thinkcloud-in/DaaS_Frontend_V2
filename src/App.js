@@ -44,6 +44,9 @@ import IPMIDashboard from "Components/Dashboard/IPMIDashboard/Ipmi-Dashboard";
 import Recordings from "Components/Recordings/Recordings";
 import ActiveSessions from "Components/ActiveSessions/ActiveSessions";
 import TaskManagerPage from "Components/AgentTaskManager/Task_manager";
+import About from "Components/HelpSupport/About";
+import ContactSupport from "Components/HelpSupport/ContactSupport";
+import DownloadBundleLogs from "Components/HelpSupport/DownloadBundleLogs";
 import { fetchRbac } from "./redux/features/Rbac/RbacThunks";
 //lazy imports
 const Domain = React.lazy(() => import("./Components/Domain/Domain"));
@@ -580,6 +583,9 @@ function App() {
                     path="/harbor"
                     element={<HarborList token={refreshToken} />}
                   />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/support" element={<ContactSupport />} />
+                  <Route path="/download-bundle-logs" element={<DownloadBundleLogs />} />
                   <Route
                     path="/harbor/deploy"
                     element={<HarborDeploy token={refreshToken} />}
